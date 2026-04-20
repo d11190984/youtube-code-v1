@@ -29,6 +29,7 @@ import { videoUpdateSchema } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { STATUS_MAP, TRACK_STATUS_MAP } from "@/lib/status-map";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -144,21 +145,21 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     onSuccess: () => {
       utils.studio.getMany.invalidate();
       utils.studio.getOne.invalidate({ id: videoId });
-      toast.success("Video updated");
+      toast.success("Cập nhật video thành công");
     },
     onError: () => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
     },
   });
 
   const remove = trpc.videos.remove.useMutation({
     onSuccess: () => {
       utils.studio.getMany.invalidate();
-      toast.success("Video removed");
+      toast.success("Đã xóa video");
       router.push("/studio");
     },
     onError: () => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
     },
   });
 
@@ -166,21 +167,21 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     onSuccess: () => {
       utils.studio.getMany.invalidate();
       utils.studio.getOne.invalidate({ id: videoId });
-      toast.success("Video revalidated");
+      toast.success("Đã làm mới video");
     },
     onError: () => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
     },
   });
 
   const generateDescription = trpc.videos.generateDescription.useMutation({
     onSuccess: () => {
-      toast.success("Background job started", {
-        description: "This may take some time",
+      toast.success("Đang xử lý...", {
+        description: "Việc này có thể mất một chút thời gian",
       });
     },
     onError: () => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
     },
   });
   const generateTitle = trpc.videos.generateTitle.useMutation({
@@ -189,11 +190,11 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     },
     onSuccess: (data) => {
       console.log("✅ Workflow triggered:", data);
-      toast.success("Background job started");
+      toast.success("Đang xử lý...");
     },
     onError: (err) => {
       console.error("❌ Error:", err);
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
     },
   });
 
@@ -201,10 +202,10 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     onSuccess: () => {
       utils.studio.getMany.invalidate();
       utils.studio.getOne.invalidate({ id: videoId });
-      toast.success("Thumbnail restored");
+      toast.success("Thumbnail đã được khôi phục");
     },
     onError: () => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
     },
   });
 
@@ -245,9 +246,9 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold">Video details</h1>
+              <h1 className="text-2xl font-bold">Chi tiết video</h1>
               <p className="text-xs text-muted-foreground">
-                Manage your video details
+                Quản lý thông tin video của bạn
               </p>
             </div>
             <div className="flex items-center gap-x-2">
@@ -255,7 +256,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                 type="submit"
                 disabled={update.isPending || !form.formState.isDirty}
               >
-                Save
+                Lưu
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -268,13 +269,13 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                     onClick={() => revalidate.mutate({ id: videoId })}
                   >
                     <RotateCcwIcon className="size-4 mr-2" />
-                    Revalidate
+                    Làm mới
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => remove.mutate({ id: videoId })}
                   >
                     <TrashIcon className="size-4 mr-2" />
-                    Delete
+                    Xóa
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -289,7 +290,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                   <FormItem>
                     <FormLabel>
                       <div className="flex items-center gap-x-2">
-                        Title
+                        Tên video
                         <Button
                           size="icon"
                           variant="outline"
@@ -312,10 +313,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                       </div>
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Add a title to your video"
-                      />
+                      <Input {...field} placeholder="Nhập tiêu đề video" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -328,7 +326,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                   <FormItem>
                     <FormLabel>
                       <div className="flex items-center gap-x-2">
-                        Description
+                        Mô tả video
                         <Button
                           size="icon"
                           variant="outline"
@@ -355,7 +353,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                         value={field.value ?? ""}
                         rows={10}
                         className="resize-none pr-10"
-                        placeholder="Add a description to your video"
+                        placeholder="Nhập mô tả video"
                       />
                     </FormControl>
                     <FormMessage />
@@ -367,7 +365,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                 control={form.control}
                 render={() => (
                   <FormItem>
-                    <FormLabel>Thumbnail</FormLabel>
+                    <FormLabel>Ảnh bìa</FormLabel>
                     <FormControl>
                       <div className="p-0.5 border border-dashed border-neutral-400 relative h-[84px] w-[153px] group">
                         <Image
@@ -391,7 +389,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                               onClick={() => setThumbnailModalOpen(true)}
                             >
                               <ImagePlusIcon className="size-4 mr-1" />
-                              Change
+                              Thay đổi
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -399,7 +397,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                               }
                             >
                               <SparklesIcon className="size-4 mr-1" />
-                              AI-generated
+                              Tạo bằng AI
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -407,7 +405,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                               }
                             >
                               <RotateCcwIcon className="size-4 mr-1" />
-                              Restore
+                              Khôi phục
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -421,14 +419,14 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                 name="categoryId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>Danh mục</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value ?? undefined}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder="Chọn danh mục" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -456,7 +454,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                   <div className="flex justify-between items-center gap-x-2">
                     <div className="flex flex-col gap-y-1">
                       <p className="text-muted-foreground text-xs">
-                        Video link
+                        Liên kết video
                       </p>
                       <div className="flex items-center gap-x-2">
                         <Link prefetch href={`/videos/${video.id}`}>
@@ -481,10 +479,12 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                   <div className="flex justify-between items-center">
                     <div className="flex flex-col gap-y-1">
                       <p className="text-muted-foreground text-xs">
-                        Video status
+                        Trạng thái video
                       </p>
                       <p className="text-sm">
-                        {snakeCaseToTitle(video.muxStatus || "preparing")}
+                        {STATUS_MAP[
+                          video.muxStatus as keyof typeof STATUS_MAP
+                        ] || "Đang xử lý"}
                       </p>
                     </div>
                   </div>
@@ -492,12 +492,12 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                   <div className="flex justify-between items-center">
                     <div className="flex flex-col gap-y-1">
                       <p className="text-muted-foreground text-xs">
-                        Subtitles status
+                        Trạng thái phụ đề
                       </p>
                       <p className="text-sm">
-                        {snakeCaseToTitle(
-                          video.muxTrackStatus || "no_subtitles",
-                        )}
+                        {TRACK_STATUS_MAP[
+                          video.muxTrackStatus as keyof typeof TRACK_STATUS_MAP
+                        ] || "Không có phụ đề"}
                       </p>
                     </div>
                   </div>
@@ -509,27 +509,27 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                 name="visibility"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Visibility</FormLabel>
+                    <FormLabel>Quyền riêng tư</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value ?? undefined}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select visibility" />
+                          <SelectValue placeholder="Chọn quyền riêng tư" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="public">
                           <div className="flex items-center">
                             <Globe2Icon className="size-4 mr-2" />
-                            Public
+                            Công khai
                           </div>
                         </SelectItem>
                         <SelectItem value="private">
                           <div className="flex items-center">
                             <LockIcon className="size-4 mr-2" />
-                            Private
+                            Riêng tư
                           </div>
                         </SelectItem>
                       </SelectContent>
