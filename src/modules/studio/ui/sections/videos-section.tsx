@@ -39,7 +39,7 @@ const VideosSectionSkeleton = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-6 w-[510px]">Video</TableHead> 
+              <TableHead className="pl-6 w-[510px]">Video</TableHead>
               <TableHead>Quyền riêng tư</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Ngày</TableHead>
@@ -104,12 +104,12 @@ const VideosSectionSuspense = () => {
           <TableHeader>
             <TableRow>
               <TableHead className="pl-6 w-[510px]">Video</TableHead>
-              <TableHead>Visibility</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Views</TableHead>
-              <TableHead className="text-right">Comments</TableHead>
-              <TableHead className="text-right pr-6">Likes</TableHead>
+              <TableHead>Quyền riêng tư</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Ngày</TableHead>
+              <TableHead className="text-right">Lượt xem</TableHead>
+              <TableHead className="text-right">Bình luận</TableHead>
+              <TableHead className="text-right pr-6">Lượt thích</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
