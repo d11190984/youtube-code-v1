@@ -43,7 +43,7 @@ export const VideoOwner = ({ user, videoId }: VideoOwnerProps) => {
           asChild
         >
           <Link prefetch href={`/studio/videos/${videoId}`}>
-            Edit video
+             Chỉnh sửa video
           </Link>
         </Button>
       ) : (
