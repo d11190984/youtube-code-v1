@@ -2,18 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { trpc } from "@/trpc/client";
+import { THUMBNAIL_FALLBACK } from "@/modules/videos/constants";
 
 export const PlaylistsView = () => {
   const router = useRouter();
 
-  const { data, isLoading } = trpc.playlists.getMixPlaylists.useQuery();
+const { data, isLoading } = trpc.playlists.getPublicMixPlaylists.useQuery();
 
   if (isLoading) {
     return <p className="p-4">Đang tải...</p>;
   }
 
   if (!data || data.length === 0) {
-    return <p className="p-4">Không có danh sách</p>;
+    return <p className="p-4">Chưa có danh sách kết hợp nào</p>;
   }
 
   return (
@@ -24,11 +25,14 @@ export const PlaylistsView = () => {
       {/* Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {data.map((playlist) => {
+          // Lấy video đầu tiên để click vào
           const firstVideo = playlist.videos?.[0];
 
-          // 🔥 FIX: đảm bảo luôn có số đúng
-          const videoCount =
-            playlist.videoCount ?? playlist.videos?.length ?? 0;
+          // Số lượng video
+          const videoCount = playlist.videoCount ?? playlist.videos?.length ?? 0;
+
+          // Thumbnail: fallback nếu không có video
+          const thumbnail = playlist.thumbnail || THUMBNAIL_FALLBACK;
 
           return (
             <div
@@ -36,7 +40,7 @@ export const PlaylistsView = () => {
               onClick={() => {
                 if (firstVideo?.id) {
                   router.push(
-                    `/videos/${firstVideo.id}?list=${playlist.id}&index=0`,
+                    `/videos/${firstVideo.id}?list=${playlist.id}&index=0`
                   );
                 }
               }}
@@ -45,9 +49,13 @@ export const PlaylistsView = () => {
               {/* Thumbnail */}
               <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
                 <img
-                  src={playlist.thumbnail || "/placeholder.jpg"}
+                  src={thumbnail}
                   alt={playlist.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition"
+                  onError={(e) => {
+                    // fallback nếu thumbnail lỗi
+                    (e.currentTarget as HTMLImageElement).src = THUMBNAIL_FALLBACK;
+                  }}
                 />
 
                 {/* Overlay */}
