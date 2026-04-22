@@ -1,10 +1,17 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, getTableColumns, lt, or, sql } from "drizzle-orm";
-
+import { categories } from "@/db/schema";
 import { db } from "@/db";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
-import { playlists, playlistVideos, users, videoReactions, videos, videoViews } from "@/db/schema";
+import {
+  playlists,
+  playlistVideos,
+  users,
+  videoReactions,
+  videos,
+  videoViews,
+} from "@/db/schema";
 
 export const playlistsRouter = createTRPCRouter({
   remove: protectedProcedure
@@ -14,12 +21,9 @@ export const playlistsRouter = createTRPCRouter({
       const { id: userId } = ctx.user;
 
       const [deletedPlaylist] = await db
-      .delete(playlists)
-      .where(and(
-        eq(playlists.id, id),
-        eq(playlists.userId, userId),
-      ))
-      .returning();
+        .delete(playlists)
+        .where(and(eq(playlists.id, id), eq(playlists.userId, userId)))
+        .returning();
 
       if (!deletedPlaylist) {
         throw new TRPCError({ code: "NOT_FOUND" });
@@ -36,12 +40,7 @@ export const playlistsRouter = createTRPCRouter({
       const [existingPlaylist] = await db
         .select()
         .from(playlists)
-        .where(
-          and(
-            eq(playlists.id, id),
-            eq(playlists.userId, userId),
-          )
-        );
+        .where(and(eq(playlists.id, id), eq(playlists.userId, userId)));
 
       if (!existingPlaylist) {
         throw new TRPCError({ code: "NOT_FOUND" });
@@ -53,11 +52,12 @@ export const playlistsRouter = createTRPCRouter({
     .input(
       z.object({
         playlistId: z.string().uuid(),
-        cursor: z.object({
-          id: z.string().uuid(),
-          updatedAt: z.date(),
-        })
-        .nullish(),
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            updatedAt: z.date(),
+          })
+          .nullish(),
         limit: z.number().min(1).max(100),
       }),
     )
@@ -68,10 +68,7 @@ export const playlistsRouter = createTRPCRouter({
       const [existingPlaylist] = await db
         .select()
         .from(playlists)
-        .where(and(
-          eq(playlists.id, playlistId),
-          eq(playlists.userId, userId)
-        ))
+        .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
 
       if (!existingPlaylist) {
         throw new TRPCError({ code: "NOT_FOUND" });
@@ -83,7 +80,7 @@ export const playlistsRouter = createTRPCRouter({
             videoId: playlistVideos.videoId,
           })
           .from(playlistVideos)
-          .where(eq(playlistVideos.playlistId, playlistId))
+          .where(eq(playlistVideos.playlistId, playlistId)),
       );
 
       const data = await db
@@ -92,43 +89,55 @@ export const playlistsRouter = createTRPCRouter({
           ...getTableColumns(videos),
           user: users,
           viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
-          likeCount: db.$count(videoReactions, and(
-            eq(videoReactions.videoId, videos.id),
-            eq(videoReactions.type, "like"),
-          )),
-          dislikeCount: db.$count(videoReactions, and(
-            eq(videoReactions.videoId, videos.id),
-            eq(videoReactions.type, "dislike"),
-          )),
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "like"),
+            ),
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "dislike"),
+            ),
+          ),
         })
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
-        .innerJoin(videosFromPlaylist, eq(videos.id, videosFromPlaylist.videoId))
-        .where(and(
-          eq(videos.visibility, "public"),
-          cursor
-            ? or(
-                lt(videos.updatedAt, cursor.updatedAt),
+        .innerJoin(
+          videosFromPlaylist,
+          eq(videos.id, videosFromPlaylist.videoId),
+        )
+        .where(
+          and(
+            eq(videos.visibility, "public"),
+            cursor
+              ? or(
+                  lt(videos.updatedAt, cursor.updatedAt),
                   and(
                     eq(videos.updatedAt, cursor.updatedAt),
-                    lt(videos.id, cursor.id)
-                  )
+                    lt(videos.id, cursor.id),
+                  ),
                 )
-            : undefined,
-        )).orderBy(desc(videos.updatedAt), desc(videos.id))
+              : undefined,
+          ),
+        )
+        .orderBy(desc(videos.updatedAt), desc(videos.id))
         // Add 1 to the limit to check if there is more data
-        .limit(limit + 1)
+        .limit(limit + 1);
 
       const hasMore = data.length > limit;
       // Remove the last item if there is more data
       const items = hasMore ? data.slice(0, -1) : data;
       // Set the next cursor to the last item if there is more data
       const lastItem = items[items.length - 1];
-      const nextCursor = hasMore 
+      const nextCursor = hasMore
         ? {
-          id: lastItem.id,
-          updatedAt: lastItem.updatedAt,
-        }
+            id: lastItem.id,
+            updatedAt: lastItem.updatedAt,
+          }
         : null;
 
       return {
@@ -137,10 +146,12 @@ export const playlistsRouter = createTRPCRouter({
       };
     }),
   removeVideo: protectedProcedure
-    .input(z.object({ 
-      playlistId: z.string().uuid(),
-      videoId: z.string().uuid(),
-    }))
+    .input(
+      z.object({
+        playlistId: z.string().uuid(),
+        videoId: z.string().uuid(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       const { playlistId, videoId } = input;
       const { id: userId } = ctx.user;
@@ -148,10 +159,7 @@ export const playlistsRouter = createTRPCRouter({
       const [existingPlaylist] = await db
         .select()
         .from(playlists)
-        .where(and(
-          eq(playlists.id, playlistId),
-          eq(playlists.userId, userId),
-        ));
+        .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
 
       if (!existingPlaylist) {
         throw new TRPCError({ code: "NOT_FOUND" });
@@ -173,7 +181,7 @@ export const playlistsRouter = createTRPCRouter({
           and(
             eq(playlistVideos.playlistId, playlistId),
             eq(playlistVideos.videoId, videoId),
-          )
+          ),
         );
 
       if (!existingPlaylistVideo) {
@@ -186,17 +194,47 @@ export const playlistsRouter = createTRPCRouter({
           and(
             eq(playlistVideos.playlistId, playlistId),
             eq(playlistVideos.videoId, videoId),
-          )
+          ),
         )
         .returning();
 
       return deletedPlaylistVideo;
     }),
+ getMixPlaylists: protectedProcedure.query(async () => {
+  const categoriesData = await db.select().from(categories);
+
+  if (!categoriesData.length) return [];
+
+  const result = [];
+
+  for (const category of categoriesData) {
+    const categoryVideos = await db
+      .select()
+      .from(videos)
+      .where(eq(videos.categoryId, category.id))
+      .orderBy(desc(videos.createdAt))
+      .limit(20);
+
+    if (!categoryVideos.length) continue;
+
+    result.push({
+      id: category.id,
+      name: `Danh sách kết hợp – ${category.name}`,
+      thumbnail: categoryVideos[0]?.thumbnailUrl ?? null,
+      videos: categoryVideos,
+      videoCount: categoryVideos.length, // 🔥 QUAN TRỌNG
+    });
+  }
+
+  return result;
+}),
   addVideo: protectedProcedure
-    .input(z.object({ 
-      playlistId: z.string().uuid(),
-      videoId: z.string().uuid(),
-    }))
+    .input(
+      z.object({
+        playlistId: z.string().uuid(),
+        videoId: z.string().uuid(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       const { playlistId, videoId } = input;
       const { id: userId } = ctx.user;
@@ -204,10 +242,7 @@ export const playlistsRouter = createTRPCRouter({
       const [existingPlaylist] = await db
         .select()
         .from(playlists)
-        .where(and(
-          eq(playlists.id, playlistId),
-          eq(playlists.userId, userId),
-        ));
+        .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
 
       if (!existingPlaylist) {
         throw new TRPCError({ code: "NOT_FOUND" });
@@ -229,7 +264,7 @@ export const playlistsRouter = createTRPCRouter({
           and(
             eq(playlistVideos.playlistId, playlistId),
             eq(playlistVideos.videoId, videoId),
-          )
+          ),
         );
 
       if (existingPlaylistVideo) {
@@ -247,11 +282,12 @@ export const playlistsRouter = createTRPCRouter({
     .input(
       z.object({
         videoId: z.string().uuid(),
-        cursor: z.object({
-          id: z.string().uuid(),
-          updatedAt: z.date(),
-        })
-        .nullish(),
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            updatedAt: z.date(),
+          })
+          .nullish(),
         limit: z.number().min(1).max(100),
       }),
     )
@@ -264,7 +300,7 @@ export const playlistsRouter = createTRPCRouter({
           ...getTableColumns(playlists),
           videoCount: db.$count(
             playlistVideos,
-            eq(playlists.id, playlistVideos.playlistId)
+            eq(playlists.id, playlistVideos.playlistId),
           ),
           user: users,
           containsVideo: videoId
@@ -279,31 +315,34 @@ export const playlistsRouter = createTRPCRouter({
         })
         .from(playlists)
         .innerJoin(users, eq(playlists.userId, users.id))
-        .where(and(
-          eq(playlists.userId, userId),
-          cursor
-            ? or(
-                lt(playlists.updatedAt, cursor.updatedAt),
+        .where(
+          and(
+            eq(playlists.userId, userId),
+            cursor
+              ? or(
+                  lt(playlists.updatedAt, cursor.updatedAt),
                   and(
                     eq(playlists.updatedAt, cursor.updatedAt),
-                    lt(playlists.id, cursor.id)
-                  )
+                    lt(playlists.id, cursor.id),
+                  ),
                 )
-            : undefined,
-        )).orderBy(desc(playlists.updatedAt), desc(playlists.id))
+              : undefined,
+          ),
+        )
+        .orderBy(desc(playlists.updatedAt), desc(playlists.id))
         // Add 1 to the limit to check if there is more data
-        .limit(limit + 1)
+        .limit(limit + 1);
 
       const hasMore = data.length > limit;
       // Remove the last item if there is more data
       const items = hasMore ? data.slice(0, -1) : data;
       // Set the next cursor to the last item if there is more data
       const lastItem = items[items.length - 1];
-      const nextCursor = hasMore 
+      const nextCursor = hasMore
         ? {
-          id: lastItem.id,
-          updatedAt: lastItem.updatedAt,
-        }
+            id: lastItem.id,
+            updatedAt: lastItem.updatedAt,
+          }
         : null;
 
       return {
@@ -314,11 +353,12 @@ export const playlistsRouter = createTRPCRouter({
   getMany: protectedProcedure
     .input(
       z.object({
-        cursor: z.object({
-          id: z.string().uuid(),
-          updatedAt: z.date(),
-        })
-        .nullish(),
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            updatedAt: z.date(),
+          })
+          .nullish(),
         limit: z.number().min(1).max(100),
       }),
     )
@@ -331,7 +371,7 @@ export const playlistsRouter = createTRPCRouter({
           ...getTableColumns(playlists),
           videoCount: db.$count(
             playlistVideos,
-            eq(playlists.id, playlistVideos.playlistId)
+            eq(playlists.id, playlistVideos.playlistId),
           ),
           user: users,
           thumbnailUrl: sql<string | null>`(
@@ -341,35 +381,38 @@ export const playlistsRouter = createTRPCRouter({
             WHERE pv.playlist_id = ${playlists.id}
             ORDER BY pv.updated_at DESC
             LIMIT 1
-          )`
+          )`,
         })
         .from(playlists)
         .innerJoin(users, eq(playlists.userId, users.id))
-        .where(and(
-          eq(playlists.userId, userId),
-          cursor
-            ? or(
-                lt(playlists.updatedAt, cursor.updatedAt),
+        .where(
+          and(
+            eq(playlists.userId, userId),
+            cursor
+              ? or(
+                  lt(playlists.updatedAt, cursor.updatedAt),
                   and(
                     eq(playlists.updatedAt, cursor.updatedAt),
-                    lt(playlists.id, cursor.id)
-                  )
+                    lt(playlists.id, cursor.id),
+                  ),
                 )
-            : undefined,
-        )).orderBy(desc(playlists.updatedAt), desc(playlists.id))
+              : undefined,
+          ),
+        )
+        .orderBy(desc(playlists.updatedAt), desc(playlists.id))
         // Add 1 to the limit to check if there is more data
-        .limit(limit + 1)
+        .limit(limit + 1);
 
       const hasMore = data.length > limit;
       // Remove the last item if there is more data
       const items = hasMore ? data.slice(0, -1) : data;
       // Set the next cursor to the last item if there is more data
       const lastItem = items[items.length - 1];
-      const nextCursor = hasMore 
+      const nextCursor = hasMore
         ? {
-          id: lastItem.id,
-          updatedAt: lastItem.updatedAt,
-        }
+            id: lastItem.id,
+            updatedAt: lastItem.updatedAt,
+          }
         : null;
 
       return {
@@ -400,11 +443,12 @@ export const playlistsRouter = createTRPCRouter({
   getLiked: protectedProcedure
     .input(
       z.object({
-        cursor: z.object({
-          id: z.string().uuid(),
-          likedAt: z.date(),
-        })
-        .nullish(),
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            likedAt: z.date(),
+          })
+          .nullish(),
         limit: z.number().min(1).max(100),
       }),
     )
@@ -419,10 +463,12 @@ export const playlistsRouter = createTRPCRouter({
             likedAt: videoReactions.updatedAt,
           })
           .from(videoReactions)
-          .where(and(
-            eq(videoReactions.userId, userId),
-            eq(videoReactions.type, "like"),
-          ))
+          .where(
+            and(
+              eq(videoReactions.userId, userId),
+              eq(videoReactions.type, "like"),
+            ),
+          ),
       );
 
       const data = await db
@@ -432,43 +478,55 @@ export const playlistsRouter = createTRPCRouter({
           user: users,
           likedAt: viewerVideoReactions.likedAt,
           viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
-          likeCount: db.$count(videoReactions, and(
-            eq(videoReactions.videoId, videos.id),
-            eq(videoReactions.type, "like"),
-          )),
-          dislikeCount: db.$count(videoReactions, and(
-            eq(videoReactions.videoId, videos.id),
-            eq(videoReactions.type, "dislike"),
-          )),
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "like"),
+            ),
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "dislike"),
+            ),
+          ),
         })
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
-        .innerJoin(viewerVideoReactions, eq(videos.id, viewerVideoReactions.videoId))
-        .where(and(
-          eq(videos.visibility, "public"),
-          cursor
-            ? or(
-                lt(viewerVideoReactions.likedAt, cursor.likedAt),
+        .innerJoin(
+          viewerVideoReactions,
+          eq(videos.id, viewerVideoReactions.videoId),
+        )
+        .where(
+          and(
+            eq(videos.visibility, "public"),
+            cursor
+              ? or(
+                  lt(viewerVideoReactions.likedAt, cursor.likedAt),
                   and(
                     eq(viewerVideoReactions.likedAt, cursor.likedAt),
-                    lt(videos.id, cursor.id)
-                  )
+                    lt(videos.id, cursor.id),
+                  ),
                 )
-            : undefined,
-        )).orderBy(desc(viewerVideoReactions.likedAt), desc(videos.id))
+              : undefined,
+          ),
+        )
+        .orderBy(desc(viewerVideoReactions.likedAt), desc(videos.id))
         // Add 1 to the limit to check if there is more data
-        .limit(limit + 1)
+        .limit(limit + 1);
 
       const hasMore = data.length > limit;
       // Remove the last item if there is more data
       const items = hasMore ? data.slice(0, -1) : data;
       // Set the next cursor to the last item if there is more data
       const lastItem = items[items.length - 1];
-      const nextCursor = hasMore 
+      const nextCursor = hasMore
         ? {
-          id: lastItem.id,
-          likedAt: lastItem.likedAt,
-        }
+            id: lastItem.id,
+            likedAt: lastItem.likedAt,
+          }
         : null;
 
       return {
@@ -479,11 +537,12 @@ export const playlistsRouter = createTRPCRouter({
   getHistory: protectedProcedure
     .input(
       z.object({
-        cursor: z.object({
-          id: z.string().uuid(),
-          viewedAt: z.date(),
-        })
-        .nullish(),
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            viewedAt: z.date(),
+          })
+          .nullish(),
         limit: z.number().min(1).max(100),
       }),
     )
@@ -498,7 +557,7 @@ export const playlistsRouter = createTRPCRouter({
             viewedAt: videoViews.updatedAt,
           })
           .from(videoViews)
-          .where(eq(videoViews.userId, userId))
+          .where(eq(videoViews.userId, userId)),
       );
 
       const data = await db
@@ -508,43 +567,52 @@ export const playlistsRouter = createTRPCRouter({
           user: users,
           viewedAt: viewerVideoViews.viewedAt,
           viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
-          likeCount: db.$count(videoReactions, and(
-            eq(videoReactions.videoId, videos.id),
-            eq(videoReactions.type, "like"),
-          )),
-          dislikeCount: db.$count(videoReactions, and(
-            eq(videoReactions.videoId, videos.id),
-            eq(videoReactions.type, "dislike"),
-          )),
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "like"),
+            ),
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "dislike"),
+            ),
+          ),
         })
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
         .innerJoin(viewerVideoViews, eq(videos.id, viewerVideoViews.videoId))
-        .where(and(
-          eq(videos.visibility, "public"),
-          cursor
-            ? or(
-                lt(viewerVideoViews.viewedAt, cursor.viewedAt),
+        .where(
+          and(
+            eq(videos.visibility, "public"),
+            cursor
+              ? or(
+                  lt(viewerVideoViews.viewedAt, cursor.viewedAt),
                   and(
                     eq(viewerVideoViews.viewedAt, cursor.viewedAt),
-                    lt(videos.id, cursor.id)
-                  )
+                    lt(videos.id, cursor.id),
+                  ),
                 )
-            : undefined,
-        )).orderBy(desc(viewerVideoViews.viewedAt), desc(videos.id))
+              : undefined,
+          ),
+        )
+        .orderBy(desc(viewerVideoViews.viewedAt), desc(videos.id))
         // Add 1 to the limit to check if there is more data
-        .limit(limit + 1)
+        .limit(limit + 1);
 
       const hasMore = data.length > limit;
       // Remove the last item if there is more data
       const items = hasMore ? data.slice(0, -1) : data;
       // Set the next cursor to the last item if there is more data
       const lastItem = items[items.length - 1];
-      const nextCursor = hasMore 
+      const nextCursor = hasMore
         ? {
-          id: lastItem.id,
-          viewedAt: lastItem.viewedAt,
-        }
+            id: lastItem.id,
+            viewedAt: lastItem.viewedAt,
+          }
         : null;
 
       return {
