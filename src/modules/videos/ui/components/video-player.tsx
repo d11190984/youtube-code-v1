@@ -16,7 +16,11 @@ interface VideoPlayerProps {
     id: string;
     title: string;
     thumbnail: string;
+    playlistId?: string;
+    index?: number;
   };
+
+  onEnded?: () => void; // playlist mode
 }
 
 export const VideoPlayerSkeleton = () => {
@@ -29,6 +33,7 @@ export const VideoPlayer = ({
   autoPlay,
   onPlay,
   nextVideo,
+  onEnded,
 }: VideoPlayerProps) => {
   const router = useRouter();
   const playerRef = useRef<any>(null);
@@ -37,15 +42,15 @@ export const VideoPlayer = ({
   const [countdown, setCountdown] = useState(6);
   const [hasRedirected, setHasRedirected] = useState(false);
 
-  // 🎬 VIDEO END
+  // 🎬 VIDEO END → chỉ hiện overlay
   useEffect(() => {
     const player = playerRef.current;
     if (!player) return;
 
     const handleEnded = () => {
       setCountdown(6);
-      setHasRedirected(false);
       setShowNext(true);
+      setHasRedirected(false);
     };
 
     player.addEventListener("ended", handleEnded);
@@ -55,7 +60,7 @@ export const VideoPlayer = ({
     };
   }, []);
 
-  // 🔥 RESET KHI VIDEO ĐỔI
+  // 🔥 RESET khi đổi video
   useEffect(() => {
     setShowNext(false);
     setCountdown(6);
@@ -73,28 +78,42 @@ export const VideoPlayer = ({
     return () => clearInterval(interval);
   }, [showNext]);
 
-  // 🚀 REDIRECT
+  // 🚀 AUTO NEXT (QUAN TRỌNG)
   useEffect(() => {
-    if (countdown <= 0 && nextVideo?.id && !hasRedirected) {
+    if (countdown <= 0 && nextVideo && !hasRedirected) {
       setHasRedirected(true);
-      router.push(`/videos/${nextVideo.id}`);
+
+      // 🎯 PLAYLIST MODE
+      if (onEnded) {
+        onEnded();
+        return;
+      }
+
+      // 🎯 NORMAL MODE
+      if (nextVideo.playlistId) {
+        router.push(
+          `/videos/${nextVideo.id}?list=${nextVideo.playlistId}&index=${nextVideo.index}`
+        );
+      } else {
+        router.push(`/videos/${nextVideo.id}`);
+      }
     }
-  }, [countdown, nextVideo?.id, hasRedirected, router]);
+  }, [countdown, nextVideo, hasRedirected, onEnded, router]);
 
   return (
     <div className="relative w-full h-full">
+      {/* PLAYER */}
       <MuxPlayer
         ref={playerRef}
         playbackId={playbackId || ""}
         poster={thumbnailUrl || THUMBNAIL_FALLBACK}
-        playerInitTime={0}
         autoPlay={autoPlay}
-        thumbnailTime={0}
         className="w-full h-full object-contain"
         accentColor="#FF2056"
         onPlay={onPlay}
       />
 
+      {/* OVERLAY */}
       {showNext && nextVideo && (
         <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white">
           <p className="mb-4 text-sm opacity-80">
@@ -115,6 +134,7 @@ export const VideoPlayer = ({
           </div>
 
           <div className="flex gap-4 mt-4">
+            {/* HỦY */}
             <button
               onClick={() => setShowNext(false)}
               className="px-4 py-2 bg-gray-700 rounded-full"
@@ -122,8 +142,21 @@ export const VideoPlayer = ({
               HỦY
             </button>
 
+            {/* PLAY NGAY */}
             <button
-              onClick={() => router.push(`/videos/${nextVideo.id}`)}
+              onClick={() => {
+                setHasRedirected(true);
+
+                if (onEnded) {
+                  onEnded();
+                } else if (nextVideo.playlistId) {
+                  router.push(
+                    `/videos/${nextVideo.id}?list=${nextVideo.playlistId}&index=${nextVideo.index}`
+                  );
+                } else {
+                  router.push(`/videos/${nextVideo.id}`);
+                }
+              }}
               className="px-4 py-2 bg-white text-black rounded-full font-semibold"
             >
               PHÁT NGAY
