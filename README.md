@@ -1,6 +1,6 @@
-# YouTube Clone 
+# YouTube 
 
-Một bản clone YouTube hiện đại được phát triển bằng **Next.js, Drizzle ORM**, kết hợp các thư viện UI hiện đại, với khả năng xử lý video nâng cao, phiên âm thời gian thực và giao diện **responsive**.
+Một bản YouTube hiện đại được phát triển bằng **Next.js, Drizzle ORM**, kết hợp các thư viện UI hiện đại, với khả năng xử lý video nâng cao, phiên âm thời gian thực và giao diện **responsive**.
 
 ## Tính Năng Nổi Bật
 
@@ -48,15 +48,13 @@ Một bản clone YouTube hiện đại được phát triển bằng **Next.js,
 ## Hướng Dẫn Cài Đặt
 
 ### Sử dụng Bun (khuyến nghị)
-
-````bash
+---
 # Cài đặt dependencies
 bun install
 
 # Copy file môi trường
 cp .env.example .env
 
-```npm
 # Cài đặt dependencies
 npm install
 # Nếu gặp lỗi, thử:
@@ -65,7 +63,10 @@ npm install --legacy-peer-deps
 # Copy file môi trường
 cp .env.example .env
 
-```BiếnMôiTrường
+---
+
+## Biến Môi Trường
+
 # Database
 DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@<DB_HOST>/<DB_NAME>?sslmode=require&channel_binding=require
 
@@ -97,7 +98,9 @@ REPLICATE_API_KEY=<REPLICATE_API_KEY>
 # UploadThing (Upload file / media)
 UPLOADTHING_TOKEN=<UPLOADTHING_TOKEN>
 
-```ThiếtLậpDatabase
+---
+
+### Thiết Lập Database
 
 # Dùng Bun
 bun run src/scripts/seed-categories.ts
@@ -105,14 +108,20 @@ bun run src/scripts/seed-categories.ts
 # Hoặc TSX
 tsx src/scripts/seed-categories.ts
 
-```ChạyProject
+---
+
+### Chạy Project
+
 # Dùng Bun
+
 bun run dev:all
 
 # Dùng npm
+
 npm run dev:all
 
-```TàiNguyênThamKhảo
+### Tài Nguyên Tham Khảo
+
 Next.js Documentation
 Drizzle ORM
 UploadThing
@@ -124,4 +133,3 @@ Radix UI
 Upstash
 
 ---
-````
