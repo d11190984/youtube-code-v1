@@ -41,41 +41,40 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   const utils = trpc.useUtils();
   const params = useSearchParams();
 
-  // 🔹 Tạo state toggle playlist
-  const [showPlaylist, setShowPlaylist] = useState<boolean>(false);
-
-  // 🔥 BƯỚC 2: lấy playlist từ URL
+  const [showPlaylist, setShowPlaylist] = useState(false);
   const playlistId = params.get("list");
   const index = Number(params.get("index") || 0);
-    const [currentVideoId, setCurrentVideoId] = useState(videoId);
+  const [currentVideoId, setCurrentVideoId] = useState(videoId);
   const [currentIndex, setCurrentIndex] = useState(index);
+
   const [video] = trpc.videos.getOne.useSuspenseQuery({ id: currentVideoId });
 
-  // 🔥 BƯỚC 3: load playlist
-  const { data: playlists } = trpc.playlists.getMixPlaylists.useQuery();
+  // 🔹 Sử dụng public playlist
+  const { data: playlists } = trpc.playlists.getPublicMixPlaylists.useQuery();
   const playlist = playlists?.find((p) => p.id === playlistId);
-  const next = playlist?.videos[index + 1];
 
-  // 🔥 HISTORY (chỉ khi KHÔNG có playlist)
+  const next = playlist?.videos?.[index + 1];
+
   const [history, setHistory] = useState<string[]>([]);
   useEffect(() => {
-    if (playlistId) return;
-    setHistory((prev) => (prev.includes(videoId) ? prev : [...prev, videoId]));
+    if (!playlistId) {
+      setHistory((prev) =>
+        prev.includes(videoId) ? prev : [...prev, videoId],
+      );
+    }
   }, [videoId, playlistId]);
 
-  // 🔥 suggestions chỉ dùng khi không có playlist
   const { data: suggestions } = trpc.suggestions.getMany.useQuery(
     { videoId, limit: 5, excludeIds: history },
     { enabled: !playlistId },
   );
 
-  // 🔥 BƯỚC 4: nextVideo chuẩn
   const nextVideo = useMemo(() => {
     if (playlistId && next) {
       return {
         id: next.id,
         title: next.title,
-        thumbnail: next.thumbnailUrl || THUMBNAIL_FALLBACK,
+        thumbnail: next.thumbnail || THUMBNAIL_FALLBACK,
         playlistId,
         index: index + 1,
       };
@@ -102,14 +101,9 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   return (
     <div className="flex flex-col gap-4">
       {/* Video Player */}
-      <div
-        className={cn(
-          "aspect-video bg-black rounded-xl overflow-hidden relative shadow-lg",
-          video.muxStatus !== "ready" && "rounded-b-none",
-        )}
-      >
+      <div className="aspect-video bg-black rounded-xl overflow-hidden relative shadow-lg">
         <VideoPlayer
-          key={currentVideoId} // ← quan trọng: force reload player khi video thay đổi
+          key={currentVideoId}
           autoPlay
           onPlay={handlePlay}
           playbackId={video.muxPlaybackId}
@@ -117,9 +111,6 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
           nextVideo={nextVideo}
         />
       </div>
-
-      {/* Video Banner */}
-      <VideoBanner status={video.muxStatus} />
 
       {/* Playlist toggle button */}
       {playlist && (
@@ -136,7 +127,7 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
           <div className="text-white font-semibold text-sm mb-2">
             {playlist.name}
           </div>
-          {playlist.videos.map((v, i) => (
+          {playlist.videos.map((v: (typeof playlist.videos)[0], i: number) => (
             <div
               key={v.id}
               className={cn(
@@ -155,7 +146,7 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
             >
               <div className="relative w-20 aspect-video rounded overflow-hidden">
                 <img
-                  src={v.thumbnailUrl || THUMBNAIL_FALLBACK}
+                  src={v.thumbnail || THUMBNAIL_FALLBACK}
                   className="w-full h-full object-cover"
                 />
                 {i === index && (
@@ -172,7 +163,6 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
         </div>
       )}
 
-      {/* Video Info */}
       <VideoTopRow video={video} />
     </div>
   );
