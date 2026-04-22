@@ -15,7 +15,7 @@ interface PlaylistHeaderSectionProps {
 }
 
 export const PlaylistHeaderSection = ({
-  playlistId
+  playlistId,
 }: PlaylistHeaderSectionProps) => {
   return (
     <Suspense fallback={<PlaylistHeaderSectionSkeleton />}>
@@ -23,8 +23,8 @@ export const PlaylistHeaderSection = ({
         <PlaylistHeaderSectionSuspense playlistId={playlistId} />
       </ErrorBoundary>
     </Suspense>
-  )
-}
+  );
+};
 
 export const PlaylistHeaderSectionSkeleton = () => {
   return (
@@ -50,15 +50,15 @@ const PlaylistHeaderSectionSuspense = ({
     },
     onError: () => {
       toast.error("Something went wrong");
-    }
+    },
   });
 
   return (
-    <div className="flex justify-between items-center">
+    <div className="max-w-[2400px] mx-auto px-4 flex justify-between items-center">
       <div>
         <h1 className="text-2xl font-bold">{playlist.name}</h1>
         <p className="text-xs text-muted-foreground">
-          Videos from the playlist
+        Video từ danh sách phát
         </p>
       </div>
       <Button
