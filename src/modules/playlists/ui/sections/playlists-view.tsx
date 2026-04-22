@@ -6,8 +6,7 @@ import { trpc } from "@/trpc/client";
 export const PlaylistsView = () => {
   const router = useRouter();
 
-  const { data, isLoading } =
-    trpc.playlists.getMixPlaylists.useQuery();
+  const { data, isLoading } = trpc.playlists.getMixPlaylists.useQuery();
 
   if (isLoading) {
     return <p className="p-4">Đang tải...</p>;
@@ -20,9 +19,7 @@ export const PlaylistsView = () => {
   return (
     <div className="px-4 mt-4">
       {/* Title */}
-      <h2 className="text-lg font-semibold mb-4">
-        Danh sách kết hợp
-      </h2>
+      <h2 className="text-lg font-semibold mb-4">Danh sách kết hợp</h2>
 
       {/* Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -38,7 +35,9 @@ export const PlaylistsView = () => {
               key={playlist.id}
               onClick={() => {
                 if (firstVideo?.id) {
-                  router.push(`/videos/${firstVideo.id}`);
+                  router.push(
+                    `/videos/${firstVideo.id}?list=${playlist.id}&index=0`,
+                  );
                 }
               }}
               className="cursor-pointer group"
@@ -63,9 +62,7 @@ export const PlaylistsView = () => {
               </p>
 
               {/* Sub text */}
-              <p className="text-xs text-muted-foreground">
-                Danh sách kết hợp
-              </p>
+              <p className="text-xs text-muted-foreground">Danh sách kết hợp</p>
             </div>
           );
         })}
