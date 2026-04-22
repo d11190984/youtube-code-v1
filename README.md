@@ -67,6 +67,8 @@ cp .env.example .env
 
 ## Biến Môi Trường
 
+```env
+
 # Database
 DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@<DB_HOST>/<DB_NAME>?sslmode=require&channel_binding=require
 
@@ -107,6 +109,7 @@ REPLICATE_API_KEY=<REPLICATE_API_KEY>
 
 UPLOADTHING_TOKEN=<UPLOADTHING_TOKEN>
 
+```
 ---
 
 ### Thiết Lập Database
