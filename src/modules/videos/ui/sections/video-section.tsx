@@ -6,7 +6,7 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import { cn } from "@/lib/utils";
 import { trpc } from "@/trpc/client";
-
+import { THUMBNAIL_FALLBACK } from "../../constants";
 import { VideoBanner } from "../components/video-banner";
 import { VideoPlayer, VideoPlayerSkeleton } from "../components/video-player";
 import { VideoTopRow, VideoTopRowSkeleton } from "../components/video-top-row";
@@ -22,7 +22,7 @@ export const VideoSection = ({ videoId }: VideoSectionProps) => {
         <VideoSectionSuspense videoId={videoId} />
       </ErrorBoundary>
     </Suspense>
-  )
+  );
 };
 
 export const VideoSectionSkeleton = () => {
@@ -31,14 +31,23 @@ export const VideoSectionSkeleton = () => {
       <VideoPlayerSkeleton />
       <VideoTopRowSkeleton />
     </>
-  )
-}
+  );
+};
 
 const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   const { isSignedIn } = useAuth();
-
   const utils = trpc.useUtils();
+
   const [video] = trpc.videos.getOne.useSuspenseQuery({ id: videoId });
+
+  // 🔥 thêm suggestions (video tiếp theo)
+  const { data: suggestions } = trpc.suggestions.getMany.useQuery({
+    videoId,
+    limit: 1,
+  });
+
+  const nextVideo = suggestions?.items?.[0];
+
   const createView = trpc.videoViews.create.useMutation({
     onSuccess: () => {
       utils.videos.getOne.invalidate({ id: videoId });
@@ -47,25 +56,37 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
 
   const handlePlay = () => {
     if (!isSignedIn) return;
-
     createView.mutate({ videoId });
   };
-  
+
   return (
     <>
-      <div className={cn(
-        "aspect-video bg-black rounded-xl overflow-hidden relative",
-        video.muxStatus !== "ready" && "rounded-b-none",
-      )}>
+      <div
+        className={cn(
+          "aspect-video bg-black rounded-xl overflow-hidden relative",
+          video.muxStatus !== "ready" && "rounded-b-none",
+        )}
+      >
         <VideoPlayer
           autoPlay
           onPlay={handlePlay}
           playbackId={video.muxPlaybackId}
           thumbnailUrl={video.thumbnailUrl}
+          // 🔥 truyền video tiếp theo
+          nextVideo={
+            nextVideo
+              ? {
+                  id: nextVideo.id,
+                  title: nextVideo.title,
+                  thumbnail: nextVideo.thumbnailUrl || THUMBNAIL_FALLBACK,
+                }
+              : undefined
+          }
         />
       </div>
+
       <VideoBanner status={video.muxStatus} />
       <VideoTopRow video={video} />
     </>
-  )
+  );
 };
