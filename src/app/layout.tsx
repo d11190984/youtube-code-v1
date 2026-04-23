@@ -4,7 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 
 import { TRPCProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
-
+import { ScrollToTopButton } from "@/components/scroll-to-top";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -29,6 +29,7 @@ export default function RootLayout({
           <TRPCProvider>
             <Toaster />
             {children}
+            <ScrollToTopButton />
           </TRPCProvider>
         </body>
       </html>
