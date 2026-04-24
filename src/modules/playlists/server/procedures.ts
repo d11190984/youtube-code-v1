@@ -255,45 +255,45 @@ export const playlistsRouter = createTRPCRouter({
       return playlist;
     }),
   getPublicMixPlaylists: publicProcedure.query(async () => {
-  const playlistsData = await db
-    .select()
-    .from(playlists)
-    .where(
-      eq(playlists.visibility, "public") // ✅ CHỈ LỌC PUBLIC
-    )
-    .orderBy(desc(playlists.updatedAt));
+    const playlistsData = await db
+      .select()
+      .from(playlists)
+      .where(
+        eq(playlists.visibility, "public"), // ✅ CHỈ LỌC PUBLIC
+      )
+      .orderBy(desc(playlists.updatedAt));
 
-  const result = [];
+    const result = [];
 
-  for (const playlist of playlistsData) {
-    const playlistVideosData = await db
-      .select({
-        id: videos.id,
-        title: videos.title,
-        description: videos.description,
-        thumbnail: videos.thumbnailUrl,
-        createdAt: videos.createdAt,
-        updatedAt: videos.updatedAt,
-      })
-      .from(videos)
-      .innerJoin(playlistVideos, eq(playlistVideos.videoId, videos.id))
-      .where(eq(playlistVideos.playlistId, playlist.id))
-      .orderBy(desc(videos.updatedAt));
+    for (const playlist of playlistsData) {
+      const playlistVideosData = await db
+        .select({
+          id: videos.id,
+          title: videos.title,
+          description: videos.description,
+          thumbnail: videos.thumbnailUrl,
+          createdAt: videos.createdAt,
+          updatedAt: videos.updatedAt,
+        })
+        .from(videos)
+        .innerJoin(playlistVideos, eq(playlistVideos.videoId, videos.id))
+        .where(eq(playlistVideos.playlistId, playlist.id))
+        .orderBy(desc(videos.updatedAt));
 
-    if (playlistVideosData.length === 0) continue;
+      if (playlistVideosData.length === 0) continue;
 
-    result.push({
-      id: playlist.id,
-      name: playlist.name,
-      description: playlist.description,
-      videos: playlistVideosData,
-      videoCount: playlistVideosData.length,
-      thumbnail: playlistVideosData[0]?.thumbnail || "/placeholder.jpg",
-    });
-  }
+      result.push({
+        id: playlist.id,
+        name: playlist.name,
+        description: playlist.description,
+        videos: playlistVideosData,
+        videoCount: playlistVideosData.length,
+        thumbnail: playlistVideosData[0]?.thumbnail || "/placeholder.jpg",
+      });
+    }
 
-  return result;
-}),
+    return result;
+  }),
   updateVisibility: protectedProcedure
     .input(
       z.object({
@@ -661,6 +661,7 @@ export const playlistsRouter = createTRPCRouter({
           .select({
             videoId: videoViews.videoId,
             viewedAt: videoViews.updatedAt,
+            progress: videoViews.progress, // 🔴 Thêm dòng này
           })
           .from(videoViews)
           .where(eq(videoViews.userId, userId)),
@@ -672,6 +673,7 @@ export const playlistsRouter = createTRPCRouter({
           ...getTableColumns(videos),
           user: users,
           viewedAt: viewerVideoViews.viewedAt,
+          progress: viewerVideoViews.progress, // 🔴 join progress vào output
           viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
           likeCount: db.$count(
             videoReactions,
@@ -706,13 +708,10 @@ export const playlistsRouter = createTRPCRouter({
           ),
         )
         .orderBy(desc(viewerVideoViews.viewedAt), desc(videos.id))
-        // Add 1 to the limit to check if there is more data
         .limit(limit + 1);
 
       const hasMore = data.length > limit;
-      // Remove the last item if there is more data
       const items = hasMore ? data.slice(0, -1) : data;
-      // Set the next cursor to the last item if there is more data
       const lastItem = items[items.length - 1];
       const nextCursor = hasMore
         ? {
@@ -721,9 +720,6 @@ export const playlistsRouter = createTRPCRouter({
           }
         : null;
 
-      return {
-        items,
-        nextCursor,
-      };
+      return { items, nextCursor };
     }),
 });
