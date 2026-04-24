@@ -36,7 +36,7 @@ export const ScrollToTopCharacter = () => {
           <img
             src="/characters/char_peek.png"
             alt="Nhân vật nửa ẩn"
-            className="w-24 h-40 opacity-90"
+            className="w-24 h-43 opacity-90"
           />
         </div>
       )}
