@@ -255,44 +255,45 @@ export const playlistsRouter = createTRPCRouter({
       return playlist;
     }),
   getPublicMixPlaylists: publicProcedure.query(async () => {
-    // Lấy tất cả playlist kết hợp công khai
-    const playlistsData = await db
-      .select()
-      .from(playlists)
-      .where(eq(playlists.isMixPlaylist, true))
-      .orderBy(desc(playlists.updatedAt));
+  const playlistsData = await db
+    .select()
+    .from(playlists)
+    .where(
+      eq(playlists.visibility, "public") // ✅ CHỈ LỌC PUBLIC
+    )
+    .orderBy(desc(playlists.updatedAt));
 
-    const result = [];
+  const result = [];
 
-    for (const playlist of playlistsData) {
-      const playlistVideosData = await db
-        .select({
-          id: videos.id,
-          title: videos.title,
-          description: videos.description,
-          thumbnail: videos.thumbnailUrl,
-          createdAt: videos.createdAt,
-          updatedAt: videos.updatedAt,
-        })
-        .from(videos)
-        .innerJoin(playlistVideos, eq(playlistVideos.videoId, videos.id))
-        .where(eq(playlistVideos.playlistId, playlist.id))
-        .orderBy(desc(videos.updatedAt));
+  for (const playlist of playlistsData) {
+    const playlistVideosData = await db
+      .select({
+        id: videos.id,
+        title: videos.title,
+        description: videos.description,
+        thumbnail: videos.thumbnailUrl,
+        createdAt: videos.createdAt,
+        updatedAt: videos.updatedAt,
+      })
+      .from(videos)
+      .innerJoin(playlistVideos, eq(playlistVideos.videoId, videos.id))
+      .where(eq(playlistVideos.playlistId, playlist.id))
+      .orderBy(desc(videos.updatedAt));
 
-      if (playlistVideosData.length === 0) continue;
+    if (playlistVideosData.length === 0) continue;
 
-      result.push({
-        id: playlist.id,
-        name: playlist.name,
-        description: playlist.description,
-        videos: playlistVideosData,
-        videoCount: playlistVideosData.length,
-        thumbnail: playlistVideosData[0]?.thumbnail || "/placeholder.jpg",
-      });
-    }
+    result.push({
+      id: playlist.id,
+      name: playlist.name,
+      description: playlist.description,
+      videos: playlistVideosData,
+      videoCount: playlistVideosData.length,
+      thumbnail: playlistVideosData[0]?.thumbnail || "/placeholder.jpg",
+    });
+  }
 
-    return result;
-  }),
+  return result;
+}),
   updateVisibility: protectedProcedure
     .input(
       z.object({
@@ -307,13 +308,19 @@ export const playlistsRouter = createTRPCRouter({
       const [updated] = await db
         .update(playlists)
         .set({ visibility })
-        .where(eq(playlists.id, playlistId))
+        .where(
+          and(
+            eq(playlists.id, playlistId),
+            eq(playlists.userId, userId), // ✅ CHẶN NGƯỜI KHÁC
+          ),
+        )
         .returning();
 
       if (!updated) {
-        throw new Error(
-          "Không tìm thấy danh sách hoặc không có quyền chỉnh sửa",
-        );
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Bạn không có quyền chỉnh sửa danh sách này",
+        });
       }
 
       return updated;
@@ -485,10 +492,7 @@ export const playlistsRouter = createTRPCRouter({
         .innerJoin(users, eq(playlists.userId, users.id))
         .where(
           and(
-            or(
-              eq(playlists.visibility, "public"), // 👈 cho phép public
-              eq(playlists.userId, userId), // 👈 hoặc của mình
-            ),
+            eq(playlists.userId, userId), // ✅ CHỈ CỦA MÌNH
             cursor
               ? or(
                   lt(playlists.updatedAt, cursor.updatedAt),
@@ -500,6 +504,7 @@ export const playlistsRouter = createTRPCRouter({
               : undefined,
           ),
         )
+
         .orderBy(desc(playlists.updatedAt), desc(playlists.id))
         // Add 1 to the limit to check if there is more data
         .limit(limit + 1);
