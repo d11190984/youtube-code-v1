@@ -493,17 +493,19 @@ export const videosRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
 
-      const muxClient = mux(); // Lấy client kế tiếp
-      const upload = await muxClient.video.uploads.retrieve(
+      const upload = await mux.video.uploads.retrieve(
         existingVideo.muxUploadId,
       );
 
-      if (!upload || !upload.asset_id)
+      if (!upload || !upload.asset_id) {
         throw new TRPCError({ code: "BAD_REQUEST" });
+      }
 
-      const asset = await muxClient.video.assets.retrieve(upload.asset_id);
+      const asset = await mux.video.assets.retrieve(upload.asset_id);
 
-      if (!asset) throw new TRPCError({ code: "BAD_REQUEST" });
+      if (!asset) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
 
       const playbackId = asset.playback_ids?.[0].id;
       const duration = asset.duration ? Math.round(asset.duration * 1000) : 0;
@@ -617,25 +619,22 @@ export const videosRouter = createTRPCRouter({
   create: protectedProcedure.mutation(async ({ ctx }) => {
     const { id: userId } = ctx.user;
 
-    // 🔄 Lấy client Mux tiếp theo trong danh sách (Multi Mux Rotation)
-    const muxClient = mux();
-
-    // 1️⃣ Tạo upload trên Mux
-    const upload = await muxClient.video.uploads.create({
+    // Tạo upload + asset SD ngay lập tức
+    const upload = await mux.video.uploads.create({
       new_asset_settings: {
         passthrough: userId,
         playback_policy: ["public"],
-        mp4_support: "standard", // ⚡ Track SD 480p
+        mp4_support: "standard", // ⚡ SD 480p
         input: [
           {
             generated_subtitles: [{ language_code: "en", name: "English" }],
           },
         ],
       },
-      cors_origin: "*", // ⚡ Production URL nếu cần
+      cors_origin: "*", // Production URL nếu cần
     });
 
-    // 2️⃣ Lưu record video vào DB
+    // Lưu record video
     const [video] = await db
       .insert(videos)
       .values({
@@ -646,7 +645,6 @@ export const videosRouter = createTRPCRouter({
       })
       .returning();
 
-    // 3️⃣ Trả về video và URL upload cho client
     return {
       video,
       url: upload.url,
