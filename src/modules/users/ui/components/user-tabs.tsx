@@ -1,35 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 interface UserTabsProps {
   userId: string;
+  activeVideoTab: "latest" | "popular" | "oldest";
+  setActiveVideoTabAction: (tab: "latest" | "popular" | "oldest") => void;
 }
 
-export const UserTabs = ({ userId }: UserTabsProps) => {
-  const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab"); // lấy ?tab=videos
-  const [activeTab, setActiveTab] = useState(tabParam || "home");
-  const [activeVideoTab, setActiveVideoTab] = useState<
-    "latest" | "popular" | "oldest"
-  >("latest");
-
-  useEffect(() => {
-    setActiveTab(tabParam || "home");
-  }, [tabParam]);
+export const UserTabs = ({
+  userId,
+  activeVideoTab,
+  setActiveVideoTabAction,
+}: UserTabsProps) => {
+  const [activeTab, setActiveTab] = useState("home");
 
   const tabs = [
-    { key: "home", label: "Trang chủ", href: `/user/${userId}` },
-    { key: "videos", label: "Video", href: `/user/${userId}?tab=videos` },
-    { key: "shorts", label: "Shorts", href: `/user/${userId}?tab=shorts` },
-    { key: "posts", label: "Bài đăng", href: `/user/${userId}?tab=posts` },
+    { key: "home", label: "Trang chủ" },
+    { key: "videos", label: "Video" },
+    { key: "shorts", label: "Shorts" },
+    { key: "posts", label: "Bài đăng" },
   ];
 
-  const videoSubTabs: {
-    key: "latest" | "popular" | "oldest";
-    label: string;
-  }[] = [
+  const videoSubTabs = [
     { key: "latest", label: "Mới nhất" },
     { key: "popular", label: "Phổ biến" },
     { key: "oldest", label: "Cũ nhất" },
@@ -40,22 +33,21 @@ export const UserTabs = ({ userId }: UserTabsProps) => {
       {/* Main Tabs */}
       <div className="flex gap-6 border-b border-gray-300 mb-2">
         {tabs.map((tab) => (
-          <a
+          <button
             key={tab.key}
-            href={tab.href}
             className={`pb-2 text-sm font-medium ${
               activeTab === tab.key
                 ? "border-b-2 border-black text-black"
                 : "text-gray-500"
             }`}
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
               setActiveTab(tab.key);
-              if (tab.key === "videos") setActiveVideoTab("latest"); // reset sub-tab
+              if (tab.key === "videos")
+                setActiveVideoTabAction("latest" as "latest"); // reset sub-tab
             }}
           >
             {tab.label}
-          </a>
+          </button>
         ))}
       </div>
 
@@ -65,7 +57,11 @@ export const UserTabs = ({ userId }: UserTabsProps) => {
           {videoSubTabs.map((sub) => (
             <button
               key={sub.key}
-              onClick={() => setActiveVideoTab(sub.key)}
+              onClick={() =>
+                setActiveVideoTabAction(
+                  sub.key as "latest" | "popular" | "oldest",
+                )
+              }
               className={`px-3 py-1 text-sm rounded-full border ${
                 activeVideoTab === sub.key
                   ? "bg-black text-white border-black"
