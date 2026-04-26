@@ -1,5 +1,7 @@
+// VideosSection.tsx
 "use client";
 
+import { useEffect } from "react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -14,52 +16,54 @@ import {
 
 interface VideosSectionProps {
   userId: string;
-  sortBy?: "latest" | "popular" | "oldest"; // thêm prop sortBy
+  sortBy?: "latest" | "popular" | "oldest";
 }
 
 export const VideosSection = (props: VideosSectionProps) => {
   return (
     <Suspense fallback={<VideosSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary fallback={<p>Lỗi khi tải video</p>}>
         <VideosSectionSuspense {...props} />
       </ErrorBoundary>
     </Suspense>
   );
 };
 
-export const VideosSectionSkeleton = () => {
-  return (
-    <div className="gap-4 gap-y-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
-      {Array.from({ length: 18 }).map((_, index) => (
-        <VideoGridCardSkeleton key={index} />
-      ))}
-    </div>
-  );
-};
+export const VideosSectionSkeleton = () => (
+  <div className="gap-4 gap-y-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+    {Array.from({ length: 18 }).map((_, index) => (
+      <VideoGridCardSkeleton key={index} />
+    ))}
+  </div>
+);
 
 const VideosSectionSuspense = ({ userId, sortBy }: VideosSectionProps) => {
   const [videos, query] = trpc.videos.getMany.useSuspenseInfiniteQuery(
-    { userId, limit: DEFAULT_LIMIT }, // xóa sortBy nếu server không support
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+    { userId, limit: DEFAULT_LIMIT },
+    { getNextPageParam: (lastPage) => lastPage.nextCursor },
   );
- const sortedVideos = videos.pages
+
+  useEffect(() => {
+    query.refetch(); // tự động refetch khi sortBy đổi
+  }, [sortBy]);
+
+  const sortedVideos = videos.pages
     .flatMap((page) => page.items)
     .sort((a, b) => {
-      if (sortBy === "latest") return b.createdAt.getTime() - a.createdAt.getTime();
-      if (sortBy === "oldest") return a.createdAt.getTime() - b.createdAt.getTime();
+      if (sortBy === "latest")
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      if (sortBy === "oldest")
+        return a.createdAt.getTime() - b.createdAt.getTime();
       if (sortBy === "popular") return b.viewCount - a.viewCount;
       return 0;
     });
+
   return (
     <div>
       <div className="gap-4 gap-y-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
-        {videos.pages
-          .flatMap((page) => page.items)
-          .map((video) => (
-            <VideoGridCard key={video.id} data={video} />
-          ))}
+        {sortedVideos.map((video) => (
+          <VideoGridCard key={video.id} data={video} />
+        ))}
       </div>
       <InfiniteScroll
         hasNextPage={query.hasNextPage}
