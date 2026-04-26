@@ -1,4 +1,3 @@
-// VideosSection.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -17,6 +16,9 @@ import {
 interface VideosSectionProps {
   userId: string;
   sortBy?: "latest" | "popular" | "oldest";
+  filterType?: "home" | "videos" | "shorts";
+  showCarousel?: boolean;
+  onVideosCount?: (count: number) => void; // callback trả về số video
 }
 
 export const VideosSection = (props: VideosSectionProps) => {
@@ -37,16 +39,23 @@ export const VideosSectionSkeleton = () => (
   </div>
 );
 
-const VideosSectionSuspense = ({ userId, sortBy }: VideosSectionProps) => {
+const VideosSectionSuspense = ({
+  userId,
+  sortBy,
+  filterType = "home",
+  showCarousel = false,
+  onVideosCount,
+}: VideosSectionProps) => {
   const [videos, query] = trpc.videos.getMany.useSuspenseInfiniteQuery(
     { userId, limit: DEFAULT_LIMIT },
     { getNextPageParam: (lastPage) => lastPage.nextCursor },
   );
 
   useEffect(() => {
-    query.refetch(); // tự động refetch khi sortBy đổi
+    query.refetch();
   }, [sortBy]);
 
+  // Sort video
   const sortedVideos = videos.pages
     .flatMap((page) => page.items)
     .sort((a, b) => {
@@ -58,13 +67,35 @@ const VideosSectionSuspense = ({ userId, sortBy }: VideosSectionProps) => {
       return 0;
     });
 
+  // Filter video
+  const filteredVideos = sortedVideos.filter((video) => {
+    if (filterType === "videos") return video.duration > 60 * 1000;
+    if (filterType === "shorts") return video.duration <= 60 * 1000;
+    return true;
+  });
+
+  // Gọi callback báo số video về parent
+  useEffect(() => {
+    onVideosCount?.(filteredVideos.length);
+  }, [filteredVideos.length]);
+
+  if (filteredVideos.length === 0) return null; // Không render nếu không có video
+
   return (
     <div>
-      <div className="gap-4 gap-y-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
-        {sortedVideos.map((video) => (
-          <VideoGridCard key={video.id} data={video} />
-        ))}
-      </div>
+      {showCarousel ? (
+        <div className="flex overflow-x-auto gap-4">
+          {filteredVideos.map((video) => (
+            <VideoGridCard key={video.id} data={video} />
+          ))}
+        </div>
+      ) : (
+        <div className="gap-4 gap-y-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+          {filteredVideos.map((video) => (
+            <VideoGridCard key={video.id} data={video} />
+          ))}
+        </div>
+      )}
       <InfiniteScroll
         hasNextPage={query.hasNextPage}
         isFetchingNextPage={query.isFetchingNextPage}
