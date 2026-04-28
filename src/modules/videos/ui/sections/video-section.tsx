@@ -151,15 +151,18 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
       {/* 🎬 Video Player */}
       <div className="aspect-video bg-black rounded-xl overflow-hidden relative shadow-lg">
         <VideoPlayer
-          ref={playerRef} // 🔹 thêm ref
-          key={currentVideoId}
+          ref={playerRef}
+          key={video.id}
+          videoId={video.id} // ✅ Bắt buộc
           autoPlay
           playbackId={video.muxPlaybackId}
           thumbnailUrl={video.thumbnailUrl}
           nextVideo={nextVideo}
           autoNextEnabled={autoNextEnabled}
-          loopEnabled={loopEnabled}
-          onTimeUpdate={handleTimeUpdate}
+          loopEnabled={false}
+          onTimeUpdate={(current, duration) => {
+            console.log(current, duration);
+          }}
         />
       </div>
 
