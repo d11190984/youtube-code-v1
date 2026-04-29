@@ -559,6 +559,7 @@ export const videosRouter = createTRPCRouter({
       z.object({
         videoId: z.string(),
         progress: z.number(),
+        isRestart: z.boolean().optional(), // 👈 thêm
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -577,28 +578,37 @@ export const videosRouter = createTRPCRouter({
       const oldProgress = existing?.progress ?? 0;
       const newProgress = Math.max(0, Math.floor(input.progress));
 
-      // ❌ KHÔNG cho phép số 0 đè progress lớn hơn
-      if (newProgress === 0 && oldProgress > 5) {
+      let finalProgress = oldProgress;
+
+      // ✅ nếu user xem lại -> reset luôn
+      if (input.isRestart) {
+        finalProgress = 0;
+      }
+      // ❌ chặn reset 0 do bug
+      else if (newProgress === 0 && oldProgress > 5) {
+        return { success: true };
+      }
+      // ✅ update bình thường
+      else if (newProgress >= oldProgress || oldProgress - newProgress < 3) {
+        finalProgress = newProgress;
+      } else {
         return { success: true };
       }
 
-      // chỉ update khi lớn hơn hoặc chênh lệch nhỏ hợp lệ
-      if (newProgress >= oldProgress || oldProgress - newProgress < 3) {
-        await db
-          .insert(videoViews)
-          .values({
-            userId,
-            videoId: input.videoId,
-            progress: newProgress,
-          })
-          .onConflictDoUpdate({
-            target: [videoViews.userId, videoViews.videoId],
-            set: {
-              progress: newProgress,
-              updatedAt: new Date(),
-            },
-          });
-      }
+      await db
+        .insert(videoViews)
+        .values({
+          userId,
+          videoId: input.videoId,
+          progress: finalProgress,
+        })
+        .onConflictDoUpdate({
+          target: [videoViews.userId, videoViews.videoId],
+          set: {
+            progress: finalProgress,
+            updatedAt: new Date(),
+          },
+        });
 
       return { success: true };
     }),

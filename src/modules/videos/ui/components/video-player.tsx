@@ -89,6 +89,14 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       const handlePlay = async () => {
         if (!hasCountedView.current) {
           hasCountedView.current = true;
+
+          // 👇 reset progress khi bắt đầu xem lại
+          await updateProgressMutation.mutateAsync({
+            videoId,
+            progress: 0,
+            isRestart: true,
+          });
+
           await incrementViewMutation.mutateAsync({ videoId });
         }
 
