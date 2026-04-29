@@ -59,7 +59,13 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
     return saved === "true";
   });
 
-  const [video] = trpc.videos.getOne.useSuspenseQuery({ id: currentVideoId });
+  const [video] = trpc.videos.getOne.useSuspenseQuery(
+    { id: currentVideoId },
+    {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+    },
+  );
 
   useEffect(() => {
     if (trackingEnabled !== undefined) {
