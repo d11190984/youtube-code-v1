@@ -555,48 +555,53 @@ export const videosRouter = createTRPCRouter({
       return workflowRunId;
     }),
   updateProgress: protectedProcedure
-  .input(
-    z.object({
-      videoId: z.string(),
-      progress: z.number(),
+    .input(
+      z.object({
+        videoId: z.string(),
+        progress: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+
+      const [existing] = await db
+        .select()
+        .from(videoViews)
+        .where(
+          and(
+            eq(videoViews.userId, userId),
+            eq(videoViews.videoId, input.videoId),
+          ),
+        );
+
+      const oldProgress = existing?.progress ?? 0;
+      const newProgress = Math.max(0, Math.floor(input.progress));
+
+      // ❌ KHÔNG cho phép số 0 đè progress lớn hơn
+      if (newProgress === 0 && oldProgress > 5) {
+        return { success: true };
+      }
+
+      // chỉ update khi lớn hơn hoặc chênh lệch nhỏ hợp lệ
+      if (newProgress >= oldProgress || oldProgress - newProgress < 3) {
+        await db
+          .insert(videoViews)
+          .values({
+            userId,
+            videoId: input.videoId,
+            progress: newProgress,
+          })
+          .onConflictDoUpdate({
+            target: [videoViews.userId, videoViews.videoId],
+            set: {
+              progress: newProgress,
+              updatedAt: new Date(),
+            },
+          });
+      }
+
+      return { success: true };
     }),
-  )
-  .mutation(async ({ ctx, input }) => {
-    const { id: userId } = ctx.user;
-
-    const [existing] = await db
-      .select()
-      .from(videoViews)
-      .where(
-        and(
-          eq(videoViews.userId, userId),
-          eq(videoViews.videoId, input.videoId),
-        ),
-      );
-
-    const oldProgress = existing?.progress ?? 0;
-
-    // chỉ update nếu progress mới lớn hơn progress cũ
-    // trừ trường hợp xem lại từ đầu thì progress=0 và oldProgress gần duration
-    if (input.progress >= oldProgress || input.progress === 0) {
-      await db
-        .insert(videoViews)
-        .values({
-          userId,
-          videoId: input.videoId,
-          progress: input.progress,
-        })
-        .onConflictDoUpdate({
-          target: [videoViews.userId, videoViews.videoId],
-          set: {
-            progress: input.progress,
-            updatedAt: new Date(),
-          },
-        });
-    }
-
-    return { success: true };
-  }),
   revalidate: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
