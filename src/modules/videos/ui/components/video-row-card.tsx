@@ -44,8 +44,8 @@ const thumbnailVariants = cva("relative flex-none", {
 interface VideoRowCardProps extends VariantProps<typeof videoRowCardVariants> {
   data: VideoGetManyOutput["items"][number];
   onRemove?: () => void;
-  progress?: number;
-  menu?: React.ReactNode;
+  progress?: number; // 🔥 thêm prop progress
+  menu?: React.ReactNode; // ✅ thêm menu prop
 }
 
 export const VideoRowCardSkeleton = ({
@@ -80,7 +80,7 @@ export const VideoRowCard = ({
   size = "default",
   onRemove,
   progress = 0,
-  menu,
+  menu, // ✅ nhận menu
 }: VideoRowCardProps) => {
   const compactViews = useMemo(
     () =>
@@ -98,63 +98,30 @@ export const VideoRowCard = ({
     [data.likeCount],
   );
 
-  const saveCurrentWatchingProgress = async (
-    e: React.MouseEvent,
-    targetId: string,
-  ) => {
-    e.preventDefault();
-
-    const player = document.querySelector("mux-player") as any;
-    const currentVideoId = window.location.pathname.split("/").pop();
-
-    if (player && currentVideoId) {
-      const currentTime = Math.floor(player.currentTime || 0);
-
-      if (currentTime > 0) {
-        await fetch("/api/save-progress", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            videoId: currentVideoId,
-            progress: currentTime,
-          }),
-          keepalive: true,
-        });
-      }
-    }
-
-    window.location.href = `/videos/${targetId}`;
-  };
-
   return (
     <div className={videoRowCardVariants({ size })}>
+      {/* Thumbnail */}
       <Link
         prefetch
         href={`/videos/${data.id}`}
         className={thumbnailVariants({ size })}
-        onClick={(e) => saveCurrentWatchingProgress(e, data.id)}
       >
         <VideoThumbnail
           imageUrl={data.thumbnailUrl}
           previewUrl={data.previewUrl}
           title={data.title}
           duration={data.duration}
-          progress={progress}
+          progress={progress} // 🔥 truyền progress
         />
       </Link>
 
+      {/* Info */}
       <div className="flex-1 min-w-0 relative">
+        {/* Menu góc trên phải */}
         {menu && <div className="absolute top-2 right-2 z-10">{menu}</div>}
 
         <div className="flex justify-between gap-x-2">
-          <Link
-            prefetch
-            href={`/videos/${data.id}`}
-            className="flex-1 min-w-0"
-            onClick={(e) => saveCurrentWatchingProgress(e, data.id)}
-          >
+          <Link prefetch href={`/videos/${data.id}`} className="flex-1 min-w-0">
             <h3
               className={cn(
                 "font-medium line-clamp-2",
@@ -198,6 +165,7 @@ export const VideoRowCard = ({
             {size === "compact" && <UserInfo size="sm" name={data.user.name} />}
           </Link>
 
+          {/* Nếu không dùng children nữa, menu xuất qua prop */}
           {!menu && onRemove && (
             <VideoMenu videoId={data.id} onRemove={onRemove} />
           )}
