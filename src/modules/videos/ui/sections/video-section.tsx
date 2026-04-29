@@ -1,18 +1,15 @@
 "use client";
 
 import { Suspense, useEffect, useState, useMemo, useRef } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { ErrorBoundary } from "react-error-boundary";
 import { useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { trpc } from "@/trpc/client";
 import { THUMBNAIL_FALLBACK } from "../../constants";
-import { VideoBanner } from "../components/video-banner";
 import { VideoPlayer, VideoPlayerSkeleton } from "../components/video-player";
 import { VideoTopRow, VideoTopRowSkeleton } from "../components/video-top-row";
 
-import { VideoPlaylist } from "../components/video-playlist";
 interface VideoSectionProps {
   videoId: string;
 }
@@ -37,8 +34,6 @@ export const VideoSectionSkeleton = () => {
 };
 
 const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
-  const { isSignedIn } = useAuth();
-  const utils = trpc.useUtils();
   const params = useSearchParams();
   const [isTracking, setIsTracking] = useState(true);
 
@@ -48,48 +43,54 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   const [showPlaylist, setShowPlaylist] = useState(false);
   const playlistId = params.get("list");
   const index = Number(params.get("index") || 0);
+
   const [currentVideoId, setCurrentVideoId] = useState(videoId);
   const [currentIndex, setCurrentIndex] = useState(index);
+
   const [autoNextEnabled, setAutoNextEnabled] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     const saved = localStorage.getItem("autoNext");
     return saved === null ? true : saved === "true";
   });
-  const [video] = trpc.videos.getOne.useSuspenseQuery({ id: currentVideoId });
+
   const [loopEnabled, setLoopEnabled] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     const saved = localStorage.getItem("loop");
     return saved === "true";
   });
+
+  const [video] = trpc.videos.getOne.useSuspenseQuery({ id: currentVideoId });
+
   useEffect(() => {
     if (trackingEnabled !== undefined) {
       setIsTracking(trackingEnabled);
     }
   }, [trackingEnabled]);
-  // 🔹 Mutation bật/tắt lưu lịch sử
-  const toggleHistoryTrackingMutation =
-    trpc.playlists.toggleHistoryTracking.useMutation({
-      onSuccess: (_, variables) => {
-        setIsTracking(variables.enabled); // update state ngay sau server trả
-      },
-    });
-  // 🔹 Sử dụng public playlist
+
+  // 🔹 bật tắt lưu lịch sử
+  trpc.playlists.toggleHistoryTracking.useMutation({
+    onSuccess: (_, variables) => {
+      setIsTracking(variables.enabled);
+    },
+  });
+
+  // 🔹 playlist public
   const { data: playlists } = trpc.playlists.getPublicMixPlaylists.useQuery();
   const playlist = playlists?.find((p) => p.id === playlistId);
+  const next = playlist?.videos?.[currentIndex + 1];
 
-  const next = playlist?.videos?.[index + 1];
-
+  // 🔹 suggestion random nếu không có playlist
   const [history, setHistory] = useState<string[]>([]);
   useEffect(() => {
     if (!playlistId) {
       setHistory((prev) =>
-        prev.includes(videoId) ? prev : [...prev, videoId],
+        prev.includes(currentVideoId) ? prev : [...prev, currentVideoId],
       );
     }
-  }, [videoId, playlistId]);
+  }, [currentVideoId, playlistId]);
 
   const { data: suggestions } = trpc.suggestions.getMany.useQuery(
-    { videoId, limit: 5, excludeIds: history },
+    { videoId: currentVideoId, limit: 5, excludeIds: history },
     { enabled: !playlistId },
   );
 
@@ -100,44 +101,24 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
         title: next.title,
         thumbnail: next.thumbnail || THUMBNAIL_FALLBACK,
         playlistId,
-        index: index + 1,
+        index: currentIndex + 1,
       };
     }
+
     if (!suggestions?.items?.length) return undefined;
+
     const randomIndex = Math.floor(Math.random() * suggestions.items.length);
     const v = suggestions.items[randomIndex];
+
     return {
       id: v.id,
       title: v.title,
       thumbnail: v.thumbnailUrl || THUMBNAIL_FALLBACK,
     };
-  }, [playlistId, next, suggestions, index]);
+  }, [playlistId, next, suggestions, currentIndex]);
 
-  const createView = trpc.videoViews.create.useMutation({
-    onSuccess: () => utils.videos.getOne.invalidate({ id: currentVideoId }),
-  });
-  const updateProgress = trpc.videos.updateProgress.useMutation();
-  const handlePlay = () => {
-    if (!isSignedIn || !isTracking) return; // 🔹 chặn khi tạm dừng
-    createView.mutate({ videoId: currentVideoId });
-  };
-
-  const lastSavedRef = useRef(0);
   const playerRef = useRef<any>(null);
-  const handleTimeUpdate = (current: number, duration: number) => {
-    if (!duration || !isTracking) return; // 🔹 chặn update progress nếu tạm dừng
 
-    let percent = Math.floor((current / duration) * 100);
-    if (percent > 90) percent = 100;
-
-    if (Math.abs(percent - lastSavedRef.current) >= 5) {
-      lastSavedRef.current = percent;
-      updateProgress.mutate({
-        videoId: currentVideoId,
-        progress: percent,
-      });
-    }
-  };
   useEffect(() => {
     localStorage.setItem("autoNext", autoNextEnabled.toString());
   }, [autoNextEnabled]);
@@ -148,35 +129,33 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 🎬 Video Player */}
+      {/* 🎬 PLAYER */}
       <div className="aspect-video bg-black rounded-xl overflow-hidden relative shadow-lg">
         <VideoPlayer
           ref={playerRef}
           key={video.id}
-          videoId={video.id} // ✅ Bắt buộc
-          autoPlay
+          videoId={video.id}
           playbackId={video.muxPlaybackId}
           thumbnailUrl={video.thumbnailUrl}
+          savedProgress={isTracking ? video.progress || 0 : 0}
+          autoPlay
           nextVideo={nextVideo}
           autoNextEnabled={autoNextEnabled}
-          loopEnabled={false}
-          onTimeUpdate={(current, duration) => {
-            console.log(current, duration);
-          }}
+          loopEnabled={loopEnabled}
         />
       </div>
 
-      {/* 🧾 Info + controls */}
+      {/* 🧾 INFO */}
       <VideoTopRow
         video={video}
-        playerRef={playerRef} // 🔹 truyền xuống
+        playerRef={playerRef}
         autoNextEnabled={autoNextEnabled}
-        setAutoNextEnabledAction={setAutoNextEnabled} // ✅ đổi tên
+        setAutoNextEnabledAction={setAutoNextEnabled}
         loopEnabled={loopEnabled}
-        setLoopEnabledAction={setLoopEnabled} // ✅ đổi tên
+        setLoopEnabledAction={setLoopEnabled}
       />
 
-      {/* 📌 NÚT PLAYLIST */}
+      {/* 📌 PLAYLIST TOGGLE */}
       {playlist && (
         <button
           className="text-sm text-blue-500 hover:text-blue-600 font-medium mt-1 self-start"
@@ -198,7 +177,7 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
               key={v.id}
               className={cn(
                 "flex gap-2 p-2 rounded-lg cursor-pointer hover:bg-gray-700/50",
-                i === index ? "bg-gray-700/70" : "",
+                i === currentIndex ? "bg-gray-700/70" : "",
               )}
               onClick={() => {
                 setCurrentVideoId(v.id);
@@ -216,7 +195,7 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
                   className="w-full h-full object-cover"
                 />
 
-                {i === index && (
+                {i === currentIndex && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                     <span className="text-white text-lg">▶️</span>
                   </div>
