@@ -16,11 +16,10 @@ interface VideoGridCardProps {
     videos: { id: string; title: string; thumbnailUrl?: string | null }[];
   };
   currentIndex?: number;
-  progress?: number; // 🔥 thêm prop progress
-  menu?: React.ReactNode; // ✅ thêm prop menu
+  progress?: number;
+  menu?: React.ReactNode;
 }
 
-// Skeleton export để SuggestionsSection sử dụng
 export const VideoGridCardSkeleton = () => {
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -30,26 +29,48 @@ export const VideoGridCardSkeleton = () => {
   );
 };
 
-// Main VideoGridCard với playlist toggle
 export const VideoGridCard = ({
   data,
   onRemove,
   playlist,
   currentIndex = 0,
-  menu, // nhận menu
+  menu,
 }: VideoGridCardProps) => {
   const [showPlaylist, setShowPlaylist] = useState(false);
 
   const handleTogglePlaylist = () => setShowPlaylist((prev) => !prev);
   const progress = data.progress ?? 0;
 
+  const saveCurrentWatchingProgress = () => {
+    const player = document.querySelector("mux-player") as any;
+    if (!player) return;
+
+    const currentVideoId = window.location.pathname.split("/").pop();
+    const currentTime = Math.floor(player.currentTime || 0);
+
+    navigator.sendBeacon(
+      "/api/save-progress",
+      new Blob(
+        [
+          JSON.stringify({
+            videoId: currentVideoId,
+            progress: currentTime,
+          }),
+        ],
+        { type: "application/json" },
+      ),
+    );
+  };
+
   return (
     <div className="flex flex-col gap-2 w-full group relative">
-      {/* Nếu có menu, hiển thị góc trên bên phải */}
       {menu && <div className="absolute top-2 right-2 z-10">{menu}</div>}
 
-      {/* Video thumbnail */}
-      <Link prefetch href={`/videos/${data.id}`}>
+      <Link
+        prefetch
+        href={`/videos/${data.id}`}
+        onClick={saveCurrentWatchingProgress}
+      >
         <VideoThumbnail
           imageUrl={data.thumbnailUrl}
           previewUrl={data.previewUrl}
@@ -59,10 +80,8 @@ export const VideoGridCard = ({
         />
       </Link>
 
-      {/* Video info */}
       <VideoInfo data={data} onRemove={onRemove} />
 
-      {/* Button toggle playlist */}
       {playlist && (
         <button
           className="text-sm text-blue-400 hover:underline"
@@ -72,7 +91,6 @@ export const VideoGridCard = ({
         </button>
       )}
 
-      {/* Playlist toggle */}
       {showPlaylist && playlist && (
         <div className="w-full mt-2 max-h-[300px] overflow-y-auto">
           <VideoPlaylist playlist={playlist} currentIndex={currentIndex} />

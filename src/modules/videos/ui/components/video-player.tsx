@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, forwardRef } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { useRouter } from "next/navigation";
 import MuxPlayer from "@mux/mux-player-react";
 import { THUMBNAIL_FALLBACK } from "../../constants";
@@ -26,11 +32,15 @@ interface VideoPlayerProps {
   loopEnabled?: boolean;
 }
 
+export interface VideoPlayerHandle {
+  saveCurrentProgress: () => Promise<void>;
+}
+
 export const VideoPlayerSkeleton = () => (
   <div className="aspect-video bg-black rounded-xl" />
 );
 
-export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
+export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
   (
     {
       videoId,
@@ -47,8 +57,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     ref,
   ) => {
     const router = useRouter();
-    const internalRef = useRef<any>(null);
-    const playerRef = (ref as React.RefObject<any>) || internalRef;
+    const muxRef = useRef<any>(null); // ✅ ref thật của player
     const utils = trpc.useContext();
 
     const incrementViewMutation = trpc.videos.incrementView.useMutation({
@@ -58,9 +67,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           return { ...old, viewCount: old.viewCount + 1 };
         });
       },
-      onError: () => {
-        toast.error("Không thể tăng view");
-      },
+      onError: () => toast.error("Không thể tăng view"),
     });
 
     const updateProgressMutation = trpc.videos.updateProgress.useMutation();
@@ -68,12 +75,46 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     const [showNext, setShowNext] = useState(false);
     const [countdown, setCountdown] = useState(6);
     const [hasRedirected, setHasRedirected] = useState(false);
+
     const hasCountedView = useRef(false);
     const hasSeeked = useRef(false);
+    const hasSavedOnLeave = useRef(false);
 
-    // ✅ Tăng view khi play lần đầu
+    // ===============================
+    // SAVE CURRENT PROGRESS MANUAL
+    // ===============================
+    const saveCurrentProgress = async () => {
+      const player = muxRef.current;
+      if (!player) return;
+
+      const progress = Math.floor(player.currentTime || 0);
+      if (progress <= 0) return;
+
+      await fetch("/api/save-progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          videoId,
+          progress,
+        }),
+        keepalive: true,
+      });
+
+      await utils.videos.getOne.invalidate({ id: videoId });
+      await utils.suggestions.getMany.invalidate();
+    };
+
+    useImperativeHandle(ref, () => ({
+      saveCurrentProgress,
+    }));
+
+    // ===============================
+    // INCREMENT VIEW FIRST PLAY
+    // ===============================
     useEffect(() => {
-      const player = playerRef.current;
+      const player = muxRef.current;
       if (!player) return;
 
       const handlePlay = async () => {
@@ -87,11 +128,13 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       player.addEventListener("play", handlePlay);
       return () => player.removeEventListener("play", handlePlay);
-    }, [videoId, onPlay, incrementViewMutation]);
+    }, [videoId, onPlay]);
 
-    // ✅ Resume tới progress cũ
+    // ===============================
+    // RESUME SAVED PROGRESS
+    // ===============================
     useEffect(() => {
-      const player = playerRef.current;
+      const player = muxRef.current;
       if (!player) return;
 
       const handleCanPlay = () => {
@@ -113,24 +156,24 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       };
 
       player.addEventListener("canplay", handleCanPlay);
-
-      return () => {
-        player.removeEventListener("canplay", handleCanPlay);
-      };
+      return () => player.removeEventListener("canplay", handleCanPlay);
     }, [savedProgress, videoId]);
 
-    // ✅ Video ended
+    // ===============================
+    // VIDEO ENDED
+    // ===============================
     useEffect(() => {
-      const player = playerRef.current;
+      const player = muxRef.current;
       if (!player) return;
 
       const handleEnded = async () => {
-        const player = playerRef.current;
-
         await updateProgressMutation.mutateAsync({
           videoId,
-          progress: Math.floor(player?.duration || 0),
+          progress: Math.floor(player.duration || 0),
         });
+
+        await utils.videos.getOne.invalidate({ id: videoId });
+        await utils.suggestions.getMany.invalidate();
 
         if (loopEnabled) {
           player.currentTime = 0;
@@ -147,54 +190,45 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       player.addEventListener("ended", handleEnded);
       return () => player.removeEventListener("ended", handleEnded);
-    }, [autoNextEnabled, loopEnabled, videoId]);
+    }, [videoId, autoNextEnabled, loopEnabled]);
 
-    // ✅ Reset state khi đổi video
+    // ===============================
+    // RESET WHEN VIDEO CHANGES
+    // ===============================
     useEffect(() => {
       setShowNext(false);
       setCountdown(6);
       setHasRedirected(false);
       hasCountedView.current = false;
       hasSeeked.current = false;
+      hasSavedOnLeave.current = false;
     }, [videoId]);
 
-    // ✅ Save progress mỗi 2s
+    // ===============================
+    // AUTO SAVE EVERY 2s
+    // ===============================
     useEffect(() => {
       const interval = setInterval(() => {
-        const player = playerRef.current;
+        const player = muxRef.current;
         if (!player) return;
         if (player.paused) return;
 
         updateProgressMutation.mutate({
           videoId,
-          progress: Math.floor(player.currentTime),
+          progress: Math.floor(player.currentTime || 0),
         });
       }, 2000);
 
       return () => clearInterval(interval);
     }, [videoId]);
 
-    // ✅ Save khi unmount / refresh / đổi route
-    useEffect(() => {
-      const saveProgress = () => {
-        const player = playerRef.current;
-        if (!player) return;
+    // ===============================
+    // SAVE ON TAB CLOSE / ROUTE LEAVE
+    // ===============================
 
-        updateProgressMutation.mutate({
-          videoId,
-          progress: Math.floor(player.currentTime),
-        });
-      };
-
-      window.addEventListener("beforeunload", saveProgress);
-
-      return () => {
-        saveProgress();
-        window.removeEventListener("beforeunload", saveProgress);
-      };
-    }, [videoId]);
-
-    // ✅ Countdown overlay
+    // ===============================
+    // COUNTDOWN AUTO NEXT
+    // ===============================
     useEffect(() => {
       if (!showNext) return;
 
@@ -205,7 +239,9 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       return () => clearInterval(interval);
     }, [showNext]);
 
-    // ✅ Auto next
+    // ===============================
+    // AUTO NAVIGATE NEXT VIDEO
+    // ===============================
     useEffect(() => {
       if (countdown <= 0 && nextVideo && !hasRedirected && autoNextEnabled) {
         setHasRedirected(true);
@@ -220,12 +256,12 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           router.push(`/videos/${nextVideo.id}`);
         }
       }
-    }, [countdown, nextVideo, hasRedirected, onEnded, router, autoNextEnabled]);
+    }, [countdown, nextVideo, hasRedirected, autoNextEnabled]);
 
     return (
       <div className="relative w-full h-full">
         <MuxPlayer
-          ref={playerRef}
+          ref={muxRef}
           playbackId={playbackId || ""}
           streamType="on-demand"
           poster={thumbnailUrl || THUMBNAIL_FALLBACK}

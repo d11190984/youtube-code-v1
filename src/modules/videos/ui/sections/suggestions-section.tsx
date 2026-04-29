@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
+import { useRouter } from "next/navigation";
+import { VideoPlayerHandle } from "../components/video-player";
 
 import {
   VideoGridCard,
@@ -18,6 +20,7 @@ import { VideoGetManyOutput } from "../../types";
 interface SuggestionsSectionProps {
   videoId: string;
   isManual?: boolean;
+  playerRef: React.RefObject<VideoPlayerHandle>;
 }
 
 type Video = VideoGetManyOutput["items"][number] & {
@@ -26,23 +29,22 @@ type Video = VideoGetManyOutput["items"][number] & {
     name: string;
     videos: { id: string; title: string; thumbnailUrl?: string | null }[];
   };
-  progress?: number; // 🔥 chắc chắn có progress
+  progress?: number;
 };
-
-// Helper map video với progress mặc định
-const mapVideoWithProgress = (video: Video) => ({
-  ...video,
-  progress: video.progress ?? 0,
-});
 
 export const SuggestionsSection = ({
   videoId,
   isManual,
+  playerRef,
 }: SuggestionsSectionProps) => {
   return (
     <Suspense fallback={<SuggestionsSectionSkeleton />}>
       <ErrorBoundary fallback={<p>Error</p>}>
-        <SuggestionsSectionSuspense videoId={videoId} isManual={isManual} />
+        <SuggestionsSectionSuspense
+          videoId={videoId}
+          isManual={isManual}
+          playerRef={playerRef}
+        />
       </ErrorBoundary>
     </Suspense>
   );
@@ -65,17 +67,32 @@ export const SuggestionsSectionSkeleton = () => {
   );
 };
 
-const SuggestionsSectionSuspense = ({ videoId }: SuggestionsSectionProps) => {
-  const [data] = trpc.suggestions.getMany.useSuspenseQuery({
-    videoId,
-    limit: DEFAULT_LIMIT,
-  });
+const SuggestionsSectionSuspense = ({
+  videoId,
+  playerRef,
+}: SuggestionsSectionProps) => {
+  const router = useRouter();
 
-  // 🔥 map video để đảm bảo progress luôn là number
-const videosWithProgress: Video[] = data.items.map((video) => ({
-  ...video,
-  progress: video.progress ?? 0, // null → 0
-}));
+  const [data] = trpc.suggestions.getMany.useSuspenseQuery(
+    {
+      videoId,
+      limit: DEFAULT_LIMIT,
+    },
+    {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+    },
+  );
+
+  const videosWithProgress: Video[] = data.items.map((video) => ({
+    ...video,
+    progress: video.progress ?? 0,
+  }));
+
+  const handleNavigate = async (targetId: string) => {
+    await playerRef.current?.saveCurrentProgress();
+    router.push(`/videos/${targetId}`);
+  };
 
   return (
     <>
@@ -86,7 +103,7 @@ const videosWithProgress: Video[] = data.items.map((video) => ({
             key={video.id}
             data={video}
             size="compact"
-            progress={video.progress} // 🔥 truyền xuống RowCard
+            progress={video.progress}
           />
         ))}
       </div>
@@ -97,7 +114,7 @@ const videosWithProgress: Video[] = data.items.map((video) => ({
           <VideoGridCard
             key={video.id}
             data={video}
-            progress={video.progress} // 🔥 truyền xuống GridCard
+            progress={video.progress}
           />
         ))}
       </div>
