@@ -13,7 +13,6 @@ import { VideoTopRow, VideoTopRowSkeleton } from "../components/video-top-row";
 interface VideoSectionProps {
   videoId: string;
 }
-
 export const VideoSection = ({ videoId }: VideoSectionProps) => {
   return (
     <Suspense fallback={<VideoSectionSkeleton />}>

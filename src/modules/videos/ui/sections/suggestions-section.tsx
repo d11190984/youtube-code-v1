@@ -47,7 +47,6 @@ export const SuggestionsSection = ({
     </Suspense>
   );
 };
-
 export const SuggestionsSectionSkeleton = () => {
   return (
     <>

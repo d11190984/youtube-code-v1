@@ -170,7 +170,6 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           progress: Math.floor(player.currentTime),
         });
       }, 2000);
-
       return () => clearInterval(interval);
     }, [videoId]);
 

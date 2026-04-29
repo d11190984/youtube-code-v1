@@ -71,7 +71,6 @@ export const VideoGridCard = ({
           {showPlaylist ? "Ẩn danh sách kết hợp" : "Xem danh sách kết hợp"}
         </button>
       )}
-
       {/* Playlist toggle */}
       {showPlaylist && playlist && (
         <div className="w-full mt-2 max-h-[300px] overflow-y-auto">
