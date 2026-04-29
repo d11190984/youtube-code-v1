@@ -441,7 +441,8 @@ export const videosRouter = createTRPCRouter({
               Boolean,
             ),
           },
-          viewCount: videos.viewsCount, // 🔹 chỉ lấy tổng viewCount
+          viewCount: videos.viewsCount,
+          progress: videoViews.progress,
           likeCount: db.$count(
             videoReactions,
             and(
@@ -465,6 +466,15 @@ export const videosRouter = createTRPCRouter({
           viewerSubscriptions,
           eq(viewerSubscriptions.creatorId, users.id),
         )
+        .leftJoin(
+          videoViews,
+          userId
+            ? and(
+                eq(videoViews.videoId, videos.id),
+                eq(videoViews.userId, userId),
+              )
+            : undefined,
+        )
         .where(eq(videos.id, input.id));
 
       if (!existingVideo) throw new TRPCError({ code: "NOT_FOUND" });
@@ -483,37 +493,37 @@ export const videosRouter = createTRPCRouter({
 
       return workflowRunId;
     }),
-    incrementView: baseProcedure
-  .input(z.object({ videoId: z.string().uuid() }))
-  .mutation(async ({ input, ctx }) => {
-    let userId: string | undefined;
-    if (ctx.clerkUserId) {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.clerkId, ctx.clerkUserId));
-      userId = user?.id;
-    }
+  incrementView: baseProcedure
+    .input(z.object({ videoId: z.string().uuid() }))
+    .mutation(async ({ input, ctx }) => {
+      let userId: string | undefined;
+      if (ctx.clerkUserId) {
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.clerkId, ctx.clerkUserId));
+        userId = user?.id;
+      }
 
-    // Tăng tổng viewCount
-    await db
-      .update(videos)
-      .set({ viewsCount: sql`${videos.viewsCount} + 1` })
-      .where(eq(videos.id, input.videoId));
-
-    // Lưu progress / lịch sử xem
-    if (userId) {
+      // Tăng tổng viewCount
       await db
-        .insert(videoViews)
-        .values({ userId, videoId: input.videoId, progress: 0 })
-        .onConflictDoUpdate({
-          target: [videoViews.userId, videoViews.videoId],
-          set: { updatedAt: new Date() },
-        });
-    }
+        .update(videos)
+        .set({ viewsCount: sql`${videos.viewsCount} + 1` })
+        .where(eq(videos.id, input.videoId));
 
-    return { success: true };
-  }),
+      // Lưu progress / lịch sử xem
+      if (userId) {
+        await db
+          .insert(videoViews)
+          .values({ userId, videoId: input.videoId, progress: 0 })
+          .onConflictDoUpdate({
+            target: [videoViews.userId, videoViews.videoId],
+            set: { updatedAt: new Date() },
+          });
+      }
+
+      return { success: true };
+    }),
   generateTitle: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
