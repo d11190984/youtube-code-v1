@@ -155,23 +155,29 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
     useEffect(() => {
       if (!trackingEnabled) return;
-
       const player = playerRef.current;
       if (!player) return;
 
-      let lastSaved = 0;
+      // 🔹 Lấy progress hiện tại từ localStorage hoặc server
+      const initial = parseInt(
+        localStorage.getItem(`video-${videoId}-progress`) || "0",
+        10,
+      );
+      lastKnownProgress.current = Math.max(savedProgress, initial);
+      localResumeRef.current = lastKnownProgress.current;
+
+      // 🔹 Reset lastSaved để đảm bảo timeupdate luôn trigger
+      let lastSaved = lastKnownProgress.current;
 
       const handleTimeUpdate = () => {
         const current = Math.floor(player.currentTime || 0);
         lastKnownProgress.current = current;
         localResumeRef.current = current;
 
-        // 🔹 Update localStorage ngay lập tức
         localStorage.setItem(`video-${videoId}-progress`, current.toString());
 
-        // 🔹 Update server
-        if (!savingRef.current && current - (lastSaved || 0) >= 2) {
-          lastSaved = current;
+        if (!savingRef.current && current - lastSaved >= 2) {
+          lastSaved = current; // 🔹 reset lastSaved sau mỗi mutation
           savingRef.current = true;
 
           updateProgressMutation.mutate(
@@ -183,22 +189,9 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       player.addEventListener("timeupdate", handleTimeUpdate);
 
-      return () => {
-        player.removeEventListener("timeupdate", handleTimeUpdate);
-      };
-    }, [videoId, trackingEnabled]);
-    useEffect(() => {
-      if (!trackingEnabled) return;
-      const initial = parseInt(
-        localStorage.getItem(`video-${videoId}-progress`) || "0",
-        10,
-      );
-      if (initial > 0) {
-        lastKnownProgress.current = initial;
-        localResumeRef.current = initial;
-        updateProgressMutation.mutate({ videoId, progress: initial });
-      }
-    }, [videoId, trackingEnabled]);
+      return () => player.removeEventListener("timeupdate", handleTimeUpdate);
+    }, [videoId, trackingEnabled, savedProgress]);
+
     // =========================
     // Save khi thoát trang / unmount
     // =========================
