@@ -81,6 +81,8 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     // ✅ lưu progress cuối cùng an toàn
     const lastKnownProgress = useRef(0);
     const savingRef = useRef(false);
+    const isVideoCompletedRef = useRef(false);
+    const isSwitchingVideoRef = useRef(false);
     const localResumeRef = useRef(savedProgress);
     useEffect(() => {
       localResumeRef.current = savedProgress;
@@ -113,20 +115,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         player.removeEventListener("play", handlePlay);
       };
     }, [videoId, onPlay]);
-    useEffect(() => {
-      const player = playerRef.current;
-      if (!player) return;
 
-      if (!trackingEnabled) return;
-      if (!savedProgress || savedProgress <= 0) return;
-
-      // ❗ nếu player đang ở 0 thì update lại
-      if (player.currentTime < 1) {
-        player.currentTime = savedProgress;
-        lastKnownProgress.current = savedProgress;
-        localResumeRef.current = savedProgress;
-      }
-    }, [savedProgress, trackingEnabled]);
     // =========================
     // Resume progress cũ
     // =========================
@@ -146,17 +135,15 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         const duration = player.duration || 0;
         if (duration <= 0) return;
 
-        // Lấy progress: ưu tiên savedProgress từ DB, fallback localStorage
         const resumeAt = Math.max(
           savedProgress || 0,
           localResumeRef.current || 0,
         );
 
-        // Nếu progress hợp lệ (< 95% video), seek tới đó
-        if (resumeAt > 0 && resumeAt < duration * 0.95) {
+        if (resumeAt > 1 && resumeAt < duration * 0.9) {
           player.currentTime = resumeAt;
           lastKnownProgress.current = resumeAt;
-          localResumeRef.current = resumeAt; // đảm bảo sync lại local ref
+          localResumeRef.current = resumeAt;
         } else {
           player.currentTime = 0;
           lastKnownProgress.current = 0;
@@ -179,12 +166,18 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       let lastSaved = 0;
 
       const handleTimeUpdate = () => {
+        if (isVideoCompletedRef.current) return;
+        if (isSwitchingVideoRef.current) return;
+
         const current = Math.floor(player.currentTime || 0);
 
         lastKnownProgress.current = current;
         localResumeRef.current = current;
 
-        // 🔥 update cache local tức thì
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`video-${videoId}-progress`, String(current));
+        }
+
         utils.videos.getOne.setData({ id: videoId }, (old: any) => {
           if (!old) return old;
           return {
@@ -225,6 +218,8 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       const saveOnExit = () => {
         if (!trackingEnabled) return;
         if (lastKnownProgress.current <= 0) return;
+        if (isVideoCompletedRef.current) return;
+        if (isSwitchingVideoRef.current) return;
 
         navigator.sendBeacon(
           "/api/save-progress",
@@ -257,7 +252,22 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       const handleEnded = async () => {
         const duration = Math.floor(player?.duration || 0);
 
+        isVideoCompletedRef.current = true;
+
         lastKnownProgress.current = duration;
+        localResumeRef.current = duration;
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`video-${videoId}-progress`, String(duration));
+        }
+
+        utils.videos.getOne.setData({ id: videoId }, (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            progress: duration,
+          };
+        });
 
         if (trackingEnabled) {
           await updateProgressMutation.mutateAsync({
@@ -267,20 +277,31 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         }
 
         if (loopEnabled) {
-          localResumeRef.current = 0;
+      isVideoCompletedRef.current = false;
 
-          if (trackingEnabled) {
-            await updateProgressMutation.mutateAsync({
-              videoId,
-              progress: 0,
-              isRestart: true,
-            });
-          }
+      // ✅ cho phép event play lần sau tăng viewsCount tiếp
+      hasCountedView.current = false;
 
-          player.currentTime = 0;
-          player.play();
-          return;
-        }
+      // ✅ reset progress refs cho session xem mới
+      lastKnownProgress.current = 0;
+      localResumeRef.current = 0;
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`video-${videoId}-progress`, "0");
+      }
+
+      if (trackingEnabled) {
+        await updateProgressMutation.mutateAsync({
+          videoId,
+          progress: 0,
+          isRestart: true,
+        });
+      }
+
+      player.currentTime = 0;
+      player.play();
+      return;
+    }
 
         if (!autoNextEnabled) return;
 
@@ -310,8 +331,12 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       hasCountedView.current = false;
       hasSeeked.current = false;
       lastKnownProgress.current = 0;
-    }, [videoId]);
 
+      // 🔥 reset lock states
+      isVideoCompletedRef.current = false;
+      isSwitchingVideoRef.current = false;
+      localResumeRef.current = 0;
+    }, [videoId]);
     // =========================
     // Countdown overlay
     // =========================
