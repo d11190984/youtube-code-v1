@@ -1,3 +1,5 @@
+"use client";
+
 import { toast } from "sonner";
 import { Loader2Icon, SquareCheckIcon, SquareIcon } from "lucide-react";
 
@@ -38,28 +40,36 @@ export const PlaylistAddModal = ({
   );
 
   const addVideo = trpc.playlists.addVideo.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success("Đã thêm video vào danh sách phát");
-      utils.playlists.getMany.invalidate();
-      utils.playlists.getManyForVideo.invalidate({ videoId });
-      utils.playlists.getOne.invalidate({ id: data.playlistId });
-      utils.playlists.getVideos.invalidate({ playlistId: data.playlistId });
+
+      await Promise.all([
+        utils.playlists.getMany.invalidate(),
+        utils.playlists.getManyForVideo.invalidate({ videoId }),
+        utils.playlists.getOne.invalidate(),
+        utils.playlists.getVideos.invalidate(),
+      ]);
     },
-    onError: () => {
-      toast.error("Đã có lỗi xảy ra");
+    onError: (err) => {
+      console.error("ADD VIDEO ERROR:", err);
+      toast.error(err.message || "Đã có lỗi xảy ra");
     },
   });
 
   const removeVideo = trpc.playlists.removeVideo.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success("Đã gỡ video khỏi danh sách phát");
-      utils.playlists.getMany.invalidate();
-      utils.playlists.getManyForVideo.invalidate({ videoId });
-      utils.playlists.getOne.invalidate({ id: data.playlistId });
-      utils.playlists.getVideos.invalidate({ playlistId: data.playlistId });
+
+      await Promise.all([
+        utils.playlists.getMany.invalidate(),
+        utils.playlists.getManyForVideo.invalidate({ videoId }),
+        utils.playlists.getOne.invalidate(),
+        utils.playlists.getVideos.invalidate(),
+      ]);
     },
-    onError: () => {
-      toast.error("Đã có lỗi xảy ra");
+    onError: (err) => {
+      console.error("REMOVE VIDEO ERROR:", err);
+      toast.error(err.message || "Đã có lỗi xảy ra");
     },
   });
 
@@ -87,9 +97,15 @@ export const PlaylistAddModal = ({
                 size="lg"
                 onClick={() => {
                   if (playlist.containsVideo) {
-                    removeVideo.mutate({ playlistId: playlist.id, videoId });
+                    removeVideo.mutate({
+                      playlistId: playlist.id,
+                      videoId,
+                    });
                   } else {
-                    addVideo.mutate({ playlistId: playlist.id, videoId });
+                    addVideo.mutate({
+                      playlistId: playlist.id,
+                      videoId,
+                    });
                   }
                 }}
                 disabled={removeVideo.isPending || addVideo.isPending}
