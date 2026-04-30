@@ -22,72 +22,58 @@ import {
 interface PlaylistCreateModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialVideoIds?: string[];
-  playlistId?: string; // optional: playlist hiện tại
 }
 
 const formSchema = z.object({
   name: z.string().min(1, "Vui lòng nhập tên danh sách"),
-  visibility: z.enum(["public", "private"]).default("public"), // ✅ Thêm visibility
+  visibility: z.enum(["public", "private"]).default("private"),
 });
 
 export const PlaylistCreateModal = ({
   open,
   onOpenChange,
-  initialVideoIds = [],
-  playlistId,
 }: PlaylistCreateModalProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "", visibility: "public" },
+    defaultValues: {
+      name: "",
+      visibility: "private",
+    },
   });
 
   const utils = trpc.useUtils();
 
-  const createMix = trpc.playlists.createMixPlaylist.useMutation({
+  const createPlaylist = trpc.playlists.create.useMutation({
     onSuccess: () => {
-      utils.playlists.getPublicMixPlaylists.invalidate();
-      toast.success("Tạo danh sách kết hợp thành công!");
+      utils.playlists.getMany.invalidate();
+      toast.success("Tạo danh sách phát thành công!");
       form.reset();
       onOpenChange(false);
     },
-    onError: (err) => toast.error(err.message || "Đã xảy ra lỗi"),
-  });
-
-  const addVideo = trpc.playlists.addVideo.useMutation({
-    onSuccess: () => {
-      utils.playlists.getPublicMixPlaylists.invalidate();
-      toast.success("Thêm video vào danh sách thành công!");
-      onOpenChange(false);
+    onError: (err) => {
+      toast.error(err.message || "Đã xảy ra lỗi");
     },
-    onError: (err) => toast.error(err.message || "Đã xảy ra lỗi"),
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (!initialVideoIds.length) return;
-
-    if (playlistId) {
-      // Thêm video vào playlist hiện tại
-      initialVideoIds.forEach((videoId) => {
-        addVideo.mutate({ playlistId, videoId });
-      });
-    } else {
-      // Tạo playlist mới với video hiện tại và visibility
-      createMix.mutate({
-        name: values.name,
-        videoIds: initialVideoIds,
-        visibility: values.visibility,
-      });
-    }
+    createPlaylist.mutate({
+      name: values.name,
+      visibility: values.visibility,
+    });
   };
 
   useEffect(() => {
-    if (open) form.reset();
-  }, [open]);
+    if (open) {
+      form.reset({
+        name: "",
+        visibility: "private",
+      });
+    }
+  }, [open, form]);
 
   return (
     <ResponsiveModal
-      title={playlistId ? "Thêm video vào danh sách" : "Tạo danh sách kết hợp"}
+      title="Tạo danh sách phát"
       open={open}
       onOpenChange={onOpenChange}
     >
@@ -96,47 +82,43 @@ export const PlaylistCreateModal = ({
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-4"
         >
-          {!playlistId && (
-            <>
-              {/* Tên playlist */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tên danh sách</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ví dụ: Video yêu thích" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {/* Visibility */}
-              <FormField
-                control={form.control}
-                name="visibility"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quyền riêng tư</FormLabel>
-                    <FormControl>
-                      <select {...field} className="border rounded px-2 py-1 w-full">
-                        <option value="public">Công khai</option>
-                        <option value="private">Riêng tư</option>
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tên danh sách</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Ví dụ: Video yêu thích" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="visibility"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quyền riêng tư</FormLabel>
+                <FormControl>
+                  <select
+                    {...field}
+                    className="border rounded px-2 py-2 w-full"
+                  >
+                    <option value="private">Riêng tư</option>
+                    <option value="public">Công khai</option>
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={createMix.isPending || addVideo.isPending}
-            >
-              {playlistId ? "Thêm vào danh sách" : "Tạo"}
+            <Button type="submit" disabled={createPlaylist.isPending}>
+              Tạo
             </Button>
           </div>
         </form>
