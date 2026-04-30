@@ -122,6 +122,7 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
     return <VideoSectionSkeleton />;
   }
   // Thêm trước return
+  // Lấy progress từ localStorage + server
   const localProgress =
     typeof window !== "undefined"
       ? parseInt(

@@ -187,7 +187,18 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         player.removeEventListener("timeupdate", handleTimeUpdate);
       };
     }, [videoId, trackingEnabled]);
-
+    useEffect(() => {
+      if (!trackingEnabled) return;
+      const initial = parseInt(
+        localStorage.getItem(`video-${videoId}-progress`) || "0",
+        10,
+      );
+      if (initial > 0) {
+        lastKnownProgress.current = initial;
+        localResumeRef.current = initial;
+        updateProgressMutation.mutate({ videoId, progress: initial });
+      }
+    }, [videoId, trackingEnabled]);
     // =========================
     // Save khi thoát trang / unmount
     // =========================
