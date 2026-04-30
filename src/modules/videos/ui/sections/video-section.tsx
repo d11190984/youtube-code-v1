@@ -59,8 +59,8 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   const [video] = trpc.videos.getOne.useSuspenseQuery(
     { id: currentVideoId },
     {
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
     },
   );
 
@@ -83,7 +83,9 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
     { videoId: currentVideoId, limit: 5, excludeIds: history },
     { enabled: !playlistId },
   );
-
+  useEffect(() => {
+    setCurrentVideoId(videoId);
+  }, [videoId]);
   const nextVideo = useMemo(() => {
     if (playlistId && next) {
       return {
