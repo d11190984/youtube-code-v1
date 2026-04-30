@@ -85,9 +85,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     const isSwitchingVideoRef = useRef(false);
     const isInitialSeekingRef = useRef(true);
     const localResumeRef = useRef(savedProgress);
-    useEffect(() => {
-      localResumeRef.current = savedProgress;
-    }, [savedProgress]);
+
     // =========================
     // Tăng view khi play lần đầu
     // =========================
@@ -130,9 +128,11 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         if (!trackingEnabled) {
           player.currentTime = 0;
           hasSeeked.current = true;
+
           setTimeout(() => {
             isInitialSeekingRef.current = false;
-          }, 500);
+          }, 800);
+
           return;
         }
 
@@ -155,6 +155,10 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         }
 
         hasSeeked.current = true;
+
+        setTimeout(() => {
+          isInitialSeekingRef.current = false;
+        }, 800);
       };
 
       player.addEventListener("canplay", handleCanPlay);
@@ -342,7 +346,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       localResumeRef.current = savedProgress;
       isInitialSeekingRef.current = true;
-    }, [videoId, savedProgress]);
+    }, [videoId]);
     // =========================
     // Countdown overlay
     // =========================
