@@ -13,6 +13,7 @@ interface VideoPlayerProps {
   thumbnailUrl?: string | null;
   savedProgress?: number;
   autoPlay?: boolean;
+  trackingEnabled?: boolean;
   onPlay?: () => void;
   nextVideo?: {
     id: string;
@@ -43,6 +44,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       onEnded,
       autoNextEnabled = true,
       loopEnabled = false,
+      trackingEnabled = true,
     },
     ref,
   ) => {
@@ -78,7 +80,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
     // ✅ lưu progress cuối cùng an toàn
     const lastKnownProgress = useRef(0);
-
+    const savingRef = useRef(false);
     // =========================
     // Tăng view khi play lần đầu
     // =========================
@@ -87,25 +89,36 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       if (!player) return;
 
       const handlePlay = async () => {
-        if (!hasCountedView.current) {
-          hasCountedView.current = true;
+        if (hasCountedView.current) return;
 
-          // 👇 reset progress khi bắt đầu xem lại
-          await updateProgressMutation.mutateAsync({
-            videoId,
-            progress: 0,
-            isRestart: true,
-          });
+        try {
+          // reset progress nếu có tracking
+          if (trackingEnabled) {
+            await updateProgressMutation.mutateAsync({
+              videoId,
+              progress: 0,
+              isRestart: true,
+            });
+          }
 
+          // tăng view luôn
           await incrementViewMutation.mutateAsync({ videoId });
+
+          // chỉ khóa sau khi mọi thứ xong
+          hasCountedView.current = true;
+        } catch (err) {
+          console.log("PLAY EVENT ERROR:", err);
         }
 
         onPlay?.();
       };
 
       player.addEventListener("play", handlePlay);
-      return () => player.removeEventListener("play", handlePlay);
-    }, [videoId, onPlay]);
+
+      return () => {
+        player.removeEventListener("play", handlePlay);
+      };
+    }, [videoId, trackingEnabled, onPlay]);
 
     // =========================
     // Resume progress cũ
@@ -116,7 +129,12 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       const handleCanPlay = () => {
         if (hasSeeked.current) return;
-
+        if (!trackingEnabled) {
+          player.currentTime = 0;
+          lastKnownProgress.current = 0;
+          hasSeeked.current = true;
+          return;
+        }
         const duration = Math.floor(player.duration || 0);
 
         if (savedProgress > 0 && duration > 0) {
@@ -136,49 +154,73 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       player.addEventListener("canplay", handleCanPlay);
       return () => player.removeEventListener("canplay", handleCanPlay);
-    }, [savedProgress, videoId]);
+    }, [savedProgress, videoId, trackingEnabled]);
 
     // =========================
     // Save progress mỗi 2s
     // =========================
     useEffect(() => {
-      const interval = setInterval(() => {
-        const player = playerRef.current;
-        if (!player) return;
-        if (player.paused) return;
+      if (!trackingEnabled) return;
 
+      const player = playerRef.current;
+      if (!player) return;
+
+      let lastSaved = 0;
+
+      const handleTimeUpdate = () => {
         const current = Math.floor(player.currentTime || 0);
 
         lastKnownProgress.current = current;
 
-        updateProgressMutation.mutate({
-          videoId,
-          progress: current,
-        });
-      }, 2000);
+        // save mỗi 2s và chống request chồng nhau
+        if (current - lastSaved >= 2 && !savingRef.current) {
+          lastSaved = current;
+          savingRef.current = true;
 
-      return () => clearInterval(interval);
-    }, [videoId]);
+          updateProgressMutation.mutate(
+            {
+              videoId,
+              progress: current,
+            },
+            {
+              onSettled: () => {
+                savingRef.current = false;
+              },
+            },
+          );
+        }
+      };
 
+      player.addEventListener("timeupdate", handleTimeUpdate);
+
+      return () => {
+        player.removeEventListener("timeupdate", handleTimeUpdate);
+      };
+    }, [videoId, trackingEnabled, updateProgressMutation]);
     // =========================
     // Save khi thoát trang / unmount
     // =========================
     useEffect(() => {
-      const saveProgress = () => {
-        updateProgressMutation.mutate({
-          videoId,
-          progress: lastKnownProgress.current,
-        });
+      const saveOnExit = () => {
+        if (!trackingEnabled) return;
+        if (lastKnownProgress.current <= 0) return;
+
+        navigator.sendBeacon(
+          "/api/save-progress",
+          JSON.stringify({
+            videoId,
+            progress: lastKnownProgress.current,
+          }),
+        );
       };
 
-      window.addEventListener("beforeunload", saveProgress);
+      window.addEventListener("beforeunload", saveOnExit);
 
       return () => {
-        saveProgress();
-        window.removeEventListener("beforeunload", saveProgress);
+        saveOnExit();
+        window.removeEventListener("beforeunload", saveOnExit);
       };
-    }, [videoId]);
-
+    }, [videoId, trackingEnabled]);
     // =========================
     // Video ended
     // =========================
@@ -191,10 +233,12 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
         lastKnownProgress.current = duration;
 
-        await updateProgressMutation.mutateAsync({
-          videoId,
-          progress: duration,
-        });
+        if (trackingEnabled) {
+          await updateProgressMutation.mutateAsync({
+            videoId,
+            progress: duration,
+          });
+        }
 
         if (loopEnabled) {
           player.currentTime = 0;
@@ -211,7 +255,13 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       player.addEventListener("ended", handleEnded);
       return () => player.removeEventListener("ended", handleEnded);
-    }, [autoNextEnabled, loopEnabled, videoId]);
+    }, [
+      autoNextEnabled,
+      loopEnabled,
+      videoId,
+      trackingEnabled,
+      updateProgressMutation,
+    ]);
 
     // =========================
     // Reset state khi đổi video
