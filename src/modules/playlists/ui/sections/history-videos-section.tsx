@@ -91,17 +91,34 @@ const HistoryVideosSectionSuspense = () => {
   );
 
   const clearHistoryMutation = trpc.playlists.clearHistory.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Đã xóa tất cả lịch sử");
-      // 🟢 invalidate query để load lại danh sách
-      utils.playlists.getHistory.invalidate();
+
+      await Promise.all([
+        utils.playlists.getHistory.invalidate(),
+        utils.playlists.getLiked.invalidate(),
+        utils.videos.getMany.invalidate(),
+        utils.videos.getManyTrending.invalidate(),
+        utils.videos.getManySubscribed.invalidate(),
+        utils.videos.getManyShorts.invalidate(),
+        utils.videos.getOne.invalidate(),
+      ]);
     },
   });
   const removeFromHistoryMutation =
     trpc.playlists.removeFromHistory.useMutation({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Đã xóa video khỏi lịch sử");
-        utils.playlists.getHistory.invalidate();
+
+        await Promise.all([
+          utils.playlists.getHistory.invalidate(),
+          utils.playlists.getLiked.invalidate(),
+          utils.videos.getMany.invalidate(),
+          utils.videos.getManyTrending.invalidate(),
+          utils.videos.getManySubscribed.invalidate(),
+          utils.videos.getManyShorts.invalidate(),
+          utils.videos.getOne.invalidate(),
+        ]);
       },
     });
 
