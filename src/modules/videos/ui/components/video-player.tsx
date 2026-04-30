@@ -83,6 +83,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     const savingRef = useRef(false);
     const isVideoCompletedRef = useRef(false);
     const isSwitchingVideoRef = useRef(false);
+    const isInitialSeekingRef = useRef(true);
     const localResumeRef = useRef(savedProgress);
     useEffect(() => {
       localResumeRef.current = savedProgress;
@@ -129,6 +130,9 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         if (!trackingEnabled) {
           player.currentTime = 0;
           hasSeeked.current = true;
+          setTimeout(() => {
+            isInitialSeekingRef.current = false;
+          }, 500);
           return;
         }
 
@@ -166,6 +170,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       let lastSaved = 0;
 
       const handleTimeUpdate = () => {
+        if (isInitialSeekingRef.current) return;
         if (isVideoCompletedRef.current) return;
         if (isSwitchingVideoRef.current) return;
 
@@ -277,31 +282,31 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         }
 
         if (loopEnabled) {
-      isVideoCompletedRef.current = false;
+          isVideoCompletedRef.current = false;
 
-      // ✅ cho phép event play lần sau tăng viewsCount tiếp
-      hasCountedView.current = false;
+          // ✅ cho phép event play lần sau tăng viewsCount tiếp
+          hasCountedView.current = false;
 
-      // ✅ reset progress refs cho session xem mới
-      lastKnownProgress.current = 0;
-      localResumeRef.current = 0;
+          // ✅ reset progress refs cho session xem mới
+          lastKnownProgress.current = 0;
+          localResumeRef.current = 0;
 
-      if (typeof window !== "undefined") {
-        localStorage.setItem(`video-${videoId}-progress`, "0");
-      }
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`video-${videoId}-progress`, "0");
+          }
 
-      if (trackingEnabled) {
-        await updateProgressMutation.mutateAsync({
-          videoId,
-          progress: 0,
-          isRestart: true,
-        });
-      }
+          if (trackingEnabled) {
+            await updateProgressMutation.mutateAsync({
+              videoId,
+              progress: 0,
+              isRestart: true,
+            });
+          }
 
-      player.currentTime = 0;
-      player.play();
-      return;
-    }
+          player.currentTime = 0;
+          player.play();
+          return;
+        }
 
         if (!autoNextEnabled) return;
 
@@ -332,11 +337,12 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       hasSeeked.current = false;
       lastKnownProgress.current = 0;
 
-      // 🔥 reset lock states
       isVideoCompletedRef.current = false;
       isSwitchingVideoRef.current = false;
-      localResumeRef.current = 0;
-    }, [videoId]);
+
+      localResumeRef.current = savedProgress;
+      isInitialSeekingRef.current = true;
+    }, [videoId, savedProgress]);
     // =========================
     // Countdown overlay
     // =========================
