@@ -497,25 +497,33 @@ export const videosRouter = createTRPCRouter({
     .input(z.object({ videoId: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
       let userId: string | undefined;
+      let trackingEnabled = true;
+
       if (ctx.clerkUserId) {
         const [user] = await db
           .select()
           .from(users)
           .where(eq(users.clerkId, ctx.clerkUserId));
+
         userId = user?.id;
+        trackingEnabled = user?.trackHistory ?? true;
       }
 
-      // Tăng tổng viewCount
+      // ✅ view tổng vẫn tăng
       await db
         .update(videos)
         .set({ viewsCount: sql`${videos.viewsCount} + 1` })
         .where(eq(videos.id, input.videoId));
 
-      // Lưu progress / lịch sử xem
-      if (userId) {
+      // ✅ chỉ lưu lịch sử nếu bật tracking
+      if (userId && trackingEnabled) {
         await db
           .insert(videoViews)
-          .values({ userId, videoId: input.videoId, progress: 0 })
+          .values({
+            userId,
+            videoId: input.videoId,
+            progress: 0,
+          })
           .onConflictDoUpdate({
             target: [videoViews.userId, videoViews.videoId],
             set: { updatedAt: new Date() },
@@ -559,11 +567,19 @@ export const videosRouter = createTRPCRouter({
       z.object({
         videoId: z.string(),
         progress: z.number(),
-        isRestart: z.boolean().optional(), // 👈 thêm
+        isRestart: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const { id: userId } = ctx.user;
+
+      // ✅ check user có bật lưu lịch sử không
+      const [me] = await db.select().from(users).where(eq(users.id, userId));
+      if (!me) throw new TRPCError({ code: "NOT_FOUND" });
+
+      if (!me.trackHistory) {
+        return { success: true }; // 🚫 không lưu gì hết
+      }
 
       const [existing] = await db
         .select()
@@ -580,16 +596,11 @@ export const videosRouter = createTRPCRouter({
 
       let finalProgress = oldProgress;
 
-      // ✅ nếu user xem lại -> reset luôn
       if (input.isRestart) {
         finalProgress = 0;
-      }
-      // ❌ chặn reset 0 do bug
-      else if (newProgress === 0 && oldProgress > 5) {
+      } else if (newProgress === 0 && oldProgress > 5) {
         return { success: true };
-      }
-      // ✅ update bình thường
-      else if (newProgress >= oldProgress || oldProgress - newProgress < 3) {
+      } else if (newProgress >= oldProgress || oldProgress - newProgress < 3) {
         finalProgress = newProgress;
       } else {
         return { success: true };
