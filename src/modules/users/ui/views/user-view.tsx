@@ -6,14 +6,14 @@ import { VideosSection } from "../sections/videos-section";
 import { UserTabs } from "../components/user-tabs";
 import { Film } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
-
+import { PlaylistsSection } from "../sections/playlists-section";
 interface UserViewProps {
   userId: string;
 }
 
 export const UserView = ({ userId }: UserViewProps) => {
   const [activeTab, setActiveTab] = useState<
-    "home" | "videos" | "shorts"
+    "home" | "videos" | "shorts" | "playlists"
   >("home");
   const [activeVideoTab, setActiveVideoTab] = useState<
     "latest" | "popular" | "oldest"
@@ -88,6 +88,7 @@ export const UserView = ({ userId }: UserViewProps) => {
       {activeTab === "shorts" && (
         <VideosSection userId={userId} filterType="shorts" />
       )}
+      {activeTab === "playlists" && <PlaylistsSection userId={userId} />}
     </div>
   );
 };
