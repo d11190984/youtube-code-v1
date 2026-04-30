@@ -784,7 +784,6 @@ export const videosRouter = createTRPCRouter({
       },
       cors_origin: "*", // TODO: In production, set to your url
     });
-
     const [video] = await db
       .insert(videos)
       .values({
