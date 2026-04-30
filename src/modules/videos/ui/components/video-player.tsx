@@ -163,33 +163,20 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       const handleTimeUpdate = () => {
         const current = Math.floor(player.currentTime || 0);
-
         lastKnownProgress.current = current;
         localResumeRef.current = current;
 
-        // 🔥 update cache local tức thì
-        utils.videos.getOne.setData({ id: videoId }, (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            progress: current,
-          };
-        });
+        // 🔹 Update localStorage ngay lập tức
+        localStorage.setItem(`video-${videoId}-progress`, current.toString());
 
-        if (current - lastSaved >= 2 && !savingRef.current) {
+        // 🔹 Update server
+        if (!savingRef.current && current - (lastSaved || 0) >= 2) {
           lastSaved = current;
           savingRef.current = true;
 
           updateProgressMutation.mutate(
-            {
-              videoId,
-              progress: current,
-            },
-            {
-              onSettled: () => {
-                savingRef.current = false;
-              },
-            },
+            { videoId, progress: current },
+            { onSettled: () => (savingRef.current = false) },
           );
         }
       };
@@ -207,25 +194,33 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     useEffect(() => {
       const saveOnExit = () => {
         if (!trackingEnabled) return;
-        if (lastKnownProgress.current <= 0) return;
+        const progress = lastKnownProgress.current;
+        if (progress <= 0) return;
 
+        // 🔹 Lưu localStorage trước
+        localStorage.setItem(`video-${videoId}-progress`, progress.toString());
+
+        // 🔹 Gửi server
         navigator.sendBeacon(
           "/api/save-progress",
           JSON.stringify({
             videoId,
-            progress: lastKnownProgress.current,
+            progress,
           }),
         );
 
+        // 🔹 Invalidate cache TRPC (nếu cần)
         utils.videos.getMany.invalidate();
         utils.videos.getManyTrending.invalidate();
         utils.videos.getManySubscribed.invalidate();
         utils.videos.getManyShorts.invalidate();
         utils.suggestions.getMany.invalidate();
       };
+
       window.addEventListener("beforeunload", saveOnExit);
 
       return () => {
+        // Gọi 1 lần khi unmount
         saveOnExit();
         window.removeEventListener("beforeunload", saveOnExit);
       };
