@@ -81,6 +81,10 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     // ✅ lưu progress cuối cùng an toàn
     const lastKnownProgress = useRef(0);
     const savingRef = useRef(false);
+    const localResumeRef = useRef(savedProgress);
+    useEffect(() => {
+      localResumeRef.current = savedProgress;
+    }, [savedProgress]);
     // =========================
     // Tăng view khi play lần đầu
     // =========================
@@ -92,19 +96,9 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         if (hasCountedView.current) return;
 
         try {
-          // reset progress nếu có tracking
-          if (trackingEnabled) {
-            await updateProgressMutation.mutateAsync({
-              videoId,
-              progress: 0,
-              isRestart: true,
-            });
-          }
-
-          // tăng view luôn
+          // ✅ chỉ tăng view, tuyệt đối không reset progress ở đây
           await incrementViewMutation.mutateAsync({ videoId });
 
-          // chỉ khóa sau khi mọi thứ xong
           hasCountedView.current = true;
         } catch (err) {
           console.log("PLAY EVENT ERROR:", err);
@@ -118,7 +112,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       return () => {
         player.removeEventListener("play", handlePlay);
       };
-    }, [videoId, trackingEnabled, onPlay]);
+    }, [videoId, onPlay]);
 
     // =========================
     // Resume progress cũ
@@ -129,20 +123,23 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       const handleCanPlay = () => {
         if (hasSeeked.current) return;
+
         if (!trackingEnabled) {
           player.currentTime = 0;
           lastKnownProgress.current = 0;
           hasSeeked.current = true;
           return;
         }
-        const duration = Math.floor(player.duration || 0);
 
-        if (savedProgress > 0 && duration > 0) {
-          const watchedPercent = (savedProgress / duration) * 100;
+        const duration = Math.floor(player.duration || 0);
+        const resumeAt = localResumeRef.current || 0;
+
+        if (resumeAt > 0 && duration > 0) {
+          const watchedPercent = (resumeAt / duration) * 100;
 
           if (watchedPercent < 95) {
-            player.currentTime = savedProgress;
-            lastKnownProgress.current = savedProgress;
+            player.currentTime = resumeAt;
+            lastKnownProgress.current = resumeAt;
           } else {
             player.currentTime = 0;
             lastKnownProgress.current = 0;
@@ -154,11 +151,8 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       player.addEventListener("canplay", handleCanPlay);
       return () => player.removeEventListener("canplay", handleCanPlay);
-    }, [savedProgress, videoId, trackingEnabled]);
+    }, [videoId, trackingEnabled, savedProgress]);
 
-    // =========================
-    // Save progress mỗi 2s
-    // =========================
     useEffect(() => {
       if (!trackingEnabled) return;
 
@@ -171,8 +165,17 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         const current = Math.floor(player.currentTime || 0);
 
         lastKnownProgress.current = current;
+        localResumeRef.current = current;
 
-        // save mỗi 2s và chống request chồng nhau
+        // 🔥 update cache local tức thì
+        utils.videos.getOne.setData({ id: videoId }, (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            progress: current,
+          };
+        });
+
         if (current - lastSaved >= 2 && !savingRef.current) {
           lastSaved = current;
           savingRef.current = true;
@@ -196,7 +199,8 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       return () => {
         player.removeEventListener("timeupdate", handleTimeUpdate);
       };
-    }, [videoId, trackingEnabled, updateProgressMutation]);
+    }, [videoId, trackingEnabled]);
+
     // =========================
     // Save khi thoát trang / unmount
     // =========================
@@ -212,8 +216,13 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
             progress: lastKnownProgress.current,
           }),
         );
-      };
 
+        utils.videos.getMany.invalidate();
+        utils.videos.getManyTrending.invalidate();
+        utils.videos.getManySubscribed.invalidate();
+        utils.videos.getManyShorts.invalidate();
+        utils.suggestions.getMany.invalidate();
+      };
       window.addEventListener("beforeunload", saveOnExit);
 
       return () => {
@@ -241,6 +250,16 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         }
 
         if (loopEnabled) {
+          localResumeRef.current = 0;
+
+          if (trackingEnabled) {
+            await updateProgressMutation.mutateAsync({
+              videoId,
+              progress: 0,
+              isRestart: true,
+            });
+          }
+
           player.currentTime = 0;
           player.play();
           return;
