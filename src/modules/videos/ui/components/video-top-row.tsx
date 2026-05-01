@@ -44,13 +44,15 @@ export const VideoTopRow = ({
 
   const compactViews = useMemo(
     () =>
-      Intl.NumberFormat("vi-VN", { notation: "compact" }).format(video.viewCount),
-    [video.viewCount]
+      Intl.NumberFormat("vi-VN", { notation: "compact" }).format(
+        video.viewCount,
+      ),
+    [video.viewCount],
   );
 
   const expandedViews = useMemo(
     () => Intl.NumberFormat("vi-VN").format(video.viewCount),
-    [video.viewCount]
+    [video.viewCount],
   );
 
   const compactDate = useMemo(
@@ -59,12 +61,12 @@ export const VideoTopRow = ({
         addSuffix: true,
         locale: vi,
       }),
-    [video.createdAt]
+    [video.createdAt],
   );
 
   const expandedDate = useMemo(
     () => new Date(video.createdAt).toLocaleDateString("vi-VN"),
-    [video.createdAt]
+    [video.createdAt],
   );
 
   return (
@@ -85,6 +87,7 @@ export const VideoTopRow = ({
           {/* 🔹 VideoPlaybackMenu tự động lấy track từ playerRef */}
           <VideoPlaybackMenu
             playerRef={playerRef}
+            playbackId={video.muxPlaybackId}
             playbackRate={playbackRate}
             setPlaybackRate={setPlaybackRate}
             autoNextEnabled={autoNextEnabled}
