@@ -31,7 +31,17 @@ export const VideoSectionSkeleton = () => {
     </>
   );
 };
+type PlaylistVideo = {
+  id: string;
+  title: string;
+  thumbnail?: string | null;
+};
 
+type Playlist = {
+  id: string;
+  name: string;
+  videos: PlaylistVideo[];
+};
 const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   const params = useSearchParams();
 
@@ -73,8 +83,12 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
 
   const finalProgress = localProgress > 0 ? localProgress : video.progress || 0; // ✅ dùng max để ưu tiên server nếu có
   // 🔹 playlist public
-  const { data: playlists } = trpc.playlists.getPublicMixPlaylists.useQuery();
-  const playlist = playlists?.find((p) => p.id === playlistId);
+  const { data: playlists } =
+    trpc.playlists.getPublicMixPlaylists.useQuery() as {
+      data: Playlist[] | undefined;
+    };
+
+  const playlist = playlists?.find((p: Playlist) => p.id === playlistId);
   const next = playlist?.videos?.[currentIndex + 1];
 
   // 🔹 suggestion random nếu không có playlist

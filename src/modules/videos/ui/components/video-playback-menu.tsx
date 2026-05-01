@@ -48,7 +48,7 @@ export const VideoPlaybackMenu = ({
 }: Props) => {
   const [downloading, setDownloading] = useState(false);
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (downloading) return;
 
     if (!assetId) {
@@ -58,38 +58,17 @@ export const VideoPlaybackMenu = ({
 
     setDownloading(true);
 
-    const toastId = toast.loading("Đang chuẩn bị tải video...");
+    toast.success("Đang chuẩn bị tải video...");
 
-    try {
-      const response = await fetch(`/api/download-video?assetId=${assetId}`, {
-        method: "GET",
-        redirect: "follow",
-      });
+    const a = document.createElement("a");
+    a.href = `/api/download-video?assetId=${assetId}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 
-      if (!response.ok) {
-        toast.dismiss(toastId);
-        toast.error("MP4 chưa sẵn sàng hoặc không thể tải");
-        return;
-      }
-
-      const finalUrl = response.url;
-
-      const a = document.createElement("a");
-      a.href = finalUrl;
-      a.download = `video-${assetId}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      toast.dismiss(toastId);
-      toast.success("Đang tải video...");
-    } catch (error) {
-      console.log(error);
-      toast.dismiss(toastId);
-      toast.error("Tải video thất bại");
-    } finally {
+    setTimeout(() => {
       setDownloading(false);
-    }
+    }, 4000);
   };
   return (
     <DropdownMenu>

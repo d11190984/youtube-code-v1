@@ -16,13 +16,21 @@ export async function GET(req: NextRequest) {
     console.log("MUX ASSET RETRIEVE:", asset);
 
     const playbackId = asset.playback_ids?.[0]?.id;
+    const staticFiles = asset.static_renditions?.files || [];
 
-    if (!playbackId) {
-      return new Response("Playback not found", { status: 404 });
+    if (!playbackId || !staticFiles.length) {
+      return new Response("MP4 not ready", { status: 404 });
     }
 
-    // mp4_support/static renditions enabled => Mux auto exposes mp4 file
-    const mp4Url = `https://stream.mux.com/${playbackId}/high.mp4`;
+    const bestMp4 = staticFiles.find((f: any) => f.ext === "mp4") || staticFiles[0];
+
+    if (!bestMp4?.name) {
+      return new Response("No MP4 file", { status: 404 });
+    }
+
+    const mp4Url = `https://stream.mux.com/${playbackId}/${bestMp4.name}`;
+
+    console.log("REDIRECT TO:", mp4Url);
 
     return Response.redirect(mp4Url, 302);
   } catch (error) {
