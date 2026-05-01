@@ -43,41 +43,57 @@ export const VideoPlaybackMenu = ({
   playbackRate,
   setPlaybackRate,
 }: Props) => {
+  const [downloading, setDownloading] = useState(false);
   const handleDownload = async () => {
+    if (downloading) return;
+
     if (!playbackId) {
       toast.error("Không tìm thấy video");
       return;
     }
 
+    setDownloading(true);
+
     const toastId = toast.loading("Đang xử lý và chuẩn bị tải video...");
 
     try {
-      const res = await fetch(`/api/download-video?playbackId=${playbackId}`);
+      const response = await fetch(
+        `/api/download-video?playbackId=${playbackId}`,
+      );
 
-      if (!res.ok) {
+      if (!response.ok) {
         toast.dismiss(toastId);
-        toast.error("Không thể tải video");
+        toast.error("Không thể xử lý video");
         return;
       }
 
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
+      const blob = await response.blob();
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `video-${playbackId}.mp4`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (blob.size <= 0) {
+        toast.dismiss(toastId);
+        toast.error("Video tải về rỗng");
+        return;
+      }
 
-      window.URL.revokeObjectURL(url);
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `video-${playbackId}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      window.URL.revokeObjectURL(downloadUrl);
 
       toast.dismiss(toastId);
       toast.success("Tải video thành công");
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
       toast.dismiss(toastId);
       toast.error("Tải video thất bại");
+    } finally {
+      setDownloading(false);
     }
   };
   return (
@@ -137,11 +153,11 @@ export const VideoPlaybackMenu = ({
 
         {/* DOWNLOAD Submenu */}
         <DropdownMenuItem
-          className="flex items-center gap-2"
+          className={`flex items-center gap-2 ${downloading ? "opacity-50 pointer-events-none" : ""}`}
           onClick={handleDownload}
         >
           <DownloadIcon className="w-4 h-4 text-gray-500" />
-          <span>Tải video</span>
+          <span>{downloading ? "Đang tải..." : "Tải video"}</span>
         </DropdownMenuItem>
         {/* SPEED Submenu */}
         <DropdownMenuSub>

@@ -1,18 +1,23 @@
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 import { NextRequest } from "next/server";
 import ffmpeg from "fluent-ffmpeg";
-import fs from "fs";
+import { PassThrough } from "stream";
 import path from "path";
-import os from "os";
+import fs from "fs";
 
-// 🔥 lấy path ffmpeg thật từ node_modules
+const ffmpegBinary = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+
 const ffmpegRealPath = path.join(
   process.cwd(),
   "node_modules",
   "ffmpeg-static",
-  "ffmpeg.exe",
+  ffmpegBinary,
 );
+
+console.log("REAL FFMPEG PATH:", ffmpegRealPath);
+console.log("FFMPEG EXISTS:", fs.existsSync(ffmpegRealPath));
 
 ffmpeg.setFfmpegPath(ffmpegRealPath);
 
@@ -24,58 +29,54 @@ export async function GET(req: NextRequest) {
   }
 
   const m3u8Url = `https://stream.mux.com/${playbackId}.m3u8`;
-  const tempFile = path.join(os.tmpdir(), `${playbackId}-${Date.now()}.mp4`);
-
   console.log("DOWNLOAD START:", m3u8Url);
-  console.log("REAL FFMPEG PATH:", ffmpegRealPath);
 
-  return new Promise<Response>((resolve) => {
-    ffmpeg()
-      .input(m3u8Url)
-      .inputOptions([
-        "-protocol_whitelist",
-        "file,http,https,tcp,tls,crypto",
-      ])
-      .outputOptions([
-        "-movflags +faststart",
-        "-c:v copy",
-        "-c:a copy",
-      ])
-      .on("start", (cmd) => {
-        console.log("FFMPEG CMD:", cmd);
-      })
-      .on("progress", (p) => {
-        console.log("Processing:", p.percent);
-      })
-      .on("end", async () => {
-        console.log("FFMPEG END");
+  const nodeStream = new PassThrough();
 
-        try {
-          const fileBuffer = await fs.promises.readFile(tempFile);
+  ffmpeg()
+    .input(m3u8Url)
+    .inputOptions([
+      "-protocol_whitelist",
+      "file,http,https,tcp,tls,crypto",
+    ])
+    .outputOptions([
+      "-movflags",
+      "frag_keyframe+empty_moov",
+      "-c:v",
+      "copy",
+      "-c:a",
+      "copy",
+      "-f",
+      "mp4",
+    ])
+    .on("start", (cmd) => {
+      console.log("FFMPEG CMD:", cmd);
+    })
+    .on("error", (err: Error, stdout: any, stderr: any) => {
+      console.log("FFMPEG ERROR:", err);
+      console.log("STDOUT:", stdout);
+      console.log("STDERR:", stderr);
+      nodeStream.destroy(err);
+    })
+    .on("end", () => {
+      console.log("FFMPEG END");
+      nodeStream.end();
+    })
+    .pipe(nodeStream, { end: true });
 
-          resolve(
-            new Response(fileBuffer, {
-              headers: {
-                "Content-Type": "video/mp4",
-                "Content-Disposition": `attachment; filename="video-${playbackId}.mp4"`,
-              },
-            }),
-          );
+  const webStream = new ReadableStream({
+    start(controller) {
+      nodeStream.on("data", (chunk) => controller.enqueue(chunk));
+      nodeStream.on("end", () => controller.close());
+      nodeStream.on("error", (err) => controller.error(err));
+    },
+  });
 
-          setTimeout(() => {
-            if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
-          }, 10000);
-        } catch (e) {
-          console.log("READ ERROR:", e);
-          resolve(new Response("Read failed", { status: 500 }));
-        }
-      })
-      .on("error", (err: Error, stdout: any, stderr: any) => {
-        console.log("FFMPEG ERROR:", err);
-        console.log("STDOUT:", stdout);
-        console.log("STDERR:", stderr);
-        resolve(new Response("Convert failed", { status: 500 }));
-      })
-      .save(tempFile);
+  return new Response(webStream, {
+    headers: {
+      "Content-Type": "video/mp4",
+      "Content-Disposition": `attachment; filename="video-${playbackId}.mp4"`,
+      "Cache-Control": "no-store",
+    },
   });
 }
