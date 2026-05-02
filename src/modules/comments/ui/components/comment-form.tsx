@@ -9,15 +9,21 @@ import { Button } from "@/components/ui/button";
 import { commentInsertSchema } from "@/db/schema";
 import { Textarea } from "@/components/ui/textarea";
 import { UserAvatar } from "@/components/user-avatar";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface CommentFormProps {
   videoId: string;
   parentId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
-  variant?: "comment" | "reply",
-};
+  variant?: "comment" | "reply";
+}
 
 export const CommentForm = ({
   videoId,
@@ -32,8 +38,7 @@ export const CommentForm = ({
   const utils = trpc.useUtils();
   const create = trpc.comments.create.useMutation({
     onSuccess: () => {
-      utils.comments.getMany.invalidate({ videoId });
-      utils.comments.getMany.invalidate({ videoId, parentId });
+      utils.comments.getMany.invalidate();
       form.reset();
       toast.success("Đã thêm bình luận");
       onSuccess?.();
@@ -44,7 +49,7 @@ export const CommentForm = ({
       if (error.data?.code === "UNAUTHORIZED") {
         clerk.openSignIn();
       }
-    }
+    },
   });
 
   const form = useForm<z.infer<typeof commentInsertSchema>>({
@@ -67,7 +72,7 @@ export const CommentForm = ({
 
   return (
     <Form {...form}>
-      <form 
+      <form
         onSubmit={form.handleSubmit(handleSubmit)}
         className="flex gap-4 group"
       >
@@ -106,11 +111,7 @@ export const CommentForm = ({
               </Button>
             )}
 
-            <Button
-              disabled={create.isPending}
-              type="submit"
-              size="sm"
-            >
+            <Button disabled={create.isPending} type="submit" size="sm">
               {variant === "reply" ? "Trả lời" : "Bình luận"}
             </Button>
           </div>

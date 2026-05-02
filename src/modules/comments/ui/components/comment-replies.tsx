@@ -11,23 +11,19 @@ interface CommentRepliesProps {
   videoId: string;
 }
 
-export const CommentReplies = ({
-  parentId,
-  videoId,
-}: CommentRepliesProps) => {
-  const { 
-    data, 
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = trpc.comments.getMany.useInfiniteQuery({
-    limit: DEFAULT_LIMIT,
-    videoId,
-    parentId,
-  }, {
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-  });
+export const CommentReplies = ({ parentId, videoId }: CommentRepliesProps) => {
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    trpc.comments.getMany.useInfiniteQuery(
+      {
+        limit: DEFAULT_LIMIT,
+        videoId,
+        parentId,
+        sortBy: "newest",
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    );
 
   return (
     <div className="pl-14">
@@ -37,13 +33,12 @@ export const CommentReplies = ({
             <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
           </div>
         )}
-        {!isLoading && 
+        {!isLoading &&
           data?.pages
             .flatMap((page) => page.items)
             .map((comment) => (
               <CommentItem key={comment.id} comment={comment} variant="reply" />
-            ))
-        }
+            ))}
       </div>
       {hasNextPage && (
         <Button

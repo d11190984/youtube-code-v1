@@ -1,26 +1,41 @@
 import { z } from "zod";
-import { and, count, desc, eq, getTableColumns, inArray, isNotNull, isNull, lt, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  or,
+  sql,
+} from "drizzle-orm";
 
 import { db } from "@/db";
 import { TRPCError } from "@trpc/server";
 import { commentReactions, comments, users } from "@/db/schema";
-import { baseProcedure, createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import {
+  baseProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "@/trpc/init";
 
 export const commentsRouter = createTRPCRouter({
   remove: protectedProcedure
-    .input(z.object({
-      id: z.string().uuid(),
-    }))
+    .input(
+      z.object({
+        id: z.string().uuid(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
       const { id: userId } = ctx.user;
 
       const [deletedComment] = await db
         .delete(comments)
-        .where(and(
-          eq(comments.id, id),
-          eq(comments.userId, userId),
-        ))
+        .where(and(eq(comments.id, id), eq(comments.userId, userId)))
         .returning();
 
       if (!deletedComment) {
@@ -30,11 +45,13 @@ export const commentsRouter = createTRPCRouter({
       return deletedComment;
     }),
   create: protectedProcedure
-    .input(z.object({
-      parentId: z.string().uuid().nullish(),
-      videoId: z.string().uuid(),
-      value: z.string(),
-    }))
+    .input(
+      z.object({
+        parentId: z.string().uuid().nullish(),
+        videoId: z.string().uuid(),
+        value: z.string(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       const { parentId, videoId, value } = input;
       const { id: userId } = ctx.user;
@@ -60,126 +77,154 @@ export const commentsRouter = createTRPCRouter({
       return createdComment;
     }),
   getMany: baseProcedure
-    .input(
-      z.object({
-        videoId: z.string().uuid(),
-        parentId: z.string().uuid().nullish(),
-        cursor: z.object({
+  .input(
+    z.object({
+      videoId: z.string().uuid(),
+      parentId: z.string().uuid().nullish(),
+      cursor: z
+        .object({
           id: z.string().uuid(),
           updatedAt: z.date(),
-        }).nullish(),
-        limit: z.number().min(1).max(100),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const { clerkUserId } = ctx;
-      const { parentId, videoId, cursor, limit } = input;
+        })
+        .nullish(),
+      limit: z.number().min(1).max(100),
+      sortBy: z.enum(["top", "newest"]).default("top"),
+    }),
+  )
+  .query(async ({ input, ctx }) => {
+    const { clerkUserId } = ctx;
+    const { parentId, videoId, cursor, limit, sortBy } = input;
 
-      let userId;
+    let userId: string | undefined;
 
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(inArray(users.clerkId, clerkUserId ? [clerkUserId] : []));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(inArray(users.clerkId, clerkUserId ? [clerkUserId] : []));
 
-      if (user) {
-        userId = user.id;
-      }
+    if (user) {
+      userId = user.id;
+    }
 
-      const viewerReactions = db.$with("viewer_reactions").as(
-        db
-          .select({
-            commentId: commentReactions.commentId,
-            type: commentReactions.type,
-          })
-          .from(commentReactions)
-          .where(inArray(commentReactions.userId, userId ? [userId] : []))
-      );
+    const viewerReactions = db.$with("viewer_reactions").as(
+      db
+        .select({
+          commentId: commentReactions.commentId,
+          type: commentReactions.type,
+        })
+        .from(commentReactions)
+        .where(inArray(commentReactions.userId, userId ? [userId] : [])),
+    );
 
-      const replies = db.$with("replies").as(
-        db
-          .select({
-            parentId: comments.parentId,
-            count: count(comments.id).as("count"),
-          })
-          .from(comments)
-          .where(isNotNull(comments.parentId))
-          .groupBy(comments.parentId),
-      );
+    const replies = db.$with("replies").as(
+      db
+        .select({
+          parentId: comments.parentId,
+          count: count(comments.id).as("count"),
+        })
+        .from(comments)
+        .where(isNotNull(comments.parentId))
+        .groupBy(comments.parentId),
+    );
 
-      const [totalData, data] = await Promise.all([
-        db
-          .select({
-            count: count(),
-          })
-          .from(comments)
-          .where(and(
+    // ⭐ điểm nổi bật comment giống YouTube
+    const score = sql<number>`
+      (
+        (
+          SELECT COUNT(*) FROM ${commentReactions}
+          WHERE ${commentReactions.commentId} = ${comments.id}
+          AND ${commentReactions.type} = 'like'
+        ) * 2
+      )
+      +
+      (
+        SELECT COUNT(*) FROM ${comments} c2
+        WHERE c2.parent_id = ${comments.id}
+      )
+    `;
+
+    const [totalData, data] = await Promise.all([
+      db
+        .select({
+          count: count(),
+        })
+        .from(comments)
+        .where(
+          and(
             eq(comments.videoId, videoId),
-            // isNull(comments.parentId),
-          )),
-        db
-          .with(viewerReactions, replies)
-          .select({
-            ...getTableColumns(comments),
-            user: users,
-            viewerReaction: viewerReactions.type,
-            replyCount: replies.count,
-            likeCount: db.$count(
-              commentReactions,
-              and(
-                eq(commentReactions.type, "like"),
-                eq(commentReactions.commentId, comments.id),
-              )
-            ),
-            dislikeCount: db.$count(
-              commentReactions,
-              and(
-                eq(commentReactions.type, "dislike"),
-                eq(commentReactions.commentId, comments.id),
-              )
-            )
-          })
-          .from(comments)
-          .where(
+            isNull(comments.parentId),
+          ),
+        ),
+
+      db
+        .with(viewerReactions, replies)
+        .select({
+          ...getTableColumns(comments),
+          user: users,
+          viewerReaction: viewerReactions.type,
+          replyCount: replies.count,
+          score,
+          likeCount: db.$count(
+            commentReactions,
             and(
-              eq(comments.videoId, videoId),
-              parentId
+              eq(commentReactions.type, "like"),
+              eq(commentReactions.commentId, comments.id),
+            ),
+          ),
+          dislikeCount: db.$count(
+            commentReactions,
+            and(
+              eq(commentReactions.type, "dislike"),
+              eq(commentReactions.commentId, comments.id),
+            ),
+          ),
+        })
+        .from(comments)
+        .where(
+          and(
+            eq(comments.videoId, videoId),
+            parentId
               ? eq(comments.parentId, parentId)
               : isNull(comments.parentId),
-              cursor
-                ? or(
-                    lt(comments.updatedAt, cursor.updatedAt),
-                      and(
-                        eq(comments.updatedAt, cursor.updatedAt),
-                        lt(comments.id, cursor.id)
-                      )
-                    )
-                : undefined,
-            )
-          )
-          .innerJoin(users, eq(comments.userId, users.id))
-          .leftJoin(viewerReactions, eq(comments.id, viewerReactions.commentId))
-          .leftJoin(replies, eq(comments.id, replies.parentId))
-          .orderBy(desc(comments.updatedAt), desc(comments.id))
-          .limit(limit + 1)
-      ])
+
+            cursor
+              ? or(
+                  lt(comments.updatedAt, cursor.updatedAt),
+                  and(
+                    eq(comments.updatedAt, cursor.updatedAt),
+                    lt(comments.id, cursor.id),
+                  ),
+                )
+              : undefined,
+          ),
+        )
+        .innerJoin(users, eq(comments.userId, users.id))
+        .leftJoin(viewerReactions, eq(comments.id, viewerReactions.commentId))
+        .leftJoin(replies, eq(comments.id, replies.parentId))
+        .orderBy(
+          ...(sortBy === "newest"
+            ? [desc(comments.createdAt), desc(comments.id)]
+            : [desc(score), desc(comments.createdAt), desc(comments.id)]),
+        )
+        .limit(limit + 1),
+    ]);
 
     const hasMore = data.length > limit;
-    // Remove the last item if there is more data
     const items = hasMore ? data.slice(0, -1) : data;
-    // Set the next cursor to the last item if there is more data
+
     const lastItem = items[items.length - 1];
-    const nextCursor = hasMore 
+
+    const nextCursor = hasMore
       ? {
-        id: lastItem.id,
-        updatedAt: lastItem.updatedAt,
-      }
+          id: lastItem.id,
+          updatedAt: lastItem.updatedAt,
+        }
       : null;
 
-      return {
-        totalCount: totalData[0].count,
-        items,
-        nextCursor,
-      };
-    }),
+    return {
+      totalCount: totalData[0].count,
+      items,
+      nextCursor,
+    };
+  }),
 });
