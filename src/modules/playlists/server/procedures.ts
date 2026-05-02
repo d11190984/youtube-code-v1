@@ -731,11 +731,19 @@ export const playlistsRouter = createTRPCRouter({
 
       return createdPlaylist;
     }),
-  getHistoryTracking: protectedProcedure.query(async ({ ctx }) => {
-    const { id: userId } = ctx.user;
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-    return user.trackHistory; // trả về boolean
+  getHistoryTracking: publicProcedure.query(async ({ ctx }) => {
+    // Lấy ID từ Clerk
+    const clerkUserId = ctx.clerkUserId;
+    if (!clerkUserId) return false; // guest không có quyền tracking → trả về false
+
+    // Lấy user từ DB
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.clerkId, clerkUserId));
+
+    // Trả về trackHistory hoặc false nếu không có
+    return user?.trackHistory ?? false;
   }),
   getLiked: protectedProcedure
     .input(

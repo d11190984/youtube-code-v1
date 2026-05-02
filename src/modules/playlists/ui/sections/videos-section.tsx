@@ -8,8 +8,14 @@ import { DEFAULT_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import { toast } from "sonner";
 
-import { VideoGridCard, VideoGridCardSkeleton } from "@/modules/videos/ui/components/video-grid-card";
-import { VideoRowCard, VideoRowCardSkeleton } from "@/modules/videos/ui/components/video-row-card";
+import {
+  VideoGridCard,
+  VideoGridCardSkeleton,
+} from "@/modules/videos/ui/components/video-grid-card";
+import {
+  VideoRowCard,
+  VideoRowCardSkeleton,
+} from "@/modules/videos/ui/components/video-row-card";
 
 interface VideosSectionProps {
   playlistId: string;
@@ -50,7 +56,7 @@ const VideosSectionSuspense = ({ playlistId }: VideosSectionProps) => {
     { limit: DEFAULT_LIMIT, playlistId },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
+    },
   );
 
   const utils = trpc.useUtils();
@@ -64,7 +70,7 @@ const VideosSectionSuspense = ({ playlistId }: VideosSectionProps) => {
       utils.playlists.getVideos.invalidate({ playlistId: data.playlistId });
     },
     onError: () => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
     },
   });
 

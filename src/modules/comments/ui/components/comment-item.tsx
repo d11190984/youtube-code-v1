@@ -48,11 +48,11 @@ export const CommentItem = ({
 
   const remove = trpc.comments.remove.useMutation({
     onSuccess: () => {
-      toast.success("Comment deleted");
+      toast.success("Bình luận đã bị xóa");
       utils.comments.getMany.invalidate({ videoId: comment.videoId });
     },
     onError: (error) => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
 
       if (error.data?.code === "UNAUTHORIZED") {
         clerk.openSignIn();
@@ -65,7 +65,7 @@ export const CommentItem = ({
       utils.comments.getMany.invalidate({ videoId: comment.videoId });
     },
     onError: (error) => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
 
       if (error.data?.code === "UNAUTHORIZED") {
         clerk.openSignIn();
@@ -77,7 +77,7 @@ export const CommentItem = ({
       utils.comments.getMany.invalidate({ videoId: comment.videoId });
     },
     onError: (error) => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
 
       if (error.data?.code === "UNAUTHORIZED") {
         clerk.openSignIn();
@@ -173,7 +173,7 @@ export const CommentItem = ({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setIsReplyOpen(true)}>
               <MessageSquareIcon className="size-4" />
-             Trả lời
+              Trả lời
             </DropdownMenuItem>
             {comment.user.clerkId === userId && (
               <DropdownMenuItem
@@ -208,7 +208,7 @@ export const CommentItem = ({
             onClick={() => setIsRepliesOpen((current) => !current)}
           >
             {isRepliesOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-         {comment.replyCount} lượt phản hồi
+            {comment.replyCount} lượt phản hồi
           </Button>
         </div>
       )}

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, getTableColumns, inArray, isNotNull } from "drizzle-orm";
+import { eq, getTableColumns, inArray, isNotNull,sql  } from "drizzle-orm";
 
 import { db } from "@/db";
 import { TRPCError } from "@trpc/server";
@@ -18,7 +18,9 @@ export const usersRouter = createTRPCRouter({
       const [user] = await db
         .select()
         .from(users)
-        .where(inArray(users.clerkId, clerkUserId ? [clerkUserId] : []));
+        .where(
+          clerkUserId ? inArray(users.clerkId, [clerkUserId]) : sql`1=0`, // guest vẫn hợp lệ
+        );
 
       if (user) {
         userId = user.id;
@@ -28,20 +30,30 @@ export const usersRouter = createTRPCRouter({
         db
           .select()
           .from(subscriptions)
-          .where(inArray(subscriptions.viewerId, userId ? [userId] : [])),
+          .where(
+            userId ? inArray(subscriptions.viewerId, [userId]) : sql`1=0`, // guest không subscribe ai
+          ),
       );
 
       const [existingUser] = await db
         .with(viewerSubscriptions)
         .select({
           ...getTableColumns(users),
-          viewerSubscribed: isNotNull(viewerSubscriptions.viewerId).mapWith(Boolean),
+          viewerSubscribed: isNotNull(viewerSubscriptions.viewerId).mapWith(
+            Boolean,
+          ),
           videoCount: db.$count(videos, eq(videos.userId, users.id)),
-          subscriberCount: db.$count(subscriptions, eq(subscriptions.creatorId, users.id)),
+          subscriberCount: db.$count(
+            subscriptions,
+            eq(subscriptions.creatorId, users.id),
+          ),
           bio: users.bio, // lấy bio từ DB
         })
         .from(users)
-        .leftJoin(viewerSubscriptions, eq(viewerSubscriptions.creatorId, users.id))
+        .leftJoin(
+          viewerSubscriptions,
+          eq(viewerSubscriptions.creatorId, users.id),
+        )
         .where(eq(users.id, input.id));
 
       if (!existingUser) {

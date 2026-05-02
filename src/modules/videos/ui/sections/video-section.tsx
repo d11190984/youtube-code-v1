@@ -50,6 +50,7 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   const index = Number(params.get("index") || 0);
   const { data: trackingEnabled, isLoading: trackingLoading } =
     trpc.playlists.getHistoryTracking.useQuery();
+  // ✅ fallback khi loading hoặc guest
 
   const [currentVideoId, setCurrentVideoId] = useState(videoId);
   const [currentIndex, setCurrentIndex] = useState(index);
@@ -143,10 +144,21 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   if (trackingLoading || trackingEnabled === undefined) {
     return <VideoSectionSkeleton />;
   }
+  const isVertical = (video.videoHeight || 0) > (video.videoWidth || 0);
+
+  const playerWrapperClass = isVertical
+    ? "aspect-[9/16] max-w-[470px] max-h-[550px] mx-auto"
+    : "aspect-video";
+
   return (
     <div className="flex flex-col gap-4">
       {/* 🎬 PLAYER */}
-      <div className="aspect-video bg-black rounded-xl overflow-hidden relative shadow-lg">
+      <div
+        className={cn(
+          playerWrapperClass,
+          "rounded-xl overflow-hidden relative shadow-lg w-full",
+        )}
+      >
         <VideoPlayer
           ref={playerRef}
           key={video.id}
@@ -159,6 +171,7 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
           nextVideo={nextVideo}
           autoNextEnabled={autoNextEnabled}
           loopEnabled={loopEnabled}
+          isVertical={isVertical}
         />
       </div>
 

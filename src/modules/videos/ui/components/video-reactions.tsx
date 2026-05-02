@@ -31,12 +31,12 @@ export const VideoReactions = ({
       utils.playlists.getLiked.invalidate();
     },
     onError: (error) => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
 
       if (error.data?.code === "UNAUTHORIZED") {
         clerk.openSignIn();
       }
-    }
+    },
   });
 
   const dislike = trpc.videoReactions.dislike.useMutation({
@@ -45,12 +45,12 @@ export const VideoReactions = ({
       utils.playlists.getLiked.invalidate();
     },
     onError: (error) => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
 
       if (error.data?.code === "UNAUTHORIZED") {
         clerk.openSignIn();
       }
-    }
+    },
   });
 
   return (
@@ -61,7 +61,9 @@ export const VideoReactions = ({
         variant="secondary"
         className="rounded-l-full rounded-r-none gap-2 pr-4"
       >
-        <ThumbsUpIcon className={cn("size-5", viewerReaction === "like" && "fill-black")} />
+        <ThumbsUpIcon
+          className={cn("size-5", viewerReaction === "like" && "fill-black")}
+        />
         {likes}
       </Button>
       <Separator orientation="vertical" className="h-7" />
@@ -71,7 +73,9 @@ export const VideoReactions = ({
         variant="secondary"
         className="rounded-l-none rounded-r-full pl-3"
       >
-        <ThumbsDownIcon className={cn("size-5", viewerReaction === "dislike" && "fill-black")} />
+        <ThumbsDownIcon
+          className={cn("size-5", viewerReaction === "dislike" && "fill-black")}
+        />
         {dislikes}
       </Button>
     </div>

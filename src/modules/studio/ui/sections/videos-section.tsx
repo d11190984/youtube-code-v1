@@ -8,7 +8,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { STATUS_MAP, VISIBILITY_MAP } from "@/lib/status-map";
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
-import { snakeCaseToTitle } from "@/lib/utils";
+import { snakeCaseToTitle, cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import {
@@ -125,12 +125,23 @@ const VideosSectionSuspense = () => {
                   <TableRow className="cursor-pointer">
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-4">
-                        <div className="relative aspect-video w-36 shrink-0">
+                        <div
+                          className={cn(
+                            "relative shrink-0 overflow-hidden rounded-md bg-black max-h-[180px]",
+                            video.videoHeight &&
+                              video.videoWidth &&
+                              video.videoHeight > video.videoWidth
+                              ? "w-20 aspect-[9/16]"
+                              : "w-36 aspect-video",
+                          )}
+                        >
                           <VideoThumbnail
-                            imageUrl={video.thumbnailUrl}
-                            previewUrl={video.previewUrl}
                             title={video.title}
                             duration={video.duration || 0}
+                            imageUrl={video.thumbnailUrl}
+                            previewUrl={video.previewUrl}
+                            videoWidth={video.videoWidth ?? undefined}
+                            videoHeight={video.videoHeight ?? undefined}
                           />
                         </div>
                         <div className="flex flex-col overflow-hidden gap-y-1">

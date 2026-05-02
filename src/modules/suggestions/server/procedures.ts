@@ -72,7 +72,7 @@ export const suggestionsRouter = createTRPCRouter({
                 eq(videoViews.videoId, videos.id),
                 eq(videoViews.userId, viewerId),
               )
-            : undefined,
+            : sql`1=0`, // ✅ guest-safe
         )
         .where(
           and(
@@ -122,7 +122,7 @@ export const suggestionsRouter = createTRPCRouter({
                 eq(videoViews.videoId, videos.id),
                 eq(videoViews.userId, viewerId),
               )
-            : undefined,
+            : sql`1=0`, // guest vẫn join an toàn
         )
         .where(
           and(

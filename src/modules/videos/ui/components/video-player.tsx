@@ -7,6 +7,7 @@ import { THUMBNAIL_FALLBACK } from "../../constants";
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
 
+import { cn } from "@/lib/utils";
 interface VideoPlayerProps {
   videoId: string;
   playbackId?: string | null;
@@ -25,6 +26,7 @@ interface VideoPlayerProps {
   onEnded?: () => void;
   autoNextEnabled?: boolean;
   loopEnabled?: boolean;
+  isVertical?: boolean; // <-- thêm prop
 }
 
 export const VideoPlayerSkeleton = () => (
@@ -42,6 +44,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       onPlay,
       nextVideo,
       onEnded,
+      isVertical,
       autoNextEnabled = true,
       loopEnabled = false,
       trackingEnabled = true,
@@ -378,7 +381,21 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         }
       }
     }, [countdown, nextVideo, hasRedirected, onEnded, router, autoNextEnabled]);
+    
+    useEffect(() => {
+      const player = playerRef.current;
+      if (!player || !isVertical) return;
 
+      const handleFullscreen = () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen(); // tự thoát nếu video dọc
+        }
+      };
+
+      document.addEventListener("fullscreenchange", handleFullscreen);
+      return () =>
+        document.removeEventListener("fullscreenchange", handleFullscreen);
+    }, [isVertical]);
     return (
       <div className="relative w-full h-full">
         <MuxPlayer
@@ -387,7 +404,10 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           streamType="on-demand"
           poster={thumbnailUrl || THUMBNAIL_FALLBACK}
           autoPlay={autoPlay}
-          className="w-full h-full object-contain"
+          className={cn(
+            "w-full h-full object-cover",
+            isVertical && "mux-player-vertical",
+          )}
           accentColor="#FF2056"
           preferPlayback="mse"
         />

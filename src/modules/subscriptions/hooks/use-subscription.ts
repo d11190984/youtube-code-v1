@@ -7,7 +7,7 @@ interface UseSubscriptionProps {
   userId: string;
   isSubscribed: boolean;
   fromVideoId?: string;
-};
+}
 
 export const useSubscription = ({
   userId,
@@ -19,7 +19,7 @@ export const useSubscription = ({
 
   const subscribe = trpc.subscriptions.create.useMutation({
     onSuccess: () => {
-      toast.success("Subscribed");
+      toast.success("Đã đăng ký");
       utils.subscriptions.getMany.invalidate();
       utils.videos.getManySubscribed.invalidate();
       utils.users.getOne.invalidate({ id: userId });
@@ -29,17 +29,17 @@ export const useSubscription = ({
       }
     },
     onError: (error) => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
 
       if (error.data?.code === "UNAUTHORIZED") {
         clerk.openSignIn();
       }
     },
   });
-  
+
   const unsubscribe = trpc.subscriptions.remove.useMutation({
     onSuccess: () => {
-      toast.success("Subscribed");
+      toast.success("Đã đăng ký");
       utils.subscriptions.getMany.invalidate();
       utils.videos.getManySubscribed.invalidate();
       utils.users.getOne.invalidate({ id: userId });
@@ -49,7 +49,7 @@ export const useSubscription = ({
       }
     },
     onError: (error) => {
-      toast.error("Something went wrong");
+      toast.error("Đã xảy ra lỗi");
 
       if (error.data?.code === "UNAUTHORIZED") {
         clerk.openSignIn();

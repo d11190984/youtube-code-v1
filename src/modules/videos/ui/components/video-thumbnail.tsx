@@ -27,17 +27,20 @@ export const VideoThumbnail = ({
   previewUrl,
   duration,
   progress = 0,
-}: VideoThumbnailProps) => {
-  // ✅ convert giây đã xem -> %
+  videoWidth,
+  videoHeight,
+}: VideoThumbnailProps & { videoWidth?: number; videoHeight?: number }) => {
   const totalSeconds = duration / 1000;
-
   const progressPercent =
     totalSeconds > 0 ? Math.min((progress / totalSeconds) * 100, 100) : 0;
 
+  // ✅ xác định video dọc hay ngang
+  const isVertical = videoHeight && videoWidth ? videoHeight > videoWidth : false;
+  const wrapperClass = isVertical ? "aspect-[9/16]" : "aspect-video";
+
   return (
-    <div className="relative group">
-      {/* Thumbnail wrapper */}
-      <div className="relative w-full overflow-hidden rounded-xl aspect-video">
+    <div className="relative group w-full">
+      <div className={`relative w-full overflow-hidden rounded-xl ${wrapperClass}`}>
         <Image
           src={imageUrl || THUMBNAIL_FALLBACK}
           alt={title}
@@ -58,7 +61,7 @@ export const VideoThumbnail = ({
           {formatDuration(duration)}
         </div>
 
-        {/* 🔥 Progress bar */}
+        {/* Progress bar */}
         {progressPercent > 0 && (
           <div className="absolute bottom-0 left-0 w-full h-[3px] bg-neutral-700/60">
             <div

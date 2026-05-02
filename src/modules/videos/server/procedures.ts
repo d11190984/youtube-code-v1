@@ -421,14 +421,16 @@ export const videosRouter = createTRPCRouter({
             type: videoReactions.type,
           })
           .from(videoReactions)
-          .where(inArray(videoReactions.userId, userId ? [userId] : [])),
+          .where(
+            userId ? inArray(videoReactions.userId, [userId]) : sql`1=0`, // guest thì không match ai, SQL vẫn hợp lệ
+          ),
       );
 
       const viewerSubscriptions = db.$with("viewer_subscriptions").as(
         db
           .select()
           .from(subscriptions)
-          .where(inArray(subscriptions.viewerId, userId ? [userId] : [])),
+          .where(userId ? inArray(subscriptions.viewerId, [userId]) : sql`1=0`),
       );
 
       let [existingVideo] = await db
@@ -704,10 +706,16 @@ export const videosRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
 
-      const playbackId = asset.playback_ids?.[0].id;
+      const playbackId = asset.playback_ids?.[0]?.id || null;
       const duration = asset.duration ? Math.round(asset.duration * 1000) : 0;
 
-      // TODO: Potentially find a way to revalidate trackId and trackStatus as well
+      // ⭐ lấy track video thật để biết kích thước
+      const videoTrack: any = asset.tracks?.find(
+        (t: any) => t.type === "video",
+      );
+
+      const videoWidth = videoTrack?.max_width || null;
+      const videoHeight = videoTrack?.max_height || null;
 
       const [updatedVideo] = await db
         .update(videos)
@@ -716,6 +724,8 @@ export const videosRouter = createTRPCRouter({
           muxPlaybackId: playbackId,
           muxAssetId: asset.id,
           duration,
+          videoWidth,
+          videoHeight,
         })
         .where(and(eq(videos.id, input.id), eq(videos.userId, userId)))
         .returning();

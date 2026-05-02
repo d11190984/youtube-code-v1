@@ -86,6 +86,15 @@ body {
     @apply bg-background text-foreground;
   }
 }
+/* Ẩn nút fullscreen khi video dọc */
+.mux-player-vertical .mux-fullscreen-button {
+  display: none !important;
+}
+
+/* Ngăn người dùng phóng to bằng F hoặc API */
+.mux-player-vertical video {
+  pointer-events: auto; /* vẫn cho play/pause */
+}
 @layer base {
   * {
     -webkit-tap-highlight-color: transparent;
