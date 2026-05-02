@@ -17,6 +17,8 @@ import {
   SettingsIcon,
   ClockIcon,
   DownloadIcon,
+  MonitorUpIcon,
+  CheckIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,7 +26,9 @@ interface Props {
   playerRef: React.RefObject<any>;
   playbackId?: string | null;
   assetId?: string | null;
-
+  qualityLevels: number[];
+  selectedQuality: number;
+  setSelectedQuality: (q: number) => void;
   autoNextEnabled: boolean;
   setAutoNextEnabledAction: (v: boolean) => void;
   loopEnabled: boolean;
@@ -39,6 +43,9 @@ export const VideoPlaybackMenu = ({
   playerRef,
   playbackId,
   assetId,
+  qualityLevels,
+  selectedQuality,
+  setSelectedQuality,
   autoNextEnabled,
   setAutoNextEnabledAction,
   loopEnabled,
@@ -153,6 +160,34 @@ export const VideoPlaybackMenu = ({
                 }}
               >
                 {s}x
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+
+        {/* chất lượng */}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MonitorUpIcon className="w-4 h-4 text-gray-500" />
+              <span>Chất lượng</span>
+            </div>
+          </DropdownMenuSubTrigger>
+
+          <DropdownMenuSubContent className="w-40 p-2">
+            <DropdownMenuItem onClick={() => setSelectedQuality(-1)}>
+              <div className="flex items-center justify-between w-full">
+                <span>Tự động</span>
+                {selectedQuality === -1 && <CheckIcon className="w-4 h-4" />}
+              </div>
+            </DropdownMenuItem>
+
+            {qualityLevels.map((q) => (
+              <DropdownMenuItem key={q} onClick={() => setSelectedQuality(q)}>
+                <div className="flex items-center justify-between w-full">
+                  <span>{q}p</span>
+                  {selectedQuality === q && <CheckIcon className="w-4 h-4" />}
+                </div>
               </DropdownMenuItem>
             ))}
           </DropdownMenuSubContent>

@@ -389,6 +389,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           autoPlay={autoPlay}
           className="w-full h-full object-contain"
           accentColor="#FF2056"
+          preferPlayback="mse"
         />
 
         {autoNextEnabled && showNext && nextVideo && (

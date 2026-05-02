@@ -36,7 +36,68 @@ export const VideoTopRow = ({
   setLoopEnabledAction,
 }: VideoTopRowProps) => {
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [qualityLevels, setQualityLevels] = useState<number[]>([]);
+  const [selectedQuality, setSelectedQuality] = useState<number>(-1);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const player = playerRef.current;
+      if (!player) return;
 
+      const media: any = player.media;
+      if (!media) return;
+
+      const renditionList =
+        media.videoRenditions ||
+        media.videoTracks?.[0]?.renditions ||
+        media.mediaRenditionList;
+
+      console.log("RENDITION LIST:", renditionList);
+
+      if (!renditionList || !renditionList.length) return;
+
+      const levels = Array.from(renditionList)
+        .map((r: any) => r.height)
+        .filter(Boolean)
+        .sort((a: number, b: number) => a - b);
+
+      console.log("QUALITY LEVELS FOUND:", levels);
+
+      setQualityLevels(Array.from(new Set(levels)));
+      clearInterval(timer);
+    }, 1200);
+
+    return () => clearInterval(timer);
+  }, [playerRef, video.muxPlaybackId]);
+
+  const handleChangeQuality = (height: number) => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    const media: any = player.media;
+    if (!media) return;
+
+    const renditionList =
+      media.videoRenditions ||
+      media.videoTracks?.[0]?.renditions ||
+      media.mediaRenditionList;
+
+    if (!renditionList) return;
+
+    if (height === -1) {
+      Array.from(renditionList).forEach((r: any) => {
+        r.selected = true;
+      });
+
+      setSelectedQuality(-1);
+      return;
+    }
+
+    Array.from(renditionList).forEach((r: any) => {
+      r.selected = r.height === height;
+    });
+
+    setSelectedQuality(height);
+  };
   // Áp dụng playbackRate trực tiếp
   useEffect(() => {
     if (playerRef.current) playerRef.current.playbackRate = playbackRate;
@@ -95,6 +156,9 @@ export const VideoTopRow = ({
             setAutoNextEnabledAction={setAutoNextEnabledAction}
             loopEnabled={loopEnabled}
             setLoopEnabledAction={setLoopEnabledAction}
+            qualityLevels={qualityLevels}
+            selectedQuality={selectedQuality}
+            setSelectedQuality={handleChangeQuality}
           />
 
           <VideoMenu videoId={video.id} variant="secondary" />
