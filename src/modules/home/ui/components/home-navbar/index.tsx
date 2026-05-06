@@ -9,7 +9,7 @@ import { SearchInput } from "./search-input";
 
 export const HomeNavbar = () => {
   return  (
-    <nav className="fixed top-0 left-0 right-0 h-16 bg-white flex items-center px-2 pr-5 z-50">
+    <nav className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-md flex items-center px-2 pr-5 z-50 border-b border-transparent transition-all">
       <div className="flex items-center gap-4 w-full">
         {/* Menu and Logo */}
         <div className="flex items-center flex-shrink-0">

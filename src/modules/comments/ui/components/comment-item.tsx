@@ -116,7 +116,7 @@ export const CommentItem = ({
   });
 
   return (
-    <div>
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 ease-out fill-mode-both">
       {comment.isPinned && variant === "comment" && (
         <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground pl-14">
           <PinIcon className="size-3" />
@@ -164,7 +164,8 @@ export const CommentItem = ({
               >
                 <ThumbsUpIcon
                   className={cn(
-                    comment.viewerReaction === "like" && "fill-black",
+                    "transition-transform",
+                    comment.viewerReaction === "like" && "fill-black animate-likeBounce",
                   )}
                 />
               </Button>
@@ -180,7 +181,8 @@ export const CommentItem = ({
               >
                 <ThumbsDownIcon
                   className={cn(
-                    comment.viewerReaction === "dislike" && "fill-black",
+                    "transition-transform",
+                    comment.viewerReaction === "dislike" && "fill-black animate-likeBounce",
                   )}
                 />
               </Button>

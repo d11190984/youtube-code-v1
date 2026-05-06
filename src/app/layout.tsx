@@ -28,6 +28,7 @@ export default function RootLayout({
           <link rel="icon" href="/favicon.ico" />
         </head>
         <body className={inter.className}>
+          <div className="fixed inset-0 -z-50 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-100/50 via-white to-white dark:from-neutral-900/50 dark:via-black dark:to-black pointer-events-none" />
           <TRPCProvider>
             <Toaster />
             <ClickEffect imageSrc="/toTop.Cuiv4RfP.svg">{children}</ClickEffect>

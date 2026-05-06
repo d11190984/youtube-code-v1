@@ -397,7 +397,16 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         document.removeEventListener("fullscreenchange", handleFullscreen);
     }, [isVertical]);
     return (
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full group">
+        {/* Ambient Glow */}
+        <div 
+          className="absolute inset-0 scale-[1.02] blur-3xl opacity-20 dark:opacity-40 -z-10 pointer-events-none transition-opacity duration-1000"
+          style={{
+            backgroundImage: `url(${thumbnailUrl || THUMBNAIL_FALLBACK})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
         <MuxPlayer
           ref={playerRef}
           playbackId={playbackId || ""}

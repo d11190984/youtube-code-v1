@@ -15,8 +15,9 @@ interface VideoThumbnailProps {
 
 export const VideoThumbnailSkeleton = () => {
   return (
-    <div className="relative w-full overflow-hidden rounded-xl aspect-video">
-      <Skeleton className="size-full" />
+    <div className="relative w-full overflow-hidden rounded-xl aspect-video relative">
+      <div className="absolute inset-0 bg-neutral-200 dark:bg-neutral-800 animate-pulse" />
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
     </div>
   );
 };
@@ -45,7 +46,7 @@ export const VideoThumbnail = ({
           src={imageUrl || THUMBNAIL_FALLBACK}
           alt={title}
           fill
-          className="h-full w-full object-cover group-hover:opacity-0"
+          className="h-full w-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:opacity-0"
         />
 
         <Image
@@ -53,7 +54,7 @@ export const VideoThumbnail = ({
           src={previewUrl || THUMBNAIL_FALLBACK}
           alt={title}
           fill
-          className="h-full w-full object-cover opacity-0 group-hover:opacity-100"
+          className="h-full w-full object-cover opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
         />
 
         {/* Duration */}

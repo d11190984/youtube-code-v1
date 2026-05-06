@@ -62,7 +62,7 @@ export const VideoReactions = ({
         className="rounded-l-full rounded-r-none gap-2 pr-4"
       >
         <ThumbsUpIcon
-          className={cn("size-5", viewerReaction === "like" && "fill-black")}
+          className={cn("size-5 transition-transform", viewerReaction === "like" && "fill-black animate-likeBounce")}
         />
         {likes}
       </Button>
@@ -74,7 +74,7 @@ export const VideoReactions = ({
         className="rounded-l-none rounded-r-full pl-3"
       >
         <ThumbsDownIcon
-          className={cn("size-5", viewerReaction === "dislike" && "fill-black")}
+          className={cn("size-5 transition-transform", viewerReaction === "dislike" && "fill-black animate-likeBounce")}
         />
         {dislikes}
       </Button>
