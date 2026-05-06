@@ -138,7 +138,7 @@ const HistoryVideosSectionSuspense = () => {
     );
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col md:flex-row gap-6">
       <div className="flex-1 flex flex-col gap-4">
         {filteredVideos.map((video) => (
           <VideoRowCard
@@ -162,7 +162,7 @@ const HistoryVideosSectionSuspense = () => {
         />
       </div>
 
-      <div className="flex flex-col gap-4 w-80">
+      <div className="flex flex-col gap-4 w-full md:w-80">
         {/* Search input */}
         <div className="relative w-full max-w-xs">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

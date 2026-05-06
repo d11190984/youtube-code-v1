@@ -1,14 +1,13 @@
 "use server";
 
-import { eq, InferModel } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { UTApi } from "uploadthing/server";
+import cloudinary from "@/lib/cloudinary";
 
 import { db } from "@/db";
 import { mux } from "@/lib/mux";
 import { videos } from "@/db/schema";
-
-type VideoUpdate = Partial<InferModel<typeof videos, "insert">>;
 
 type MuxWebhookEvent = {
   type: string;
@@ -16,17 +15,20 @@ type MuxWebhookEvent = {
 };
 
 const SIGNING_SECRET = process.env.MUX_WEBHOOK_SECRET!;
-if (!SIGNING_SECRET) throw new Error("MUX_WEBHOOK_SECRET not set");
+if (!SIGNING_SECRET) {
+  throw new Error("MUX_WEBHOOK_SECRET not set");
+}
 
 export const POST = async (request: Request) => {
-  const headersPayload = await headers();
-  const muxSignature = headersPayload.get("mux-signature");
+  const headersList = headers();
+  const muxSignature = (await headersList).get("mux-signature");
 
   if (!muxSignature) {
     return new Response("No signature", { status: 401 });
   }
 
   let payload: MuxWebhookEvent;
+
   try {
     const rawBody = await request.text();
 
@@ -38,16 +40,16 @@ export const POST = async (request: Request) => {
       SIGNING_SECRET,
     );
 
-    payload = JSON.parse(rawBody) as MuxWebhookEvent;
-  } catch (err) {
-    console.log("MUX VERIFY ERROR:", err);
+    payload = JSON.parse(rawBody);
+  } catch (error) {
+    console.log("❌ MUX VERIFY ERROR:", error);
     return new Response("Invalid signature", { status: 401 });
   }
 
   const updateVideo = async (
+    uploadId: string | undefined,
     muxStatus: string,
-    updateFields: VideoUpdate = {},
-    uploadId?: string,
+    updateFields: Record<string, any> = {},
   ) => {
     if (!uploadId) return;
 
@@ -60,58 +62,69 @@ export const POST = async (request: Request) => {
       .where(eq(videos.muxUploadId, uploadId));
   };
 
-  switch (payload.type) {
-    case "video.asset.created": {
-      const data = payload.data;
+  try {
+    switch (payload.type) {
+      case "video.asset.created": {
+        const data = payload.data;
 
-      await updateVideo(data.status, { muxAssetId: data.id }, data.upload_id);
-      console.log("Video created:", data.upload_id);
-      break;
-    }
+        await updateVideo(data.upload_id, data.status, {
+          muxAssetId: data.id,
+        });
 
-    case "video.asset.ready": {
-      const data = payload.data;
-
-      const playbackId = data.playback_ids?.[0]?.id;
-      if (!playbackId) {
-        return new Response("Missing playbackId", { status: 400 });
+        console.log("✅ Video asset created:", data.upload_id);
+        break;
       }
 
-      const duration = data.duration ? Math.round(data.duration * 1000) : 0;
+      case "video.asset.ready": {
+        const data = payload.data;
 
-      let thumbnailUrl: string | undefined;
-      let thumbnailKey: string | undefined;
-      let previewUrl: string | undefined;
-      let previewKey: string | undefined;
-
-      try {
-        const utapi = new UTApi();
-
-        const randomPercent = Math.floor(Math.random() * 90) + 5;
-        const width = 1280;
-        const height = 720;
-
-        const [thumb, prev] = await utapi.uploadFilesFromUrl([
-          `https://image.mux.com/${playbackId}/thumbnail.png?width=${width}&height=${height}&time=${randomPercent}`,
-          `https://image.mux.com/${playbackId}/animated.gif`,
-        ]);
-
-        if (thumb.data) {
-          thumbnailUrl = thumb.data.url;
-          thumbnailKey = thumb.data.key;
+        const playbackId = data.playback_ids?.[0]?.id;
+        if (!playbackId) {
+          return new Response("Missing playbackId", { status: 400 });
         }
 
-        if (prev.data) {
-          previewUrl = prev.data.url;
-          previewKey = prev.data.key;
-        }
-      } catch (err) {
-        console.log("Thumbnail upload fail:", err);
-      }
+        const duration = data.duration ? Math.round(data.duration * 1000) : 0;
 
-      await updateVideo(
-        "ready",
-        {
+        let thumbnailUrl: string | undefined;
+        let thumbnailKey: string | undefined;
+        let previewUrl: string | undefined;
+        let previewKey: string | undefined;
+
+        try {
+          const utapi = new UTApi();
+
+          const randomPercent = Math.floor(Math.random() * 90) + 5;
+          const width = 1280;
+          const height = 720;
+
+          // upload thumbnail png -> UploadThing
+          const thumb = await utapi.uploadFilesFromUrl(
+            `https://image.mux.com/${playbackId}/thumbnail.png?width=${width}&height=${height}&time=${randomPercent}`,
+          );
+
+          if (thumb.data) {
+            thumbnailUrl = thumb.data.url;
+            thumbnailKey = thumb.data.key;
+          }
+
+          // upload animated gif -> Cloudinary
+          const gif = await cloudinary.uploader.upload(
+            `https://image.mux.com/${playbackId}/animated.gif`,
+            {
+              resource_type: "image",
+              folder: "mux-previews",
+              public_id: playbackId,
+              overwrite: true,
+            },
+          );
+
+          previewUrl = gif.secure_url;
+          previewKey = gif.public_id;
+        } catch (mediaErr) {
+          console.log("⚠️ Thumbnail/Gif upload fail:", mediaErr);
+        }
+
+        await updateVideo(data.upload_id, "ready", {
           muxPlaybackId: playbackId,
           muxAssetId: data.id,
           thumbnailUrl,
@@ -119,52 +132,74 @@ export const POST = async (request: Request) => {
           previewUrl,
           previewKey,
           duration,
-        },
-        data.upload_id,
-      );
+        });
 
-      console.log("Video ready:", data.upload_id);
-      break;
-    }
-
-    case "video.asset.errored": {
-      const data = payload.data;
-      await updateVideo("errored", {}, data.upload_id);
-      break;
-    }
-
-    case "video.asset.deleted": {
-      const data = payload.data;
-
-      if (data.upload_id) {
-        await db.delete(videos).where(eq(videos.muxUploadId, data.upload_id));
+        console.log("✅ Video ready:", data.upload_id);
+        break;
       }
 
-      console.log("Video deleted:", data.upload_id);
-      break;
+      case "video.asset.errored": {
+        const data = payload.data;
+
+        await updateVideo(data.upload_id, "errored");
+
+        console.log("❌ Video errored:", data.upload_id);
+        break;
+      }
+
+      case "video.asset.deleted": {
+        const data = payload.data;
+
+        if (data.playback_ids?.[0]?.id) {
+          try {
+            await cloudinary.uploader.destroy(
+              `mux-previews/${data.playback_ids[0].id}`,
+              {
+                resource_type: "image",
+              },
+            );
+          } catch (err) {
+            console.log("⚠️ Cloudinary delete fail:", err);
+          }
+        }
+
+        if (data.upload_id) {
+          await db.delete(videos).where(eq(videos.muxUploadId, data.upload_id));
+        }
+
+        console.log("🗑️ Video deleted:", data.upload_id);
+        break;
+      }
+
+      case "video.asset.track.ready": {
+        const data = payload.data;
+
+        await db
+          .update(videos)
+          .set({
+            muxTrackId: data.id,
+            muxTrackStatus: data.status,
+          })
+          .where(eq(videos.muxAssetId, data.asset_id));
+
+        console.log("✅ Track ready:", data.asset_id);
+        break;
+      }
+
+      case "video.asset.static_renditions.ready": {
+        const data = payload.data;
+
+        console.log("🔥 STATIC MP4 READY:", data.id);
+        break;
+      }
+
+      default:
+        console.log("ℹ️ Unhandled webhook:", payload.type);
     }
 
-    case "video.asset.track.ready": {
-      const data = payload.data;
-
-      await db
-        .update(videos)
-        .set({
-          muxTrackId: data.id,
-          muxTrackStatus: data.status,
-        })
-        .where(eq(videos.muxAssetId, data.asset_id));
-
-      console.log("Track ready:", data.asset_id);
-      break;
-    }
-
-    case "video.asset.static_renditions.ready": {
-      const data = payload.data;
-      console.log("🔥 STATIC MP4 READY:", data.id);
-      break;
-    }
+    return new Response("Webhook processed", { status: 200 });
+  } catch (error) {
+    console.log("❌ WEBHOOK PROCESS ERROR:", error);
+    return new Response("Webhook process failed", { status: 500 });
   }
-
-  return new Response("Webhook processed", { status: 200 });
 };
