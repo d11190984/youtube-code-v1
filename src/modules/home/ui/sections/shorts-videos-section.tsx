@@ -2,12 +2,16 @@
 
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { FlameIcon } from "lucide-react";
 
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 
-import { VideoGridCard, VideoGridCardSkeleton } from "@/modules/videos/ui/components/video-grid-card";
+import {
+  VideoShortsCard,
+  VideoShortsCardSkeleton,
+} from "@/modules/videos/ui/components/video-shorts-card";
 
 export const ShortsVideosSection = () => {
   return (
@@ -21,34 +25,55 @@ export const ShortsVideosSection = () => {
 
 const ShortsVideosSectionSkeleton = () => {
   return (
-    <div className="gap-4 gap-y-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 [@media(min-width:1920px)]:grid-cols-5 [@media(min-width:2200px)]:grid-cols-6">
-      {Array.from({ length: 18 }).map((_, index) => (
-        <VideoGridCardSkeleton key={index} />
-      ))}
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/10">
+          <FlameIcon className="size-5 text-red-500" />
+        </div>
+        <span className="text-lg font-bold">Shorts</span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
+        {Array.from({ length: 12 }).map((_, index) => (
+          <VideoShortsCardSkeleton key={index} />
+        ))}
+      </div>
     </div>
   );
 };
 
 const ShortsVideosSectionSuspense = () => {
-  const [videos, query] = trpc.videos.getMany.useSuspenseInfiniteQuery(
+  const [videos, query] = trpc.videos.getManyShorts.useSuspenseInfiniteQuery(
     { limit: DEFAULT_LIMIT },
     { getNextPageParam: (lastPage) => lastPage.nextCursor }
   );
 
-  // Lọc chỉ video ≤ 1 phút
-  const shortsVideos = videos.pages
-    .flatMap((page) => page.items)
-    .filter((video) => video.duration <= 60 * 1000);
+  const shortsVideos = videos.pages.flatMap((page) => page.items);
 
-  if (shortsVideos.length === 0) return null;
+  if (shortsVideos.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+        <FlameIcon className="size-12 mb-3 opacity-40" />
+        <p className="text-lg font-medium">Chưa có Shorts nào</p>
+        <p className="text-sm">Hãy upload video dưới 1 phút để tạo Shorts!</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="gap-4 gap-y-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 [@media(min-width:1920px)]:grid-cols-5 [@media(min-width:2200px)]:grid-cols-6">
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/10">
+          <FlameIcon className="size-5 text-red-500" />
+        </div>
+        <span className="text-lg font-bold">Shorts</span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
         {shortsVideos.map((video) => (
-          <VideoGridCard key={video.id} data={video} />
+          <VideoShortsCard key={video.id} data={video} />
         ))}
       </div>
+
       <InfiniteScroll
         hasNextPage={query.hasNextPage}
         isFetchingNextPage={query.isFetchingNextPage}

@@ -17,6 +17,7 @@ const Page = async ({ searchParams }: PageProps) => {
 
   void trpc.categories.getMany.prefetch();
   void trpc.videos.getMany.prefetchInfinite({ categoryId, limit: DEFAULT_LIMIT });
+  void trpc.videos.getManyShorts.prefetchInfinite({ limit: 20 });
 
   return (
     <HydrateClient>

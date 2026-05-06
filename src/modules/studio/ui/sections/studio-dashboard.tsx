@@ -25,9 +25,9 @@ export const StudioDashboard = () => {
   const averageViewPercent = latestVideo.averageViewPercent ?? 0;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 w-full min-h-screen px-4 py-4">
+    <div className="flex flex-col lg:flex-row gap-6 w-full min-h-screen">
       {/* Card video mới nhất */}
-      <Card className="flex-1 lg:w-[420px] lg:h-[320px] shadow-md rounded-lg">
+      <Card className="w-full lg:w-[450px] lg:h-[500px] shadow-md rounded-lg flex-shrink-0">
         <CardHeader>
           <CardTitle>Hiệu suất video ngắn mới nhất trên YouTube</CardTitle>
         </CardHeader>
@@ -77,7 +77,7 @@ export const StudioDashboard = () => {
       </Card>
 
       {/* Column bên phải: Tổng quan + Bình luận + Người đăng ký */}
-      <div className="flex flex-col gap-6 flex-1">
+      <div className="flex flex-col gap-6 w-full lg:max-w-[400px]">
         {/* Card tổng quan kênh */}
         <Card className="shadow-md rounded-lg flex-1">
           <CardHeader>

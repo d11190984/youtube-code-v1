@@ -1,6 +1,8 @@
 import { CategoriesSection } from "../sections/categories-section";
 import { HomeVideosSection } from "../sections/home-videos-section";
+import { HomeShortsSection } from "../sections/home-shorts-section";
 import { PlaylistsView } from "@/modules/playlists/ui/sections/playlists-view";
+
 interface HomeViewProps {
   categoryId?: string;
 };
@@ -11,8 +13,11 @@ export const HomeView = ({ categoryId }: HomeViewProps) => {
       
       <CategoriesSection categoryId={categoryId} />
 
-      {/* 🔥 THÊM Ở ĐÂY */}
+      {/* 🔥 Playlists kết hợp */}
       <PlaylistsView />
+
+      {/* 🎬 Shorts shelf */}
+      <HomeShortsSection />
 
       <HomeVideosSection categoryId={categoryId} />
 
