@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { UserSection } from "../sections/user-section";
 import { VideosSection } from "../sections/videos-section";
 import { UserTabs } from "../components/user-tabs";
-import { Film } from "lucide-react";
+import { FlameIcon } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { PlaylistsSection } from "../sections/playlists-section";
 interface UserViewProps {
@@ -63,9 +63,12 @@ export const UserView = ({ userId }: UserViewProps) => {
           />
 
           <h2
-            className={`font-semibold text-lg mb-4 mt-6 flex items-center gap-1 ${shortsCount === 0 ? "hidden" : ""}`}
+            className={`font-semibold text-lg mb-4 mt-6 flex items-center gap-2 ${shortsCount === 0 ? "hidden" : ""}`}
           >
-            Shorts <Film className="w-4 h-4" />
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/10">
+              <FlameIcon className="size-5 text-red-500" />
+            </div>
+            Shorts
           </h2>
           <VideosSection
             userId={userId}

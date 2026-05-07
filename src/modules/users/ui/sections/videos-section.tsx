@@ -8,6 +8,7 @@ import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 
+import { cn } from "@/lib/utils";
 import {
   VideoGridCard,
   VideoGridCardSkeleton,
@@ -67,11 +68,10 @@ const VideosSectionSuspense = ({
       return 0;
     });
 
-  // Filter video
   const filteredVideos = sortedVideos.filter((video) => {
-    if (filterType === "videos") return video.duration > 60 * 1000;
-    if (filterType === "shorts") return video.duration <= 60 * 1000;
-    return true;
+    const isVertical = (video.videoHeight || 0) > (video.videoWidth || 0);
+    if (filterType === "shorts") return isVertical;
+    return !isVertical;
   });
 
   // Gọi callback báo số video về parent
@@ -84,13 +84,20 @@ const VideosSectionSuspense = ({
   return (
     <div>
       {showCarousel ? (
-        <div className="flex overflow-x-auto gap-4">
+        <div className="flex overflow-x-auto gap-4 no-scrollbar">
           {filteredVideos.map((video) => (
-            <VideoGridCard key={video.id} data={video} />
+            <div key={video.id} className="min-w-[150px] sm:min-w-[200px]">
+              <VideoGridCard data={video} />
+            </div>
           ))}
         </div>
       ) : (
-        <div className="gap-4 gap-y-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className={cn(
+          "gap-4 gap-y-10 grid",
+          filterType === "shorts" 
+            ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7"
+            : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4"
+        )}>
           {filteredVideos.map((video) => (
             <VideoGridCard key={video.id} data={video} />
           ))}

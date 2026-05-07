@@ -126,6 +126,7 @@ const SuggestionsSectionSuspense = ({ videoId, isShort }: SuggestionsSectionProp
                     ...video,
                     viewCount: video.viewsCount,
                   }}
+                  className="w-[180px] sm:w-[210px]"
                 />
               </div>
             );

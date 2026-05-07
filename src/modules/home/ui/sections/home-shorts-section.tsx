@@ -40,7 +40,7 @@ const HomeShortsSectionSkeleton = () => {
       {/* Cards row */}
       <div className="flex gap-3 overflow-hidden">
         {Array.from({ length: 8 }).map((_, i) => (
-          <VideoShortsCardSkeleton key={i} />
+          <VideoShortsCardSkeleton key={i} className="w-[180px] sm:w-[210px]" />
         ))}
       </div>
     </div>
@@ -115,16 +115,20 @@ const HomeShortsSectionSuspense = ({ categoryId }: HomeShortsSectionProps) => {
         )}
 
         {/* Scrollable row */}
-        <div
-          ref={scrollContainerRef}
-          onScroll={updateScrollState}
-          className="flex gap-3 overflow-x-auto scrollbar-hide pb-1"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {shortsVideos.map((video) => (
-            <VideoShortsCard key={video.id} data={video} />
-          ))}
-        </div>
+          <div
+            ref={scrollContainerRef}
+            onScroll={updateScrollState}
+            className="flex gap-3 overflow-x-auto scrollbar-hide pb-1"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {shortsVideos.map((video) => (
+              <VideoShortsCard
+                key={video.id}
+                data={video}
+                className="w-[180px] sm:w-[210px]"
+              />
+            ))}
+          </div>
       </div>
     </div>
   );

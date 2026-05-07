@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMemo } from "react";
 
+import { cn } from "@/lib/utils";
 import { THUMBNAIL_FALLBACK } from "../../constants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VideoMenu } from "./video-menu";
@@ -21,11 +22,12 @@ interface VideoShortsCardProps {
     videoHeight?: number | null;
   };
   onRemove?: () => void;
+  className?: string;
 }
 
-export const VideoShortsCardSkeleton = () => {
+export const VideoShortsCardSkeleton = ({ className }: { className?: string }) => {
   return (
-    <div className="relative flex flex-col gap-2 flex-shrink-0 w-[180px] sm:w-[210px]">
+    <div className={cn("relative flex flex-col gap-2 flex-shrink-0", className)}>
       <div className="relative w-full overflow-hidden rounded-xl aspect-[9/16]">
         <div className="absolute inset-0 bg-neutral-200 dark:bg-neutral-800 animate-pulse" />
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
@@ -38,7 +40,7 @@ export const VideoShortsCardSkeleton = () => {
   );
 };
 
-export const VideoShortsCard = ({ data, onRemove }: VideoShortsCardProps) => {
+export const VideoShortsCard = ({ data, onRemove, className }: VideoShortsCardProps) => {
   const compactViews = useMemo(() => {
     const count = data.viewCount || data.viewsCount || 0;
     return count === 0
@@ -49,7 +51,7 @@ export const VideoShortsCard = ({ data, onRemove }: VideoShortsCardProps) => {
   }, [data.viewCount, data.viewsCount]);
 
   return (
-    <div className="group flex flex-col gap-2 flex-shrink-0 w-[180px] sm:w-[210px]">
+    <div className={cn("group flex flex-col gap-2 flex-shrink-0", className)}>
       {/* Thumbnail — always 9:16 */}
       <Link prefetch href={`/videos/${data.id}`}>
         <div className="relative w-full overflow-hidden rounded-xl aspect-[9/16] bg-black">
