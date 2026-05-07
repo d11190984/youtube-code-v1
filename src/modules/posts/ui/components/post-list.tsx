@@ -21,9 +21,10 @@ export const PostList = ({ userId }: PostListProps) => {
   const isOwner = user?.id && channelUser?.clerkId === user.id;
 
   const [posts, query] = trpc.posts.getMany.useSuspenseInfiniteQuery(
-    { userId, limit: DEFAULT_LIMIT },
+    { userId, limit: DEFAULT_LIMIT, status: activeSubTab },
     { getNextPageParam: (lastPage) => lastPage.nextCursor }
   );
+
 
   const items = posts.pages.flatMap((page) => page.items);
 
@@ -58,9 +59,9 @@ export const PostList = ({ userId }: PostListProps) => {
          ))}
       </div>
 
-      {activeSubTab === "published" && (
+      {items.length === 0 ? (
         <>
-          {items.length === 0 ? (
+          {activeSubTab === "published" && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                <div className="bg-gray-100 dark:bg-neutral-800 p-6 rounded-full mb-4">
                   <Edit3 className="size-10 text-gray-400" />
@@ -70,44 +71,45 @@ export const PostList = ({ userId }: PostListProps) => {
                   Bài đăng xuất hiện ở đây sau khi bạn xuất bản và sẽ được hiển thị với cộng đồng của bạn
                </p>
             </div>
-          ) : (
-            <div className="flex flex-col gap-y-4">
-               {items.map((post) => (
-                 <PostCard key={post.id} post={post} />
-               ))}
-               <InfiniteScroll
-                 hasNextPage={query.hasNextPage}
-                 isFetchingNextPage={query.isFetchingNextPage}
-                 fetchNextPage={query.fetchNextPage}
-               />
+          )}
+
+          {activeSubTab === "scheduled" && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+               <div className="bg-gray-100 dark:bg-neutral-800 p-6 rounded-full mb-4">
+                  <Clock className="size-10 text-gray-400" />
+               </div>
+               <h3 className="text-xl font-bold">Lên lịch đăng bài</h3>
+               <p className="text-sm text-muted-foreground max-w-[400px]">
+                  Hãy chuẩn bị sẵn nội dung và lên lịch đăng sau
+               </p>
+            </div>
+          )}
+
+          {activeSubTab === "archived" && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+               <div className="bg-gray-100 dark:bg-neutral-800 p-6 rounded-full mb-4">
+                  <Archive className="size-10 text-gray-400" />
+               </div>
+               <h3 className="text-xl font-bold">Bài đăng đã hết hạn trong kho lưu trữ</h3>
+               <p className="text-sm text-muted-foreground max-w-[400px]">
+                  Các bài đăng được chọn là sẽ hết hạn sau 24 giờ sẽ xuất hiện trong kho lưu trữ. Chỉ bạn mới có thể xem các bài đăng trong kho lưu trữ.
+               </p>
             </div>
           )}
         </>
-      )}
-
-      {activeSubTab === "scheduled" && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-           <div className="bg-gray-100 dark:bg-neutral-800 p-6 rounded-full mb-4">
-              <Clock className="size-10 text-gray-400" />
-           </div>
-           <h3 className="text-xl font-bold">Lên lịch đăng bài</h3>
-           <p className="text-sm text-muted-foreground max-w-[400px]">
-              Hãy chuẩn bị sẵn nội dung và lên lịch đăng sau
-           </p>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+           {items.map((post) => (
+             <PostCard key={post.id} post={post} />
+           ))}
+           <InfiniteScroll
+             hasNextPage={query.hasNextPage}
+             isFetchingNextPage={query.isFetchingNextPage}
+             fetchNextPage={query.fetchNextPage}
+           />
         </div>
       )}
 
-      {activeSubTab === "archived" && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-           <div className="bg-gray-100 dark:bg-neutral-800 p-6 rounded-full mb-4">
-              <Archive className="size-10 text-gray-400" />
-           </div>
-           <h3 className="text-xl font-bold">Bài đăng đã hết hạn trong kho lưu trữ</h3>
-           <p className="text-sm text-muted-foreground max-w-[400px]">
-              Các bài đăng được chọn là sẽ hết hạn sau 24 giờ sẽ xuất hiện trong kho lưu trữ. Chỉ bạn mới có thể xem các bài đăng trong kho lưu trữ.
-           </p>
-        </div>
-      )}
     </div>
   );
 };

@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/form";
 
 interface CommentFormProps {
-  videoId: string;
+  videoId?: string;
+  postId?: string;
   parentId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -27,6 +28,7 @@ interface CommentFormProps {
 
 export const CommentForm = ({
   videoId,
+  postId,
   parentId,
   onCancel,
   onSuccess,
@@ -57,9 +59,11 @@ export const CommentForm = ({
     defaultValues: {
       parentId: parentId,
       videoId: videoId,
+      postId: postId,
       value: "",
     },
   });
+
 
   const handleSubmit = (values: z.infer<typeof commentInsertSchema>) => {
     create.mutate(values);

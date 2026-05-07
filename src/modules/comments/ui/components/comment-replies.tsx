@@ -8,18 +8,21 @@ import { CommentItem } from "./comment-item";
 
 interface CommentRepliesProps {
   parentId: string;
-  videoId: string;
+  videoId?: string;
+  postId?: string;
 }
 
-export const CommentReplies = ({ parentId, videoId }: CommentRepliesProps) => {
+export const CommentReplies = ({ parentId, videoId, postId }: CommentRepliesProps) => {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     trpc.comments.getMany.useInfiniteQuery(
       {
         limit: DEFAULT_LIMIT,
         videoId,
+        postId,
         parentId,
         sortBy: "newest",
       },
+
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       },

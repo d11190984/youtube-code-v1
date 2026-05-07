@@ -8,7 +8,7 @@ interface ClickEffectProps {
 }
 
 interface ClickItem {
-  id: number;
+  id: string;
   x: number;
   y: number;
 }
@@ -20,8 +20,9 @@ export default function ClickEffect({ imageSrc, children }: ClickEffectProps) {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const id = Date.now();
+    const id = `${Date.now()}-${Math.random()}`;
     setClicks((prev) => [...prev, { id, x, y }]);
+
     // remove after animation
     setTimeout(() => setClicks((prev) => prev.filter((c) => c.id !== id)), 800);
   };

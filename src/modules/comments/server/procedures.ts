@@ -37,16 +37,22 @@ export const commentsRouter = createTRPCRouter({
         .select({
            commentUserId: comments.userId,
            videoUserId: videos.userId,
+           postUserId: posts.userId,
         })
         .from(comments)
-        .innerJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(posts, eq(comments.postId, posts.id))
         .where(eq(comments.id, id));
 
       if (!comment) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      if (comment.commentUserId !== userId && comment.videoUserId !== userId) {
+      const isContentOwner = 
+        (comment.videoUserId && comment.videoUserId === userId) || 
+        (comment.postUserId && comment.postUserId === userId);
+
+      if (comment.commentUserId !== userId && !isContentOwner) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
@@ -66,15 +72,23 @@ export const commentsRouter = createTRPCRouter({
       const [comment] = await db
         .select({
            videoId: comments.videoId,
+           postId: comments.postId,
            isPinned: comments.isPinned,
            videoUserId: videos.userId,
+           postUserId: posts.userId,
         })
         .from(comments)
-        .innerJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(posts, eq(comments.postId, posts.id))
         .where(eq(comments.id, id));
 
       if (!comment) throw new TRPCError({ code: "NOT_FOUND" });
-      if (comment.videoUserId !== userId) throw new TRPCError({ code: "FORBIDDEN" });
+      
+      const isContentOwner = 
+        (comment.videoUserId && comment.videoUserId === userId) || 
+        (comment.postUserId && comment.postUserId === userId);
+
+      if (!isContentOwner) throw new TRPCError({ code: "FORBIDDEN" });
 
       if (comment.isPinned) {
         const [updatedComment] = await db.update(comments)
@@ -83,9 +97,16 @@ export const commentsRouter = createTRPCRouter({
           .returning();
         return updatedComment;
       } else {
-        await db.update(comments)
-          .set({ isPinned: false })
-          .where(eq(comments.videoId, comment.videoId));
+        // Unpin all other comments for this video/post
+        if (comment.videoId) {
+          await db.update(comments)
+            .set({ isPinned: false })
+            .where(eq(comments.videoId, comment.videoId));
+        } else if (comment.postId) {
+          await db.update(comments)
+            .set({ isPinned: false })
+            .where(eq(comments.postId, comment.postId));
+        }
 
         const [updatedComment] = await db.update(comments)
           .set({ isPinned: true })
@@ -104,13 +125,20 @@ export const commentsRouter = createTRPCRouter({
         .select({
            creatorHearted: comments.creatorHearted,
            videoUserId: videos.userId,
+           postUserId: posts.userId,
         })
         .from(comments)
-        .innerJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(posts, eq(comments.postId, posts.id))
         .where(eq(comments.id, id));
 
       if (!comment) throw new TRPCError({ code: "NOT_FOUND" });
-      if (comment.videoUserId !== userId) throw new TRPCError({ code: "FORBIDDEN" });
+      
+      const isContentOwner = 
+        (comment.videoUserId && comment.videoUserId === userId) || 
+        (comment.postUserId && comment.postUserId === userId);
+
+      if (!isContentOwner) throw new TRPCError({ code: "FORBIDDEN" });
 
       const [updatedComment] = await db.update(comments)
         .set({ creatorHearted: !comment.creatorHearted })
@@ -122,13 +150,18 @@ export const commentsRouter = createTRPCRouter({
     .input(
       z.object({
         parentId: z.string().uuid().nullish(),
-        videoId: z.string().uuid(),
+        videoId: z.string().uuid().nullish(),
+        postId: z.string().uuid().nullish(),
         value: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { parentId, videoId, value } = input;
+      const { parentId, videoId, postId, value } = input;
       const { id: userId } = ctx.user;
+
+      if (!videoId && !postId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "videoId or postId is required" });
+      }
 
       const [existingComment] = await db
         .select()
@@ -145,7 +178,7 @@ export const commentsRouter = createTRPCRouter({
 
       const [createdComment] = await db
         .insert(comments)
-        .values({ userId, videoId, parentId, value })
+        .values({ userId, videoId, postId, parentId, value })
         .returning();
 
       return createdComment;
@@ -153,7 +186,8 @@ export const commentsRouter = createTRPCRouter({
   getMany: baseProcedure
   .input(
     z.object({
-      videoId: z.string().uuid(),
+      videoId: z.string().uuid().nullish(),
+      postId: z.string().uuid().nullish(),
       parentId: z.string().uuid().nullish(),
       cursor: z
         .object({
@@ -167,7 +201,11 @@ export const commentsRouter = createTRPCRouter({
   )
   .query(async ({ input, ctx }) => {
     const { clerkUserId } = ctx;
-    const { parentId, videoId, cursor, limit, sortBy } = input;
+    const { parentId, videoId, postId, cursor, limit, sortBy } = input;
+
+    if (!videoId && !postId) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "videoId or postId is required" });
+    }
 
     let userId: string | undefined;
 
@@ -217,6 +255,22 @@ export const commentsRouter = createTRPCRouter({
       )
     `;
 
+    const whereClause = and(
+      videoId ? eq(comments.videoId, videoId) : eq(comments.postId, postId!),
+      parentId
+        ? eq(comments.parentId, parentId)
+        : isNull(comments.parentId),
+      cursor
+        ? or(
+            lt(comments.updatedAt, cursor.updatedAt),
+            and(
+              eq(comments.updatedAt, cursor.updatedAt),
+              lt(comments.id, cursor.id),
+            ),
+          )
+        : undefined,
+    );
+
     const [totalData, data] = await Promise.all([
       db
         .select({
@@ -225,7 +279,7 @@ export const commentsRouter = createTRPCRouter({
         .from(comments)
         .where(
           and(
-            eq(comments.videoId, videoId),
+            videoId ? eq(comments.videoId, videoId) : eq(comments.postId, postId!),
             isNull(comments.parentId),
           ),
         ),
@@ -252,32 +306,21 @@ export const commentsRouter = createTRPCRouter({
               eq(commentReactions.commentId, comments.id),
             ),
           ),
+          // For video comments
           videoOwnerId: videos.userId,
-          videoOwnerClerkId: sql<string>`(SELECT clerk_id FROM users WHERE id = ${videos.userId})`,
-          videoOwnerName: sql<string>`(SELECT name FROM users WHERE id = ${videos.userId})`,
-          videoOwnerImageUrl: sql<string>`(SELECT image_url FROM users WHERE id = ${videos.userId})`,
+          // For post comments
+          postOwnerId: posts.userId,
+          
+          contentOwnerId: sql<string>`COALESCE(${videos.userId}, ${posts.userId})`,
+          contentOwnerClerkId: sql<string>`(SELECT clerk_id FROM users WHERE id = COALESCE(${videos.userId}, ${posts.userId}))`,
+          contentOwnerName: sql<string>`(SELECT name FROM users WHERE id = COALESCE(${videos.userId}, ${posts.userId}))`,
+          contentOwnerImageUrl: sql<string>`(SELECT image_url FROM users WHERE id = COALESCE(${videos.userId}, ${posts.userId}))`,
         })
         .from(comments)
-        .where(
-          and(
-            eq(comments.videoId, videoId),
-            parentId
-              ? eq(comments.parentId, parentId)
-              : isNull(comments.parentId),
-
-            cursor
-              ? or(
-                  lt(comments.updatedAt, cursor.updatedAt),
-                  and(
-                    eq(comments.updatedAt, cursor.updatedAt),
-                    lt(comments.id, cursor.id),
-                  ),
-                )
-              : undefined,
-          ),
-        )
+        .where(whereClause)
         .innerJoin(users, eq(comments.userId, users.id))
-        .innerJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(posts, eq(comments.postId, posts.id))
         .leftJoin(viewerReactions, eq(comments.id, viewerReactions.commentId))
         .leftJoin(replies, eq(comments.id, replies.parentId))
         .orderBy(
@@ -308,3 +351,4 @@ export const commentsRouter = createTRPCRouter({
     };
   }),
 });
+

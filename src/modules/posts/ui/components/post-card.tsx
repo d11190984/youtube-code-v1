@@ -1,22 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, isAfter } from "date-fns";
 import { vi } from "date-fns/locale";
 import { UserAvatar } from "@/components/user-avatar";
+
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, MessageSquare, MoreVertical, Trash2, CheckCircle2 } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, MoreVertical, Trash2, CheckCircle2, Pencil } from "lucide-react";
 import Image from "next/image";
 import { trpc } from "@/trpc/client";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PostCommentsSection } from "../sections/post-comments-section";
 
 interface PostCardProps {
   post: any; 
@@ -26,6 +30,8 @@ export const PostCard = ({ post }: PostCardProps) => {
   const { user } = useUser();
   const utils = trpc.useUtils();
   const [showComments, setShowComments] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content || "");
   
   const react = trpc.posts.react.useMutation({
      onSuccess: () => utils.posts.getMany.invalidate(),
@@ -42,6 +48,17 @@ export const PostCard = ({ post }: PostCardProps) => {
     }
   });
 
+  const update = trpc.posts.update.useMutation({
+    onSuccess: () => {
+      toast.success("Đã cập nhật bài viết");
+      setIsEditing(false);
+      utils.posts.getMany.invalidate();
+    },
+    onError: () => {
+      toast.error("Lỗi khi cập nhật bài viết");
+    }
+  });
+
   const isOwner = user?.id === post.user.clerkId;
   const hasVoted = post.poll?.options.some((opt: any) => opt.viewerVoted);
   const isQuiz = post.poll?.options.some((opt: any) => opt.isCorrect);
@@ -55,6 +72,11 @@ export const PostCard = ({ post }: PostCardProps) => {
     vote.mutate({ postId: post.id, optionId });
   };
 
+  const handleUpdate = () => {
+    if (!editContent.trim()) return;
+    update.mutate({ id: post.id, content: editContent });
+  };
+
   return (
     <div className="border border-gray-200 dark:border-neutral-800 rounded-xl p-4 bg-white dark:bg-neutral-900 shadow-sm hover:border-gray-300 transition-colors">
        <div className="flex gap-3">
@@ -63,7 +85,14 @@ export const PostCard = ({ post }: PostCardProps) => {
              <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-semibold">{post.user.name}</span>
                 <span className="text-[11px] text-muted-foreground">
-                   {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: vi })}
+                   {post.scheduledAt && isAfter(new Date(post.scheduledAt), new Date()) ? (
+                      `Đã lên lịch đăng vào ${format(new Date(post.scheduledAt), "HH:mm d 'thg' M, yyyy", { locale: vi })} (giờ địa phương)`
+                   ) : (
+                      <>
+                        {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: vi })}
+                        {post.isEdited && " (đã chỉnh sửa)"}
+                      </>
+                   )}
                 </span>
                 
                 <DropdownMenu>
@@ -74,19 +103,59 @@ export const PostCard = ({ post }: PostCardProps) => {
                    </DropdownMenuTrigger>
                    <DropdownMenuContent align="end">
                       {isOwner && (
-                        <DropdownMenuItem className="text-red-500" onClick={() => remove.mutate({ id: post.id })}>
-                           <Trash2 className="size-4 mr-2" />
-                           Xóa bài viết
-                        </DropdownMenuItem>
+                        <>
+                          {post.type === "image" && (
+                            <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                               <Pencil className="size-4 mr-2" />
+                               Chỉnh sửa
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem className="text-red-500" onClick={() => remove.mutate({ id: post.id })}>
+                             <Trash2 className="size-4 mr-2" />
+                             Xóa bài viết
+                          </DropdownMenuItem>
+                        </>
                       )}
-                      <DropdownMenuItem>Báo cáo</DropdownMenuItem>
+
+                      
                    </DropdownMenuContent>
                 </DropdownMenu>
              </div>
              
-             <div className="text-sm whitespace-pre-wrap mb-2 leading-relaxed">
-                {post.content}
-             </div>
+             {isEditing ? (
+               <div className="mt-2 space-y-2">
+                  <Textarea 
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="min-h-[100px] bg-transparent border-gray-300 dark:border-neutral-700 focus-visible:ring-blue-500"
+                    placeholder="Chỉnh sửa bài đăng..."
+                  />
+                  <div className="flex justify-end gap-2">
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       onClick={() => {
+                         setIsEditing(false);
+                         setEditContent(post.content || "");
+                       }}
+                     >
+                        Hủy
+                     </Button>
+                     <Button 
+                       size="sm" 
+                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4"
+                       onClick={handleUpdate}
+                       disabled={update.isPending || !editContent.trim()}
+                     >
+                        Lưu
+                     </Button>
+                  </div>
+               </div>
+             ) : (
+               <div className="text-sm whitespace-pre-wrap mb-2 leading-relaxed">
+                  {post.content}
+               </div>
+             )}
 
              {isQuiz && (
                 <div className="text-xs text-muted-foreground mb-3">
@@ -97,11 +166,11 @@ export const PostCard = ({ post }: PostCardProps) => {
              {/* Images */}
              {post.images && post.images.length > 0 && (
                 <div className={cn(
-                   "grid gap-2 mb-4 rounded-xl overflow-hidden border border-gray-100 dark:border-neutral-800",
-                   post.images.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                   "mb-4 rounded-xl overflow-hidden border border-gray-100 dark:border-neutral-800 mx-auto",
+                   post.images.length > 1 ? "grid grid-cols-2 gap-2 aspect-video" : "max-w-[450px] aspect-square"
                 )}>
                    {post.images.map((img: any) => (
-                      <div key={img.id} className="relative aspect-video">
+                      <div key={img.id} className="relative w-full h-full">
                          <Image src={img.imageUrl} alt="" fill className="object-cover" />
                       </div>
                    ))}
@@ -165,7 +234,7 @@ export const PostCard = ({ post }: PostCardProps) => {
                             {showResult && isQuiz && opt.isCorrect && opt.explanation && (
                                <div className="text-[11px] text-muted-foreground bg-gray-50 dark:bg-neutral-800/50 p-2 rounded-lg ml-2">
                                   {opt.explanation}
-                               </div>
+                                </div>
                             )}
                          </div>
                       );
@@ -216,16 +285,14 @@ export const PostCard = ({ post }: PostCardProps) => {
                    >
                       <MessageSquare className="size-4" />
                    </Button>
-                   <span className="text-xs text-muted-foreground">0</span>
+                   <span className="text-xs text-muted-foreground">{post.commentCount}</span>
                 </div>
              </div>
 
-             {/* Simple Comments Placeholder */}
+             {/* Comments Section */}
              {showComments && (
                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
-                  <div className="text-xs text-muted-foreground italic">
-                     Tính năng bình luận bài viết đang được phát triển...
-                  </div>
+                  <PostCommentsSection postId={post.id} />
                </div>
              )}
           </div>

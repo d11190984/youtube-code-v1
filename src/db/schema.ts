@@ -42,6 +42,8 @@ export const posts = pgTable("posts", {
   content: text("content"),
   type: postType("type").default("text").notNull(),
   videoId: uuid("video_id").references(() => videos.id, { onDelete: "set null" }),
+  scheduledAt: timestamp("scheduled_at"),
+  isEdited: boolean("is_edited").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -118,6 +120,7 @@ export const postRelations = relations(posts, ({ one, many }) => ({
   images: many(postImages),
   poll: one(postPolls, { fields: [posts.id], references: [postPolls.postId] }),
   reactions: many(postReactions),
+  comments: many(comments),
 }));
 
 export const postImageRelations = relations(postImages, ({ one }) => ({
@@ -354,8 +357,9 @@ export const comments = pgTable(
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     videoId: uuid("video_id")
-      .references(() => videos.id, { onDelete: "cascade" })
-      .notNull(),
+      .references(() => videos.id, { onDelete: "cascade" }),
+    postId: uuid("post_id")
+      .references(() => posts.id, { onDelete: "cascade" }),
     value: text("value").notNull(),
     isPinned: boolean("is_pinned").default(false).notNull(),
     creatorHearted: boolean("creator_hearted").default(false).notNull(),
@@ -410,6 +414,7 @@ export const commentReactionRelations = relations(
 export const commentRelations = relations(comments, ({ one, many }) => ({
   user: one(users, { fields: [comments.userId], references: [users.id] }),
   video: one(videos, { fields: [comments.videoId], references: [videos.id] }),
+  post: one(posts, { fields: [comments.postId], references: [posts.id] }),
   parent: one(comments, {
     fields: [comments.parentId],
     references: [comments.id],
@@ -418,6 +423,7 @@ export const commentRelations = relations(comments, ({ one, many }) => ({
   reactions: many(commentReactions), // ok, đã biết commentReactions
   replies: many(comments, { relationName: "comments_parent_id_fkey" }),
 }));
+
 
 export const commentSelectSchema = createSelectSchema(comments);
 export const commentInsertSchema = createInsertSchema(comments);

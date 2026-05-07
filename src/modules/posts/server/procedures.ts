@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq, and, desc, lt, or, getTableColumns, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, lt, or, getTableColumns, sql, inArray, isNull, lte, gt } from "drizzle-orm";
+
 
 import { db } from "@/db";
 import {
@@ -12,7 +13,9 @@ import {
   postReactions,
   users,
   videos,
+  comments,
 } from "@/db/schema";
+
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "@/trpc/init";
 
 export const postsRouter = createTRPCRouter({
@@ -36,6 +39,7 @@ export const postsRouter = createTRPCRouter({
             explanation: z.string().optional(),
           })),
         }).optional(),
+        scheduledAt: z.string().datetime().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -48,6 +52,7 @@ export const postsRouter = createTRPCRouter({
           content: input.content,
           type: input.type,
           videoId: input.videoId,
+          scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : null,
         })
         .returning();
 
@@ -89,6 +94,7 @@ export const postsRouter = createTRPCRouter({
     .input(
       z.object({
         userId: z.string().uuid(),
+        status: z.enum(["published", "scheduled", "archived"]).default("published"),
         cursor: z
           .object({
             id: z.string().uuid(),
@@ -99,7 +105,7 @@ export const postsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      const { userId, cursor, limit } = input;
+      const { userId, status, cursor, limit } = input;
       
       let viewerId: string | undefined;
       if (ctx.clerkUserId) {
@@ -109,6 +115,8 @@ export const postsRouter = createTRPCRouter({
           .where(eq(users.clerkId, ctx.clerkUserId));
         viewerId = user?.id;
       }
+
+      const now = new Date();
 
       const data = await db
         .select({
@@ -123,14 +131,25 @@ export const postsRouter = createTRPCRouter({
             postReactions,
             and(eq(postReactions.postId, posts.id), eq(postReactions.type, "dislike"))
           ),
+          commentCount: db.$count(
+            comments,
+            eq(comments.postId, posts.id)
+          ),
         })
+
         .from(posts)
         .innerJoin(users, eq(posts.userId, users.id))
         .leftJoin(videos, eq(posts.videoId, videos.id))
         .where(
           and(
             eq(posts.userId, userId),
+            status === "published" 
+              ? or(isNull(posts.scheduledAt), lte(posts.scheduledAt, now))
+              : status === "scheduled"
+              ? gt(posts.scheduledAt, now)
+              : undefined,
             cursor
+
               ? or(
                   lt(posts.createdAt, cursor.createdAt),
                   and(eq(posts.createdAt, cursor.createdAt), lt(posts.id, cursor.id))
@@ -140,6 +159,7 @@ export const postsRouter = createTRPCRouter({
         )
         .orderBy(desc(posts.createdAt), desc(posts.id))
         .limit(limit + 1);
+
 
       const hasMore = data.length > limit;
       const items = hasMore ? data.slice(0, -1) : data;
@@ -270,7 +290,27 @@ export const postsRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  update: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), content: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const { id: userId } = ctx.user;
+      const [updatedPost] = await db
+        .update(posts)
+        .set({ 
+          content: input.content, 
+          isEdited: true,
+          updatedAt: new Date() 
+        })
+        .where(and(eq(posts.id, input.id), eq(posts.userId, userId)))
+        .returning();
+
+      if (!updatedPost) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return updatedPost;
+    }),
+
   remove: protectedProcedure
+
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
       const { id: userId } = ctx.user;

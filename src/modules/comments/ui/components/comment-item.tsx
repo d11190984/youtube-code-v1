@@ -51,7 +51,7 @@ export const CommentItem = ({
   const remove = trpc.comments.remove.useMutation({
     onSuccess: () => {
       toast.success("Bình luận đã bị xóa");
-      utils.comments.getMany.invalidate({ videoId: comment.videoId });
+      utils.comments.getMany.invalidate({ videoId: comment.videoId, postId: comment.postId });
     },
     onError: (error) => {
       toast.error("Đã xảy ra lỗi");
@@ -65,7 +65,7 @@ export const CommentItem = ({
   const pin = trpc.comments.pin.useMutation({
     onSuccess: () => {
       toast.success(comment.isPinned ? "Đã bỏ ghim bình luận" : "Đã ghim bình luận");
-      utils.comments.getMany.invalidate({ videoId: comment.videoId });
+      utils.comments.getMany.invalidate({ videoId: comment.videoId, postId: comment.postId });
     },
     onError: (error) => {
       toast.error("Đã xảy ra lỗi");
@@ -77,7 +77,7 @@ export const CommentItem = ({
 
   const heart = trpc.comments.heart.useMutation({
     onSuccess: () => {
-      utils.comments.getMany.invalidate({ videoId: comment.videoId });
+      utils.comments.getMany.invalidate({ videoId: comment.videoId, postId: comment.postId });
     },
     onError: (error) => {
       toast.error("Đã xảy ra lỗi");
@@ -87,12 +87,12 @@ export const CommentItem = ({
     },
   });
 
-  const isVideoOwner = comment.videoOwnerClerkId === userId;
+  const isContentOwner = comment.contentOwnerClerkId === userId;
   const isCommentOwner = comment.user.clerkId === userId;
 
   const like = trpc.commentReactions.like.useMutation({
     onSuccess: () => {
-      utils.comments.getMany.invalidate({ videoId: comment.videoId });
+      utils.comments.getMany.invalidate({ videoId: comment.videoId, postId: comment.postId });
     },
     onError: (error) => {
       toast.error("Đã xảy ra lỗi");
@@ -104,7 +104,7 @@ export const CommentItem = ({
   });
   const dislike = trpc.commentReactions.dislike.useMutation({
     onSuccess: () => {
-      utils.comments.getMany.invalidate({ videoId: comment.videoId });
+      utils.comments.getMany.invalidate({ videoId: comment.videoId, postId: comment.postId });
     },
     onError: (error) => {
       toast.error("Đã xảy ra lỗi");
@@ -191,7 +191,7 @@ export const CommentItem = ({
               </span>
               {comment.creatorHearted && (
                 <div className="flex items-center justify-center ml-2 relative">
-                  <UserAvatar size="xs" imageUrl={comment.videoOwnerImageUrl} name={comment.videoOwnerName} />
+                  <UserAvatar size="xs" imageUrl={comment.contentOwnerImageUrl || ""} name={comment.contentOwnerName || ""} />
                   <HeartIcon className="size-3 fill-red-500 text-red-500 absolute -bottom-1 -right-1 bg-white dark:bg-black rounded-full p-[1px]" />
                 </div>
               )}
@@ -219,7 +219,7 @@ export const CommentItem = ({
               <MessageSquareIcon className="size-4 mr-2" />
               Trả lời
             </DropdownMenuItem>
-            {isVideoOwner && (
+            {isContentOwner && (
               <>
                 <DropdownMenuItem onClick={() => pin.mutate({ id: comment.id })}>
                   <PinIcon className="size-4 mr-2" />
@@ -231,7 +231,7 @@ export const CommentItem = ({
                 </DropdownMenuItem>
               </>
             )}
-            {(isCommentOwner || isVideoOwner) && (
+            {(isCommentOwner || isContentOwner) && (
               <DropdownMenuItem
                 onClick={() => remove.mutate({ id: comment.id })}
               >
@@ -247,7 +247,8 @@ export const CommentItem = ({
           <CommentForm
             variant="reply"
             parentId={comment.id}
-            videoId={comment.videoId}
+            videoId={comment.videoId || undefined}
+            postId={comment.postId || undefined}
             onCancel={() => setIsReplyOpen(false)}
             onSuccess={() => {
               setIsReplyOpen(false);
@@ -269,8 +270,9 @@ export const CommentItem = ({
         </div>
       )}
       {comment.replyCount > 0 && variant === "comment" && isRepliesOpen && (
-        <CommentReplies parentId={comment.id} videoId={comment.videoId} />
+        <CommentReplies parentId={comment.id} videoId={comment.videoId || undefined} postId={comment.postId || undefined} />
       )}
     </div>
   );
 };
+
