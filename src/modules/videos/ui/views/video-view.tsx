@@ -105,9 +105,33 @@ const VideoViewSuspense = ({ videoId }: VideoViewProps) => {
     handleNextShort();
   };
 
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientY;
+    const diff = touchStart - touchEnd;
+
+    // Ngưỡng 50px để tránh click nhầm thành swipe
+    if (diff > 50) {
+      handleNextShort();
+    } else if (diff < -50) {
+      handlePrevShort();
+    }
+    setTouchStart(null);
+  };
+
   if (isShort) {
     return (
-      <div className="flex justify-center items-center h-[calc(100vh-80px)] md:pt-6 bg-black md:bg-transparent md:pb-10 overflow-hidden">
+      <div 
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="flex justify-center items-center h-[calc(100vh-80px)] md:pt-6 bg-black md:bg-transparent md:pb-10 overflow-hidden touch-none"
+      >
         <div className="flex gap-0 md:gap-6 w-full md:w-auto max-w-full relative h-full">
           {/* 🎬 Khung trình phát Shorts */}
           <div className="relative aspect-[9/16] h-full w-full md:w-auto md:h-[82vh] lg:h-[86vh] bg-black md:rounded-2xl overflow-hidden shadow-none md:shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:border md:border-neutral-800">
@@ -154,24 +178,24 @@ const VideoViewSuspense = ({ videoId }: VideoViewProps) => {
           </div>
 
           {/* ⬆️⬇️ Cột điều hướng riêng biệt (Hidden on Mobile, use swipe/scroll behavior instead) */}
-          <div className="hidden md:flex flex-col justify-end pb-2 gap-2">
+          <div className="hidden md:flex flex-col justify-end pb-2 md:pb-2 gap-2 z-20">
             {canGoBack && (
               <Button
                 onClick={handlePrevShort}
                 size="icon"
                 variant="secondary"
-                className="size-12 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-white shadow-lg"
+                className="size-10 md:size-12 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-white shadow-lg"
               >
-                <ChevronUpIcon className="size-8" />
+                <ChevronUpIcon className="size-6 md:size-8" />
               </Button>
             )}
             <Button
               onClick={handleNextShort}
               size="icon"
               variant="secondary"
-              className="size-12 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-white shadow-lg"
+              className="size-10 md:size-12 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-white shadow-lg"
             >
-              <ChevronDownIcon className="size-8" />
+              <ChevronDownIcon className="size-6 md:size-8" />
             </Button>
           </div>
         </div>
