@@ -188,7 +188,8 @@ export const PostCard = ({ post }: PostCardProps) => {
                          <div key={opt.id} className="space-y-1">
                             <div 
                               className={cn(
-                                 "relative group cursor-pointer border rounded-lg overflow-hidden transition-all",
+                                 "relative group border rounded-lg overflow-hidden transition-all",
+                                 isOwner ? "cursor-default" : "cursor-pointer",
                                  opt.viewerVoted ? "border-blue-500 bg-blue-50/5" : "border-gray-200 dark:border-neutral-800 hover:bg-gray-50/50",
                                  showResult && isQuiz && opt.isCorrect && "border-green-500 bg-green-50/5",
                                  showResult && isQuiz && opt.viewerVoted && !opt.isCorrect && "border-red-500 bg-red-50/5"
@@ -208,28 +209,35 @@ export const PostCard = ({ post }: PostCardProps) => {
                                  />
                                )}
                                
-                               <div className="relative flex items-center p-3 gap-3">
+                               <div className={cn(
+                                 "relative flex items-center gap-4",
+                                 post.poll.type === "image" ? "p-0 h-24" : "p-3"
+                               )}>
                                   {post.poll.type === "image" && opt.imageUrl && (
-                                     <div className="relative size-12 rounded-md overflow-hidden flex-shrink-0">
+                                     <div className="relative h-full aspect-square overflow-hidden flex-shrink-0 border-r border-gray-100 dark:border-neutral-800">
                                         <Image src={opt.imageUrl} alt="" fill className="object-cover" />
                                      </div>
                                   )}
-                                  <span className={cn(
-                                    "flex-1 text-sm font-medium",
-                                    opt.viewerVoted && "text-blue-600 dark:text-blue-400",
-                                    showResult && isQuiz && opt.isCorrect && "text-green-600 dark:text-green-400",
-                                    showResult && isQuiz && opt.viewerVoted && !opt.isCorrect && "text-red-600 dark:text-red-400"
-                                  )}>{opt.text}</span>
                                   
-                                  {showResult && (
-                                    <div className="flex items-center gap-2">
-                                       <span className="text-xs font-bold">{percentage}%</span>
-                                       {isQuiz && opt.isCorrect && (
-                                          <CheckCircle2 className="size-5 text-green-600" />
-                                       )}
-                                    </div>
-                                  )}
+                                  <div className="flex-1 flex items-center justify-between pr-4">
+                                     <span className={cn(
+                                       "text-sm font-medium",
+                                       opt.viewerVoted && "text-blue-600 dark:text-blue-400",
+                                       showResult && isQuiz && opt.isCorrect && "text-green-600 dark:text-green-400",
+                                       showResult && isQuiz && opt.viewerVoted && !opt.isCorrect && "text-red-600 dark:text-red-400"
+                                     )}>{opt.text}</span>
+                                     
+                                     {showResult && (
+                                       <div className="flex items-center gap-2">
+                                          <span className="text-xs font-bold">{percentage}%</span>
+                                          {isQuiz && opt.isCorrect && (
+                                             <CheckCircle2 className="size-5 text-green-600" />
+                                          )}
+                                       </div>
+                                     )}
+                                  </div>
                                </div>
+
                             </div>
                             {showResult && isQuiz && opt.isCorrect && opt.explanation && (
                                <div className="text-[11px] text-muted-foreground bg-gray-50 dark:bg-neutral-800/50 p-2 rounded-lg ml-2">

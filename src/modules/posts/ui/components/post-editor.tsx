@@ -249,7 +249,7 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
                             placeholder={postType === "question" ? `Câu trả lời ${index + 1}` : "Thêm lựa chọn"}
                             value={option.text}
                             onChange={(e) => {
-                              const limit = (postType === "poll" && pollType === "image") ? 14 : 65;
+                              const limit = (postType === "poll" && pollType === "image") ? 36 : 65;
                               if (e.target.value.length <= limit) {
                                 setPollOptions(prev => prev.map(opt => opt.id === option.id ? { ...opt, text: e.target.value } : opt));
                               }
@@ -260,7 +260,7 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
                             )}
                           />
                           <span className="absolute right-0 bottom-1 text-[10px] text-gray-500">
-                             {option.text.length}/{(postType === "poll" && pollType === "image") ? "14" : "65"}
+                             {option.text.length}/{(postType === "poll" && pollType === "image") ? "36" : "65"}
                           </span>
                        </div>
                        
@@ -451,6 +451,7 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
                     setSelectedImages([]);
                     setIsScheduling(false);
                     setPollOptions([{ id: "1", text: "" }, { id: "2", text: "" }]);
+                    setContent("");
                   }}>Hủy</Button>
                   <div className="flex items-center">
                     <Button 
