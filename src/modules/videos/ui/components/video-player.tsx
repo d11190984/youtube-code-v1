@@ -136,6 +136,10 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
             isInitialSeekingRef.current = false;
           }, 800);
 
+          if (autoPlay) {
+            player.play().catch(() => {});
+          }
+
           return;
         }
 
@@ -162,11 +166,15 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         setTimeout(() => {
           isInitialSeekingRef.current = false;
         }, 800);
+
+        if (autoPlay) {
+          player.play().catch(() => {});
+        }
       };
 
       player.addEventListener("canplay", handleCanPlay);
       return () => player.removeEventListener("canplay", handleCanPlay);
-    }, [videoId, trackingEnabled, savedProgress]);
+    }, [videoId, trackingEnabled, savedProgress, autoPlay]);
 
     useEffect(() => {
       if (!trackingEnabled) return;
@@ -418,7 +426,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           playbackId={playbackId || ""}
           streamType="on-demand"
           poster={thumbnailUrl || THUMBNAIL_FALLBACK}
-          autoPlay={autoPlay}
+          autoPlay={autoPlay ? "any" : false}
           className={cn(
             "w-full h-full object-cover",
             isVertical && "mux-player-vertical",
