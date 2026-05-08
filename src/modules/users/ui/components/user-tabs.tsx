@@ -31,14 +31,14 @@ export const UserTabs = ({
 
   return (
     <div>
-      <div className="flex gap-6 border-b border-gray-300 mb-2">
+      <div className="flex gap-6 border-b border-gray-200 dark:border-neutral-800 mb-2">
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            className={`pb-2 text-sm font-medium ${
+            className={`pb-2 text-sm font-medium transition-colors ${
               activeTab === tab.key
-                ? "border-b-2 border-black text-black"
-                : "text-gray-500"
+                ? "border-b-2 border-black dark:border-white text-black dark:text-white"
+                : "text-gray-500 hover:text-black dark:hover:text-white"
             }`}
             onClick={() => {
               setActiveTabAction(
@@ -62,10 +62,10 @@ export const UserTabs = ({
                   sub.key as "latest" | "popular" | "oldest",
                 )
               }
-              className={`px-3 py-1 text-sm rounded-full border ${
+              className={`px-3 py-1 text-sm rounded-full border transition-colors ${
                 activeVideoTab === sub.key
-                  ? "bg-black text-white border-black"
-                  : "bg-gray-100 text-gray-600 border-gray-300"
+                  ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white"
+                  : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border-gray-300 dark:border-neutral-700 hover:bg-gray-200 dark:hover:bg-neutral-700"
               }`}
             >
               {sub.label}

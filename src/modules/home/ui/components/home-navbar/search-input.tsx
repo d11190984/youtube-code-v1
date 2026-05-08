@@ -129,7 +129,7 @@ const SearchInputSuspense = () => {
               onClick={() => setValue("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-8 w-8 hover:bg-neutral-200 dark:hover:bg-neutral-800"
             >
-              <XIcon className="size-4 text-gray-500" />
+              <XIcon className="size-4 text-muted-foreground" />
             </Button>
           )}
         </div>

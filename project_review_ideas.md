@@ -207,10 +207,6 @@ const itemsWithAvgView = await Promise.all(
 - Thêm hỗ trợ English, Japanese,...
 - Dùng `next-intl` hoặc `react-i18next`
 
-#### 14. Dark/Light Theme Toggle
-- Đã có CSS variables cho dark mode nhưng chưa có toggle button
-- `next-themes` đã cài nhưng cần expose UI control
-
 #### 15. Hệ Thống Report / Báo Cáo Vi Phạm
 - Report video, comment, user
 - Admin review queue

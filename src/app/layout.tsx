@@ -6,6 +6,7 @@ import { TRPCProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
 import { ScrollToTopCharacter } from "@/components/scroll-to-top";
 
+import { ThemeProvider } from "@/components/theme-provider";
 import ClickEffect from "@/components/ui/ClickEffect";
 import "./globals.css";
 
@@ -30,9 +31,16 @@ export default function RootLayout({
         <body className={inter.className}>
           <div className="fixed inset-0 -z-50 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-100/50 via-white to-white dark:from-neutral-900/50 dark:via-black dark:to-black pointer-events-none" />
           <TRPCProvider>
-            <Toaster />
-            <ClickEffect imageSrc="/toTop.Cuiv4RfP.svg">{children}</ClickEffect>
-            <ScrollToTopCharacter />
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Toaster />
+              <ClickEffect imageSrc="/toTop.Cuiv4RfP.svg">{children}</ClickEffect>
+              <ScrollToTopCharacter />
+            </ThemeProvider>
           </TRPCProvider>
         </body>
       </html>

@@ -1,11 +1,14 @@
 "use client";
 
-import { ClapperboardIcon, UserCircleIcon, UserIcon } from "lucide-react";
+import { ClapperboardIcon, MoonIcon, SunIcon, UserCircleIcon, UserIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { UserButton, SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 
 export const AuthButton = () => {
+  const { theme, setTheme } = useTheme();
+
   return (
     <>
       <SignedIn>
@@ -20,6 +23,11 @@ export const AuthButton = () => {
               label="Studio"
               href="/studio"
               labelIcon={<ClapperboardIcon className="size-4" />}
+            />
+            <UserButton.Action
+              label={`Giao diện: ${theme === "dark" ? "Tối" : "Sáng"}`}
+              labelIcon={theme === "dark" ? <MoonIcon className="size-4" /> : <SunIcon className="size-4" />}
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             />
             <UserButton.Action label="manageAccount" />
           </UserButton.MenuItems>

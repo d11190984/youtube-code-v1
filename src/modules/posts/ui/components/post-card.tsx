@@ -97,7 +97,7 @@ export const PostCard = ({ post }: PostCardProps) => {
                 
                 <DropdownMenu>
                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="ml-auto size-8 text-gray-500">
+                      <Button variant="ghost" size="icon" className="ml-auto size-8 text-muted-foreground">
                          <MoreVertical className="size-4" />
                       </Button>
                    </DropdownMenuTrigger>
@@ -248,7 +248,7 @@ export const PostCard = ({ post }: PostCardProps) => {
                       );
                    })}
                    {!isQuiz && (
-                      <div className="text-[10px] text-gray-500 pl-1">
+                      <div className="text-[10px] text-muted-foreground pl-1">
                          {totalVotes} lượt bình chọn
                       </div>
                    )}

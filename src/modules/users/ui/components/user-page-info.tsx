@@ -4,6 +4,7 @@ import { useClerk, useAuth } from "@clerk/nextjs";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/user-avatar";
 
@@ -80,10 +81,10 @@ export const UserPageInfo = ({ user }: UserPageInfoProps) => {
     if (isOwner) {
       return editing ? (
         <div className="mt-2 flex flex-col gap-2">
-          <textarea
+          <Textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            className="w-full border rounded-md p-2 text-sm resize-none"
+            className="w-full text-sm resize-none"
             rows={3}
           />
           <div className="flex gap-2">
@@ -98,7 +99,11 @@ export const UserPageInfo = ({ user }: UserPageInfoProps) => {
       ) : (
         <div className="text-sm text-muted-foreground mt-2 flex items-center gap-2">
           {bio || "Chưa có bio"}
-          <Button variant="link" onClick={() => setEditing(true)}>
+          <Button 
+            variant="link" 
+            onClick={() => setEditing(true)}
+            className="h-auto p-0 text-blue-500 dark:text-blue-400 font-normal"
+          >
             Chỉnh sửa
           </Button>
         </div>

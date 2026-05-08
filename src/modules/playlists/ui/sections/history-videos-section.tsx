@@ -167,7 +167,7 @@ const HistoryVideosSectionSuspense = () => {
         <div className="relative w-full max-w-xs">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
-              className="w-5 h-5 text-gray-400"
+              className="w-5 h-5 text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -184,7 +184,7 @@ const HistoryVideosSectionSuspense = () => {
           <input
             type="text"
             placeholder="Tìm kiếm trong danh sách..."
-            className="w-full pl-10 pr-8 border-b border-gray-400 focus:border-blue-500 focus:outline-none h-8"
+            className="w-full pl-10 pr-8 border-b border-input focus:border-blue-500 focus:outline-none h-8 bg-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -192,7 +192,7 @@ const HistoryVideosSectionSuspense = () => {
           {searchTerm && (
             <button
               type="button"
-              className="absolute right-0 bottom-0 mb-0 mr-1 flex items-center text-gray-400 hover:text-gray-600 h-6"
+              className="absolute right-0 bottom-0 mb-0 mr-1 flex items-center text-muted-foreground hover:text-foreground h-6"
               onClick={() => setSearchTerm("")}
             >
               &#10005;
@@ -226,11 +226,11 @@ const HistoryVideosSectionSuspense = () => {
 
           {showConfirmDialog && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 text-gray-900 dark:text-gray-100">
+              <div className="bg-background border border-border p-6 rounded-lg w-96 text-foreground shadow-xl">
                 <h2 className="text-lg font-semibold mb-2">
                   Tạm dừng lưu lịch sử xem?
                 </h2>
-                <p className="text-sm mb-4">
+                <p className="text-sm text-muted-foreground mb-4">
                   Việc tạm dừng nhật ký xem trên YouTube có thể khiến bạn khó
                   tìm thấy những video đã xem hơn và ít được gợi ý video mới hơn
                   trên YouTube và các sản phẩm khác của Google.
