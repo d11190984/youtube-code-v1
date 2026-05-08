@@ -59,8 +59,8 @@ export const AuthButton = () => {
                 )
               }
               onClick={() => {
-                const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
-                setTheme(nextTheme);
+                const isDark = document.documentElement.classList.contains("dark");
+                setTheme(isDark ? "light" : "dark");
               }}
             />
             <UserButton.Action
