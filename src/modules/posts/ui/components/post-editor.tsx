@@ -28,6 +28,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
@@ -61,13 +68,55 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isScheduling, setIsScheduling] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState<string>(new Date(Date.now() + 86400000).toISOString().split('T')[0]);
-  const [scheduledTime, setScheduledTime] = useState("12:00 AM");
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const getInitialSchedule = () => {
+    const now = new Date();
+    // Mặc định là 1 giờ sau từ bây giờ, làm tròn đến 15 phút tiếp theo
+    const defaultTime = new Date(now.getTime() + 60 * 60 * 1000);
+    const minutes = defaultTime.getMinutes();
+    const roundedMinutes = Math.ceil(minutes / 15) * 15;
+    
+    if (roundedMinutes === 60) {
+      defaultTime.setHours(defaultTime.getHours() + 1);
+      defaultTime.setMinutes(0);
+    } else {
+      defaultTime.setMinutes(roundedMinutes);
+    }
+    
+    // Lấy định dạng YYYY-MM-DD theo giờ địa phương
+    const year = defaultTime.getFullYear();
+    const month = String(defaultTime.getMonth() + 1).padStart(2, '0');
+    const day = String(defaultTime.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
+    const hour = defaultTime.getHours();
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    const displayMinute = defaultTime.getMinutes().toString().padStart(2, "0");
+    const timeStr = `${displayHour}:${displayMinute} ${ampm}`;
+    
+    return { dateStr, timeStr };
+  };
 
-  const { data: channelUser } = trpc.users.getOne.useQuery({ id: userId });
-  
+  const initialSchedule = getInitialSchedule();
+  const [scheduledDate, setScheduledDate] = useState<string>(initialSchedule.dateStr);
+  const [scheduledTime, setScheduledTime] = useState(initialSchedule.timeStr);
+
+  const getScheduledDateTime = (dateStr: string, timeStr: string) => {
+    const [hoursStr, minutesStrWithPeriod] = timeStr.split(":");
+    const [minutesStr, period] = minutesStrWithPeriod.split(" ");
+    let hours = parseInt(hoursStr);
+    const minutes = parseInt(minutesStr);
+    if (period === "PM" && hours < 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+    
+    const date = new Date(dateStr);
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  };
+
+  const isScheduleInvalid = isScheduling && getScheduledDateTime(scheduledDate, scheduledTime).getTime() <= Date.now();
+
   const createPost = trpc.posts.create.useMutation({
     onSuccess: () => {
       toast.success(isScheduling ? "Đã lên lịch bài viết!" : "Đã đăng bài viết!");
@@ -78,12 +127,32 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
       setPostType("text");
       setIsExpanded(false);
       setIsScheduling(false);
+      
+      const next = getInitialSchedule();
+      setScheduledDate(next.dateStr);
+      setScheduledTime(next.timeStr);
+      
       utils.posts.getMany.invalidate({ userId });
     },
-    onError: () => {
-      toast.error("Có lỗi xảy ra!");
+    onError: (error) => {
+      toast.error(error.message || "Có lỗi xảy ra!");
     }
   });
+  
+  const timeOptions = Array.from({ length: 96 }).map((_, i) => {
+    const hour = Math.floor(i / 4);
+    const minute = (i % 4) * 15;
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    const displayMinute = minute.toString().padStart(2, "0");
+    return `${displayHour}:${displayMinute} ${ampm}`;
+  });
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: channelUser } = trpc.users.getOne.useQuery({ id: userId });
+  
+
 
   const isOwner = user?.id && channelUser?.clerkId === user.id;
 
@@ -94,15 +163,13 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
 
     let scheduledAt: string | undefined;
     if (isScheduling) {
-       const [hoursStr, minutesStrWithPeriod] = scheduledTime.split(":");
-       const [minutesStr, period] = minutesStrWithPeriod.split(" ");
-       let hours = parseInt(hoursStr);
-       const minutes = parseInt(minutesStr);
-       if (period === "PM" && hours < 12) hours += 12;
-       if (period === "AM" && hours === 12) hours = 0;
+       const date = getScheduledDateTime(scheduledDate, scheduledTime);
        
-       const date = new Date(scheduledDate);
-       date.setHours(hours, minutes, 0, 0);
+       if (date.getTime() <= Date.now()) {
+         toast.error("Thời gian lên lịch phải ở tương lai!");
+         return;
+       }
+       
        scheduledAt = date.toISOString();
     }
 
@@ -457,7 +524,7 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
                     <Button 
                       size="sm" 
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-l-full px-6 h-9 font-semibold transition-colors disabled:bg-gray-300 dark:disabled:bg-neutral-800"
-                      disabled={(!content.trim() && selectedImages.length === 0 && postType !== "poll" && postType !== "question") || isUploading || createPost.isPending}
+                      disabled={(!content.trim() && selectedImages.length === 0 && postType !== "poll" && postType !== "question") || isUploading || createPost.isPending || isScheduleInvalid}
                       onClick={handlePost}
                     >
                       {createPost.isPending ? "Đang đăng..." : isScheduling ? "Lên lịch" : "Đăng"}
@@ -490,12 +557,16 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
 
           {isScheduling && (
              <div className="mt-4 p-4 border rounded-xl border-gray-200 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50 animate-in slide-in-from-top-2 duration-300">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-2">
                    <span className="text-sm font-semibold">Chọn ngày và giờ để xuất bản bài đăng này</span>
                    <Button variant="ghost" size="icon" className="size-8" onClick={() => setIsScheduling(false)}>
                       <X className="size-4" />
                    </Button>
                 </div>
+                
+                {isScheduleInvalid && (
+                  <p className="text-xs text-red-500 mb-3 font-medium">Thời gian lên lịch không được ở quá khứ!</p>
+                )}
                 
                 <div className="flex flex-wrap gap-3">
                    <div className="flex-1 min-w-[150px] relative">
@@ -509,16 +580,19 @@ export const PostEditor = ({ userId }: PostEditorProps) => {
                    </div>
                    
                    <div className="flex-1 min-w-[150px] relative">
-                      <select 
+                      <Select 
                         value={scheduledTime}
-                        onChange={(e) => setScheduledTime(e.target.value)}
-                        className="w-full bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 rounded-md h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                        onValueChange={setScheduledTime}
                       >
-                         {["12:00 AM", "01:00 AM", "02:00 AM", "08:00 AM", "12:00 PM", "06:00 PM", "11:00 PM"].map(t => (
-                           <option key={t} value={t}>{t}</option>
-                         ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-500 pointer-events-none" />
+                        <SelectTrigger className="w-full bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700 h-10">
+                          <SelectValue placeholder="Chọn thời gian" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {timeOptions.map(t => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                    </div>
                    
                    <div className="flex-[2] min-w-[200px] relative">

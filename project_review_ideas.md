@@ -181,17 +181,6 @@ const itemsWithAvgView = await Promise.all(
 - Community posts (text, images, polls)
 - Tương tác giữa creator và subscriber
 
-#### 4. Tìm Kiếm Nâng Cao
-- Full-text search với PostgreSQL `tsvector`
-- Search filters: thời lượng, ngày upload, sắp xếp
-- Search suggestions / autocomplete
-- Search history
-
-#### 5. Download Video
-- Route `/api/download-video` đã tồn tại nhưng cần hoàn thiện
-- Cho phép download video từ Mux static renditions
-- Chọn chất lượng download (1080p, 720p, 480p)
-
 ---
 
 ### 🟡 Ưu tiên trung bình — Nên làm trong 1-2 tháng
@@ -202,33 +191,11 @@ const itemsWithAvgView = await Promise.all(
 - Lưu lại VOD sau khi stream kết thúc
 - Scheduled live streams
 
-#### 7. Monetization / Super Chat
-- Hệ thống donate/tip cho creator
-- Super Chat trong live stream
-- Channel membership tiers
-- Tích hợp Stripe
-
-#### 8. Shorts Viewer Cải Tiến
-- Swipe vertical giống TikTok/YouTube Shorts
-- Full-screen mobile experience
-- Nút tạo Shorts từ video dài (clip/trim)
-
-#### 9. Video Editor Trong Trình Duyệt
-- Trim/cut video trước khi upload
-- Thêm text overlay, stickers
-- Chọn thumbnail frame từ video
-- Dùng FFmpeg WASM (đã có `@ffmpeg/ffmpeg` trong deps)
-
 #### 10. Hệ Thống Tags & Hashtags
 - Thêm tags cho video
 - Click tag để filter/search
 - Trending tags section
 - Autocomplete tags khi nhập
-
-#### 11. Watch Party / Co-Watching
-- Xem video đồng bộ với bạn bè
-- Chat trong phòng xem chung
-- Share watch party link
 
 #### 12. Picture-in-Picture (PiP) Nâng Cao
 - Tiếp tục xem video khi navigate trang khác
@@ -253,75 +220,21 @@ const itemsWithAvgView = await Promise.all(
 
 ### 🟢 Ưu tiên thấp — Ý tưởng dài hạn
 
-#### 16. AI Recommendations Engine
-- Collaborative filtering (user-based)
-- Content-based filtering (video similarity)
-- Watch history + engagement signals
-- "For You" personalized feed
-
-#### 17. Chapters & Timestamps
-- Thêm chapters cho video
-- Hiển thị trên progress bar
-- Auto-generate chapters bằng AI
-
 #### 18. End Screens & Cards
 - Thêm cards (link video khác) vào cuối video
 - End screen với subscribe button
 - Interactive elements overlay
-
-#### 19. Video Premiere
-- Schedule video publish time
-- Countdown page trước premiere
-- Live chat during premiere
-
-#### 20. Collaborative Playlists
-- Invite bạn bè cùng edit playlist
-- Public collaborative playlists
-
-#### 21. Channel Customization
-- Custom tabs trên trang kênh (Videos, Shorts, Playlists, Community)
-- Featured video cho subscriber mới
-- Channel trailer cho non-subscriber
-- Custom layout sections
 
 #### 22. Video Clips
 - Tạo clip ngắn từ video dài (giống YouTube Clips)
 - Share clip với timestamp range
 - Embed clip
 
-#### 23. Stories
-- Tạo stories ngắn 24h
-- Hỗ trợ image + short video
-- Subscriber-only visibility
-
-#### 24. Polls & Quizzes
-- Community polls
-- In-video quizzes
-- Engagement analytics cho polls
-
 #### 25. Advanced Comment Features
 - Comment với timestamp (click để nhảy đến thời điểm)
 - Comment với hình ảnh/GIF
 - @mention user trong comment
 - Comment moderation tools
-
-#### 26. Studio Mobile App
-- React Native app cho creator
-- Upload video từ điện thoại
-- Check analytics on-the-go
-- Reply comments
-
-#### 27. CDN & Caching Strategy
-- Edge caching cho static content
-- ISR cho video pages phổ biến
-- Redis cache cho hot queries
-- Image optimization pipeline
-
-#### 28. Accessibility (A11y)
-- Screen reader support
-- Keyboard navigation
-- High contrast mode
-- Closed captions editing UI
 
 #### 29. Embed Player
 - Embeddable video player cho website khác
@@ -335,36 +248,6 @@ const itemsWithAvgView = await Promise.all(
 - Ban/suspend accounts
 
 ---
-
-## 🏗️ Cải Tiến Kỹ Thuật Đề Xuất
-
-### Database Optimization
-```sql
--- Thêm composite indexes
-CREATE INDEX idx_videos_user_visibility ON videos(user_id, visibility);
-CREATE INDEX idx_videos_views_count ON videos(views_count DESC);
-CREATE INDEX idx_comments_video_parent ON comments(video_id, parent_id);
-CREATE INDEX idx_subscriptions_creator ON subscriptions(creator_id);
-```
-
-### Extract Shared Query Patterns
-```typescript
-// Đề xuất: tạo shared select helpers
-const videoWithStats = (viewerId?: string) => ({
-  ...getTableColumns(videos),
-  user: users,
-  viewCount: videos.viewsCount,
-  likeCount: db.$count(videoReactions, and(
-    eq(videoReactions.videoId, videos.id),
-    eq(videoReactions.type, "like"),
-  )),
-  dislikeCount: db.$count(videoReactions, and(
-    eq(videoReactions.videoId, videos.id),
-    eq(videoReactions.type, "dislike"),
-  )),
-  progress: viewerId ? videoViews.progress : sql`0`,
-});
-```
 
 ### Fix CSS Issues
 ```diff
@@ -381,43 +264,4 @@ const videoWithStats = (viewerId?: string) => ({
 + /* Chỉ chặn select ở những element cần thiết, không phải toàn bộ body */
 ```
 
-### Cải Thiện Error Handling
-```tsx
-// Thay vì <p>Error</p>, dùng component có retry
-const ErrorFallback = ({ error, resetErrorBoundary }) => (
-  <div className="flex flex-col items-center gap-4 py-12">
-    <p className="text-muted-foreground">Đã xảy ra lỗi</p>
-    <Button onClick={resetErrorBoundary}>Thử lại</Button>
-  </div>
-);
-```
 
----
-
-## 📈 Roadmap Đề Xuất
-
-```mermaid
-gantt
-    title Roadmap Phát Triển NewTube
-    dateFormat  YYYY-MM
-    section Phase 1 - Core
-    Fix bugs & CSS issues         :2026-05, 1w
-    Analytics page                :2026-05, 2w
-    Community page                :2026-05, 2w
-    Notifications system          :2026-06, 3w
-    section Phase 2 - Growth
-    Search nâng cao               :2026-06, 2w
-    Dark mode toggle              :2026-06, 1w
-    Tags & hashtags               :2026-07, 2w
-    Shorts viewer cải tiến        :2026-07, 2w
-    section Phase 3 - Premium
-    Live streaming                :2026-08, 4w
-    Video editor                  :2026-09, 3w
-    AI recommendations            :2026-10, 4w
-    Admin dashboard               :2026-10, 3w
-```
-
----
-
-> [!TIP]
-> Dự án đã có nền tảng rất tốt với kiến trúc module rõ ràng và tech stack hiện đại. Ưu tiên hàng đầu nên là hoàn thiện các trang đã có trong sidebar (Analytics, Community), fix các vấn đề performance (N+1 queries), và thêm hệ thống notifications để tăng engagement.
