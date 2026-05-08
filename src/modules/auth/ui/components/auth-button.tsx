@@ -41,6 +41,7 @@ export const AuthButton = () => {
     <>
       <SignedIn>
         <UserButton
+          key={currentTheme}
           appearance={{
             elements: {
               userButtonPopoverActionButton__manageAccount: { display: "none" },
