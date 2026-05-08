@@ -1,0 +1,34 @@
+{
+  "AuthButton": {
+    "manageAccount": "Konto verwalten",
+    "signOut": "Abmelden",
+    "studio": "Studio",
+    "myProfile": "Mein Profil",
+    "theme": "Design",
+    "language": "Sprache",
+    "light": "Helles Design",
+    "dark": "Dunkles Design"
+  },
+  "Sidebar": {
+    "home": "Startseite",
+    "subscriptions": "Abos",
+    "trending": "Trends",
+    "shorts": "Shorts",
+    "you": "Ich",
+    "yourChannel": "Mein Kanal",
+    "history": "Verlauf",
+    "yourVideos": "Meine Videos",
+    "likedVideos": "Videos, die ich mag",
+    "allPlaylists": "Alle Playlists",
+    "downloads": "Downloads"
+  },
+  "Video": {
+    "subscribe": "Abonnieren",
+    "subscribed": "Abonniert",
+    "subscribers": "Abonnenten",
+    "videos": "Videos"
+  },
+  "Home": {
+    "search": "Suche"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "AuthButton": {
+    "manageAccount": "アカウント管理",
+    "signOut": "サインアウト",
+    "studio": "スタジオ",
+    "myProfile": "プロフィール",
+    "theme": "外観",
+    "language": "言語",
+    "light": "ライト",
+    "dark": "ダーク"
+  }
+}

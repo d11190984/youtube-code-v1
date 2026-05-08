@@ -1,0 +1,34 @@
+{
+  "AuthButton": {
+    "manageAccount": "管理您的 Google 帐号",
+    "signOut": "退出",
+    "studio": "工作室",
+    "myProfile": "我的个人资料",
+    "theme": "外观",
+    "language": "语言",
+    "light": "浅色主题",
+    "dark": "深色主题"
+  },
+  "Sidebar": {
+    "home": "首页",
+    "subscriptions": "订阅内容",
+    "trending": "时下流行",
+    "shorts": "Shorts",
+    "you": "你",
+    "yourChannel": "您的频道",
+    "history": "历史记录",
+    "yourVideos": "您的视频",
+    "likedVideos": "顶过的视频",
+    "allPlaylists": "所有播放列表",
+    "downloads": "离线内容"
+  },
+  "Video": {
+    "subscribe": "订阅",
+    "subscribed": "已订阅",
+    "subscribers": "位订阅者",
+    "videos": "个视频"
+  },
+  "Home": {
+    "search": "搜索"
+  }
+}

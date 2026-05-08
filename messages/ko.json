@@ -1,0 +1,34 @@
+{
+  "AuthButton": {
+    "manageAccount": "계정 관리",
+    "signOut": "로그아웃",
+    "studio": "스튜디오",
+    "myProfile": "내 프로필",
+    "theme": "디자인",
+    "language": "언어",
+    "light": "밝은 테마",
+    "dark": "어두운 테마"
+  },
+  "Sidebar": {
+    "home": "홈",
+    "subscriptions": "구독",
+    "trending": "인기",
+    "shorts": "Shorts",
+    "you": "나",
+    "yourChannel": "내 채널",
+    "history": "기록",
+    "yourVideos": "내 동영상",
+    "likedVideos": "좋아요 표시한 동영상",
+    "allPlaylists": "모든 재생목록",
+    "downloads": "오프라인 저장 동영상"
+  },
+  "Video": {
+    "subscribe": "구독",
+    "subscribed": "구독중",
+    "subscribers": "구독자",
+    "videos": "동영상"
+  },
+  "Home": {
+    "search": "검색"
+  }
+}

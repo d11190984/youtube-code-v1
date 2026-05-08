@@ -1,91 +1,160 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ClapperboardIcon, LogOutIcon, MoonIcon, SettingsIcon, SunIcon, UserCircleIcon, UserIcon } from "lucide-react";
+import { 
+  ClapperboardIcon, 
+  GlobeIcon, 
+  LogOutIcon, 
+  MoonIcon, 
+  SettingsIcon, 
+  SunIcon, 
+  UserCircleIcon, 
+  UserIcon,
+  ChevronRightIcon,
+  CheckIcon
+} from "lucide-react";
 import { useTheme } from "next-themes";
-import { UserButton, SignInButton, SignedIn, SignedOut, useClerk } from "@clerk/nextjs";
+import { SignInButton, SignedIn, SignedOut, useClerk, useUser } from "@clerk/nextjs";
+import { useTranslations, useLocale } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/routing";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
+const languages = [
+  { code: "vi", name: "Tiếng Việt" },
+  { code: "en", name: "English" },
+  { code: "ja", name: "日本語" },
+  { code: "ko", name: "한국어" },
+  { code: "zh", name: "简体中文" },
+  { code: "es", name: "Español" },
+  { code: "fr", name: "Français" },
+  { code: "de", name: "Deutsch" },
+];
 
 export const AuthButton = () => {
   const clerk = useClerk();
+  const { user } = useUser();
+  const t = useTranslations("AuthButton");
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const { setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
     setMounted(true);
-    
-    // Đồng bộ theme ban đầu
     const isDark = document.documentElement.classList.contains("dark");
     setCurrentTheme(isDark ? "dark" : "light");
-
-    // Lắng nghe sự thay đổi class trên html
     const observer = new MutationObserver(() => {
       const isDarkNow = document.documentElement.classList.contains("dark");
       setCurrentTheme(isDarkNow ? "dark" : "light");
     });
-
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-
     return () => observer.disconnect();
   }, []);
 
   if (!mounted) {
     return (
-       <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+       <div className="size-8 rounded-full bg-muted animate-pulse" />
     );
   }
+
+  const handleLanguageChange = (newLocale: string) => {
+    router.push(pathname, { locale: newLocale as any });
+  };
+
+  const currentLanguageName = languages.find(l => l.code === locale)?.name || "Language";
 
   return (
     <>
       <SignedIn>
-        <UserButton
-          key={currentTheme}
-          appearance={{
-            elements: {
-              userButtonPopoverActionButton__manageAccount: { display: "none" },
-              userButtonPopoverActionButton__signOut: { display: "none" },
-            },
-          }}
-        >
-          <UserButton.MenuItems>
-            <UserButton.Action
-              label="Cài đặt tài khoản"
-              labelIcon={<SettingsIcon className="size-4" />}
-              onClick={() => clerk.openUserProfile()}
-            />
-            <UserButton.Link
-              label="Hồ sơ của tôi"
-              href="/users/current"
-              labelIcon={<UserIcon className="size-4" />}
-            />
-            <UserButton.Link
-              label="Studio"
-              href="/studio"
-              labelIcon={<ClapperboardIcon className="size-4" />}
-            />
-            <UserButton.Action
-              label={`Giao diện: ${currentTheme === "dark" ? "Tối" : "Sáng"}`}
-              labelIcon={
-                currentTheme === "dark" ? (
-                  <MoonIcon className="size-4" />
-                ) : (
-                  <SunIcon className="size-4" />
-                )
-              }
-              onClick={() => {
-                const isDark = document.documentElement.classList.contains("dark");
-                setTheme(isDark ? "light" : "dark");
-              }}
-            />
-            <UserButton.Action
-              label="Đăng xuất"
-              labelIcon={<LogOutIcon className="size-4" />}
-              onClick={() => clerk.signOut()}
-            />
-          </UserButton.MenuItems>
-        </UserButton>
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+              <Avatar className="h-8 w-8 border border-border">
+                <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User"} />
+                <AvatarFallback>
+                  <UserIcon className="size-4" />
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-80" align="end" forceMount>
+            <div className="flex items-start gap-3 p-4">
+              <Avatar className="h-10 w-10 border border-border">
+                <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User"} />
+                <AvatarFallback>
+                  <UserIcon className="size-5" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user?.fullName}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.primaryEmailAddress?.emailAddress}
+                </p>
+                <button 
+                  onClick={() => clerk.openUserProfile()}
+                  className="text-xs text-blue-500 hover:underline text-left pt-2"
+                >
+                  {t("manageAccount")}
+                </button>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/users/current")}>
+              <UserIcon className="mr-3 size-4" />
+              <span>{t("myProfile")}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/studio")}>
+              <ClapperboardIcon className="mr-3 size-4" />
+              <span>{t("studio")}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => {
+              const isDark = document.documentElement.classList.contains("dark");
+              setTheme(isDark ? "light" : "dark");
+            }}>
+              {currentTheme === "dark" ? <MoonIcon className="mr-3 size-4" /> : <SunIcon className="mr-3 size-4" />}
+              <div className="flex flex-1 items-center justify-between">
+                <span>{t("theme")}: {currentTheme === "dark" ? t("dark") : t("light")}</span>
+                <ChevronRightIcon className="size-4 text-muted-foreground" />
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <GlobeIcon className="mr-3 size-4" />
+                <span>{t("language")}: {currentLanguageName}</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-60 max-h-[400px] overflow-y-auto">
+                {languages.map((lang) => (
+                  <DropdownMenuItem key={lang.code} onClick={() => handleLanguageChange(lang.code)}>
+                    <div className="flex w-full items-center justify-between">
+                      <span>{lang.name}</span>
+                      {locale === lang.code && <CheckIcon className="size-4" />}
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => clerk.signOut()}>
+              <LogOutIcon className="mr-3 size-4" />
+              <span>{t("signOut")}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SignedIn>
       <SignedOut>
         <SignInButton mode="modal">

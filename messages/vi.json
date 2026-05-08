@@ -1,0 +1,34 @@
+{
+  "AuthButton": {
+    "manageAccount": "Cài đặt tài khoản",
+    "signOut": "Đăng xuất",
+    "studio": "Studio",
+    "myProfile": "Hồ sơ của tôi",
+    "theme": "Giao diện",
+    "language": "Ngôn ngữ hiển thị",
+    "light": "Sáng",
+    "dark": "Tối"
+  },
+  "Sidebar": {
+    "home": "Trang chủ",
+    "subscriptions": "Kênh đăng ký",
+    "trending": "Thịnh hành",
+    "shorts": "Shorts",
+    "you": "Bạn",
+    "yourChannel": "Kênh của bạn",
+    "history": "Video đã xem",
+    "yourVideos": "Video của bạn",
+    "likedVideos": "Video đã thích",
+    "allPlaylists": "Tất cả danh sách phát",
+    "downloads": "Nội dung tải xuống"
+  },
+  "Video": {
+    "subscribe": "Đăng ký",
+    "subscribed": "Đã đăng ký",
+    "subscribers": "người đăng ký",
+    "videos": "video"
+  },
+  "Home": {
+    "search": "Tìm kiếm"
+  }
+}

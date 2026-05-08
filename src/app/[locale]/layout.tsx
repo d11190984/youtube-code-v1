@@ -8,7 +8,11 @@ import { ScrollToTopCharacter } from "@/components/scroll-to-top";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import ClickEffect from "@/components/ui/ClickEffect";
-import "./globals.css";
+import "../globals.css";
+import {NextIntlClientProvider} from 'next-intl';
+import {getMessages} from 'next-intl/server';
+import {routing} from '@/i18n/routing';
+import {notFound} from 'next/navigation';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,14 +21,26 @@ export const metadata: Metadata = {
   description: "Trang web video của chủ nhân-sama",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{locale: string}>;
 }>) {
+  const {locale} = await params;
+
+  // Ensure that the incoming `locale` is valid
+  if (!routing.locales.includes(locale as any)) {
+    notFound();
+  }
+
+  // Providing all messages to the client
+  // side is the easiest way to get started
+  const messages = await getMessages();
   return (
     <ClerkProvider afterSignOutUrl="/">
-      <html lang="en" suppressHydrationWarning>
+      <html lang={locale} suppressHydrationWarning>
         <head>
           <link rel="icon" href="/favicon.ico" />
         </head>
@@ -36,9 +52,11 @@ export default function RootLayout({
           >
             <div className="fixed inset-0 -z-50 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-100/50 via-white to-white dark:from-neutral-900/50 dark:via-black dark:to-black pointer-events-none" />
             <TRPCProvider>
-              <Toaster />
-              <ClickEffect imageSrc="/toTop.Cuiv4RfP.svg">{children}</ClickEffect>
-              <ScrollToTopCharacter />
+              <NextIntlClientProvider messages={messages}>
+                <Toaster />
+                <ClickEffect imageSrc="/toTop.Cuiv4RfP.svg">{children}</ClickEffect>
+                <ScrollToTopCharacter />
+              </NextIntlClientProvider>
             </TRPCProvider>
           </ThemeProvider>
         </body>

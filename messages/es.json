@@ -1,0 +1,34 @@
+{
+  "AuthButton": {
+    "manageAccount": "Gestionar cuenta",
+    "signOut": "Cerrar sesión",
+    "studio": "Studio",
+    "myProfile": "Mi perfil",
+    "theme": "Aspecto",
+    "language": "Idioma",
+    "light": "Tema claro",
+    "dark": "Tema oscuro"
+  },
+  "Sidebar": {
+    "home": "Inicio",
+    "subscriptions": "Suscripciones",
+    "trending": "Tendencias",
+    "shorts": "Shorts",
+    "you": "Tú",
+    "yourChannel": "Tu canal",
+    "history": "Historial",
+    "yourVideos": "Tus vídeos",
+    "likedVideos": "Vídeos que me gustan",
+    "allPlaylists": "Todas las listas",
+    "downloads": "Descargas"
+  },
+  "Video": {
+    "subscribe": "Suscribirse",
+    "subscribed": "Suscrito",
+    "subscribers": "suscriptores",
+    "videos": "vídeos"
+  },
+  "Home": {
+    "search": "Buscar"
+  }
+}
