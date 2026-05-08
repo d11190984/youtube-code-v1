@@ -1,11 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 
+import { MicIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 import { AuthButton } from "@/modules/auth/ui/components/auth-button";
 
 import { SearchInput } from "./search-input";
+import { CreateButton } from "./create-button";
 
 export const HomeNavbar = () => {
   return  (
@@ -23,11 +26,15 @@ export const HomeNavbar = () => {
         </div>
 
         {/* Search bar */}
-        <div className="flex-1 flex justify-center max-w-[720px] mx-auto">
+        <div className="flex-1 flex justify-center items-center gap-4 max-w-[720px] mx-auto">
           <SearchInput />
+          <Button variant="secondary" size="icon" className="rounded-full flex-shrink-0 hover:bg-neutral-200 dark:hover:bg-neutral-800">
+            <MicIcon className="size-5" />
+          </Button>
         </div>
 
         <div className="flex-shrink-0 items-center flex gap-4">
+          <CreateButton />
           <AuthButton />
         </div>
       </div>

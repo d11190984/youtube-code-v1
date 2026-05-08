@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect, useRef } from "react";
-import { SearchIcon, XIcon, HistoryIcon } from "lucide-react";
+import { SearchIcon, XIcon, HistoryIcon, KeyboardIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { APP_URL } from "@/constants";
@@ -113,30 +113,47 @@ const SearchInputSuspense = () => {
     <div ref={wrapperRef} className="relative flex w-full max-w-[600px]">
       <form className="flex w-full" onSubmit={handleSearch}>
         <div className="relative w-full">
+          {/* Magnifying glass icon inside input (left) */}
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <SearchIcon className="size-4 text-muted-foreground opacity-0 group-focus-within:opacity-100 transition-opacity" />
+          </div>
+          
           <input
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onFocus={() => setIsFocused(true)}
             type="text"
             placeholder="Tìm kiếm"
-            className="w-full pl-4 py-2 pr-12 rounded-l-full border focus:outline-none focus:border-blue-500 bg-white dark:bg-black"
+            className="w-full pl-4 focus:pl-10 py-2 pr-16 rounded-l-full border border-neutral-300 dark:border-neutral-700 focus:outline-none focus:border-blue-500 bg-transparent"
           />
-          {value && (
+          
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              onClick={() => setValue("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-8 w-8 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              className="h-8 w-8 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800"
             >
-              <XIcon className="size-4 text-muted-foreground" />
+              <KeyboardIcon className="size-5 text-muted-foreground" />
             </Button>
-          )}
+
+            {value && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setValue("")}
+                className="h-8 w-8 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              >
+                <XIcon className="size-4 text-muted-foreground" />
+              </Button>
+            )}
+          </div>
         </div>
         <button
           disabled={!value.trim()}
           type="submit"
-          className="px-5 py-2.5 bg-gray-100 dark:bg-neutral-800 border border-l-0 rounded-r-full hover:bg-gray-200 dark:hover:bg-neutral-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 bg-gray-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 border-l-0 rounded-r-full hover:bg-gray-200 dark:hover:bg-neutral-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           <SearchIcon className="size-5" />
         </button>

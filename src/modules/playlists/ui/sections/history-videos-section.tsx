@@ -138,30 +138,7 @@ const HistoryVideosSectionSuspense = () => {
     );
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <div className="flex-1 flex flex-col gap-4">
-        {filteredVideos.map((video) => (
-          <VideoRowCard
-            key={video.id}
-            data={mapVideoWithProgress(video)}
-            size="compact"
-            progress={video.progress}
-            menu={
-              <VideoMenu
-                videoId={video.id}
-                onRemove={() => removeFromHistory(video.id)}
-              />
-            }
-          />
-        ))}
-
-        <InfiniteScroll
-          hasNextPage={query.hasNextPage}
-          isFetchingNextPage={query.isFetchingNextPage}
-          fetchNextPage={query.fetchNextPage}
-        />
-      </div>
-
+    <div className="flex flex-col md:flex-row-reverse gap-6">
       <div className="flex flex-col gap-4 w-full md:w-80">
         {/* Search input */}
         <div className="relative w-full max-w-xs">
@@ -247,6 +224,29 @@ const HistoryVideosSectionSuspense = () => {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="flex-1 flex flex-col gap-4">
+        {filteredVideos.map((video) => (
+          <VideoRowCard
+            key={video.id}
+            data={mapVideoWithProgress(video)}
+            size="compact"
+            progress={video.progress}
+            menu={
+              <VideoMenu
+                videoId={video.id}
+                onRemove={() => removeFromHistory(video.id)}
+              />
+            }
+          />
+        ))}
+
+        <InfiniteScroll
+          hasNextPage={query.hasNextPage}
+          isFetchingNextPage={query.isFetchingNextPage}
+          fetchNextPage={query.fetchNextPage}
+        />
       </div>
     </div>
   );

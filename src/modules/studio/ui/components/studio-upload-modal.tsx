@@ -10,7 +10,11 @@ import { ResponsiveModal } from "@/components/responsive-modal";
 
 import { StudioUploader } from "./studio-uploader";
 
-export const StudioUploadModal = () => {
+interface StudioUploadModalProps {
+  children?: React.ReactNode;
+}
+
+export const StudioUploadModal = ({ children }: StudioUploadModalProps) => {
   const router = useRouter();
   const utils = trpc.useUtils();
   const create = trpc.videos.create.useMutation({
@@ -39,13 +43,19 @@ export const StudioUploadModal = () => {
       >
         {create.data?.url 
           ? <StudioUploader endpoint={create.data.url} onSuccess={onSuccess} /> 
-          : <Loader2Icon />
+          : <Loader2Icon className="animate-spin mx-auto" />
         }
       </ResponsiveModal>
-      <Button variant="secondary" onClick={() => create.mutate()} disabled={create.isPending}>
-        {create.isPending ? <Loader2Icon className="animate-spin" /> : <PlusIcon />}
-       Tạo
-      </Button>
+      {children ? (
+        <div onClick={() => create.mutate()}>
+          {children}
+        </div>
+      ) : (
+        <Button variant="secondary" onClick={() => create.mutate()} disabled={create.isPending}>
+          {create.isPending ? <Loader2Icon className="animate-spin" /> : <PlusIcon />}
+          Tạo
+        </Button>
+      )}
     </>
   );
 };
