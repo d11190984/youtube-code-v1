@@ -86,6 +86,7 @@ export const VideoTopRow = ({
 
           {/* 🔹 VideoPlaybackMenu tự động lấy track từ playerRef */}
           <VideoPlaybackMenu
+            video={video}
             playerRef={playerRef}
             playbackId={video.muxPlaybackId}
             assetId={video.muxAssetId}

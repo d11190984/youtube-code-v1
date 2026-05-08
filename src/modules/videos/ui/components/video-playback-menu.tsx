@@ -19,8 +19,11 @@ import {
   DownloadIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { downloadManager } from "@/lib/download-manager";
+import { VideoGetOneOutput } from "../../types";
 
 interface Props {
+  video: VideoGetOneOutput;
   playerRef: React.RefObject<any>;
   playbackId?: string | null;
   assetId?: string | null;
@@ -36,6 +39,7 @@ interface Props {
 const SPEED_OPTIONS = [0.5, 1, 1.5, 2];
 
 export const VideoPlaybackMenu = ({
+  video,
   playerRef,
   playbackId,
   assetId,
@@ -48,27 +52,42 @@ export const VideoPlaybackMenu = ({
 }: Props) => {
   const [downloading, setDownloading] = useState(false);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (downloading) return;
 
-    if (!assetId) {
-      toast.error("Không tìm thấy file video");
+    if (!assetId || !playbackId) {
+      toast.error("Không tìm thấy thông tin video");
       return;
     }
 
     setDownloading(true);
+    toast.success("Đang bắt đầu tải video để xem ngoại tuyến...");
 
-    toast.success("Đang chuẩn bị tải video...");
+    try {
+      const response = await fetch(`/api/download-video?assetId=${assetId}`);
+      if (!response.ok) throw new Error("Tải xuống thất bại");
+      
+      const blob = await response.blob();
+      
+      await downloadManager.saveVideo({
+        id: video.id,
+        title: video.title,
+        thumbnailUrl: video.thumbnailUrl || null,
+        duration: video.duration,
+        authorName: video.user.name,
+        authorImageUrl: video.user.imageUrl,
+        downloadedAt: Date.now(),
+        size: blob.size,
+        playbackId: playbackId,
+      }, blob);
 
-    const a = document.createElement("a");
-    a.href = `/api/download-video?assetId=${assetId}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    setTimeout(() => {
+      toast.success("Đã tải video thành công! Bạn có thể xem trong mục Nội dung tải xuống.");
+    } catch (error) {
+      console.error("OFFLINE DOWNLOAD ERROR:", error);
+      toast.error("Không thể tải video để xem ngoại tuyến.");
+    } finally {
       setDownloading(false);
-    }, 4000);
+    }
   };
   return (
     <DropdownMenu>

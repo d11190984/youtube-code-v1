@@ -3,22 +3,41 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth, useClerk } from "@clerk/nextjs";
-import { HistoryIcon, ListVideoIcon, ThumbsUpIcon } from "lucide-react";
+import {
+  HistoryIcon,
+  ListVideoIcon,
+  ThumbsUpIcon,
+  UserSquare2Icon,
+  DownloadIcon,
+  PlaySquareIcon,
+} from "lucide-react";
 
-import { 
-  SidebarGroup, 
-  SidebarGroupContent, 
-  SidebarGroupLabel, 
-  SidebarMenu, 
-  SidebarMenuButton, 
-  SidebarMenuItem
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
 const items = [
   {
-    title: "Lịch sử",
+    title: "Kênh của bạn",
+    url: "/users/current",
+    icon: UserSquare2Icon,
+    auth: true,
+  },
+  {
+    title: "Video đã xem",
     url: "/playlists/history",
     icon: HistoryIcon,
+    auth: true,
+  },
+  {
+    title: "Video của bạn",
+    url: "/studio",
+    icon: PlaySquareIcon,
     auth: true,
   },
   {
@@ -31,6 +50,12 @@ const items = [
     title: "Tất cả danh sách phát",
     url: "/playlists",
     icon: ListVideoIcon,
+    auth: true,
+  },
+  {
+    title: "Nội dung tải xuống",
+    url: "/playlists/download",
+    icon: DownloadIcon,
     auth: true,
   },
 ];
@@ -58,7 +83,11 @@ export const PersonalSection = () => {
                   }
                 }}
               >
-                <Link prefetch href={item.url} className="flex items-center gap-4">
+                <Link
+                  prefetch
+                  href={item.url}
+                  className="flex items-center gap-4"
+                >
                   <item.icon />
                   <span className="text-sm">{item.title}</span>
                 </Link>
@@ -68,5 +97,5 @@ export const PersonalSection = () => {
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
-}
+  );
+};
