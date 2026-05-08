@@ -67,7 +67,13 @@ export const VideoInfo = ({ data, onRemove }: VideoInfoProps) => {
       </div>
 
       <div className="flex-shrink-0">
-        <VideoMenu videoId={data.id} onRemove={onRemove} />
+        <VideoMenu 
+          videoId={data.id} 
+          onRemove={onRemove} 
+          title={data.title}
+          thumbnailUrl={data.thumbnailUrl || undefined}
+          playbackId={data.muxPlaybackId || undefined}
+        />
       </div>
     </div>
   );

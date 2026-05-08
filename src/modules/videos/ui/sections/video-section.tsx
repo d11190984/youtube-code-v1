@@ -173,6 +173,7 @@ const VideoSectionSuspense = ({ videoId, hideInfo, loopEnabled: loopEnabledProp 
           ref={playerRef}
           key={video.id}
           videoId={video.id}
+          title={video.title}
           playbackId={video.muxPlaybackId}
           thumbnailUrl={video.thumbnailUrl}
           savedProgress={trackingEnabled ? finalProgress : 0}

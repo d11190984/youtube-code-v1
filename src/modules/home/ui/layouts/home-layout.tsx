@@ -2,6 +2,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 
 import { HomeNavbar } from "../components/home-navbar";
 import { HomeSidebar } from "../components/home-sidebar";
+import { GlobalPlayer } from "@/modules/videos/ui/components/global-player";
 
 interface HomeLayoutProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ interface HomeLayoutProps {
 export const HomeLayout = ({ children }: HomeLayoutProps) => {
   return (
     <SidebarProvider>
-      <div className="w-full h-screen overflow-hidden flex flex-col">
+      <div className="w-full h-screen overflow-hidden flex flex-col relative">
         <HomeNavbar />
         <div className="flex flex-1 pt-16 overflow-hidden">
           <HomeSidebar />
@@ -18,6 +19,7 @@ export const HomeLayout = ({ children }: HomeLayoutProps) => {
             {children}
           </main>
         </div>
+        <GlobalPlayer />
       </div>
     </SidebarProvider>
   );

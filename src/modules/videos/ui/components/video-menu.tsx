@@ -6,6 +6,7 @@ import {
   ShareIcon,
   Trash2Icon,
   PlusIcon,
+  ListVideoIcon,
 } from "lucide-react";
 
 import { APP_URL } from "@/constants";
@@ -20,15 +21,22 @@ import {
 import { PlaylistAddModal } from "@/modules/playlists/ui/components/playlist-add-modal";
 import { MixPlaylistCreateModal } from "@/modules/playlists/ui/components/mix-playlist-create-modal";
 import { MixPlaylistAddModal } from "@/modules/playlists/ui/components/mix-playlist-add-modal";
+import { usePlayerStore } from "@/modules/videos/store/use-player-store";
 
 interface VideoMenuProps {
   videoId: string;
+  title?: string;
+  thumbnailUrl?: string;
+  playbackId?: string;
   variant?: "ghost" | "secondary";
   onRemove?: () => void;
 }
 
 export const VideoMenu = ({
   videoId,
+  title,
+  thumbnailUrl,
+  playbackId,
   variant = "ghost",
   onRemove,
 }: VideoMenuProps) => {
@@ -36,10 +44,26 @@ export const VideoMenu = ({
   const [isOpenCreateModal, setIsOpenCreateModal] = useState(false);
   const [isOpenMixAddModal, setIsOpenMixAddModal] = useState(false);
   
+  const addToQueue = usePlayerStore((state) => state.addToQueue);
+
   const onShare = () => {
     const fullUrl = `${APP_URL}/videos/${videoId}`;
     navigator.clipboard.writeText(fullUrl);
     toast.success("Đã sao chép liên kết");
+  };
+
+  const handleAddToQueue = () => {
+    if (!title || !playbackId) {
+      toast.error("Không thể thêm vào hàng chờ: Thiếu thông tin");
+      return;
+    }
+    addToQueue({
+      id: videoId,
+      title,
+      thumbnailUrl,
+      playbackId,
+    });
+    toast.success("Đã thêm vào hàng chờ");
   };
 
   return (
@@ -70,6 +94,11 @@ export const VideoMenu = ({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenuItem onClick={handleAddToQueue}>
+            <ListVideoIcon className="mr-2 size-4" />
+            Thêm vào hàng chờ
+          </DropdownMenuItem>
+
           <DropdownMenuItem onClick={onShare}>
             <ShareIcon className="mr-2 size-4" />
             Chia sẻ

@@ -168,8 +168,14 @@ export const VideoRowCard = ({
           </Link>
 
           {/* Nếu không dùng children nữa, menu xuất qua prop */}
-          {!menu && onRemove && (
-            <VideoMenu videoId={data.id} onRemove={onRemove} />
+          {!menu && (
+            <VideoMenu 
+              videoId={data.id} 
+              onRemove={onRemove} 
+              title={data.title}
+              thumbnailUrl={data.thumbnailUrl || undefined}
+              playbackId={data.muxPlaybackId || undefined}
+            />
           )}
         </div>
       </div>

@@ -7,9 +7,12 @@ import { THUMBNAIL_FALLBACK } from "../../constants";
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
 
+import { usePlayerStore } from "@/modules/videos/store/use-player-store";
 import { cn } from "@/lib/utils";
+
 interface VideoPlayerProps {
   videoId: string;
+  title: string;
   playbackId?: string | null;
   thumbnailUrl?: string | null;
   savedProgress?: number;
@@ -26,7 +29,7 @@ interface VideoPlayerProps {
   onEnded?: () => void;
   autoNextEnabled?: boolean;
   loopEnabled?: boolean;
-  isVertical?: boolean; // <-- thêm prop
+  isVertical?: boolean; 
 }
 
 export const VideoPlayerSkeleton = () => (
@@ -37,6 +40,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
   (
     {
       videoId,
+      title,
       playbackId,
       thumbnailUrl,
       savedProgress = 0,
@@ -55,6 +59,19 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     const internalRef = useRef<any>(null);
     const playerRef = (ref as React.RefObject<any>) || internalRef;
     const utils = trpc.useContext();
+    const { setVideo } = usePlayerStore();
+
+    // Sync with global store when playbackId is available
+    useEffect(() => {
+      if (playbackId) {
+        setVideo({
+          id: videoId,
+          title: title,
+          playbackId: playbackId,
+          thumbnailUrl: thumbnailUrl || undefined,
+        });
+      }
+    }, [videoId, playbackId, title, thumbnailUrl, setVideo]);
 
     const incrementViewMutation = trpc.videos.incrementView.useMutation({
       onMutate: async () => {
@@ -81,7 +98,6 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     const hasCountedView = useRef(false);
     const hasSeeked = useRef(false);
 
-    // ✅ lưu progress cuối cùng an toàn
     const lastKnownProgress = useRef(0);
     const savingRef = useRef(false);
     const isVideoCompletedRef = useRef(false);
@@ -89,38 +105,25 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     const isInitialSeekingRef = useRef(true);
     const localResumeRef = useRef(savedProgress);
 
-    // =========================
-    // Tăng view khi play lần đầu
-    // =========================
     useEffect(() => {
       const player = playerRef.current;
       if (!player) return;
 
       const handlePlay = async () => {
         if (hasCountedView.current) return;
-
         try {
-          // ✅ chỉ tăng view, tuyệt đối không reset progress ở đây
           await incrementViewMutation.mutateAsync({ videoId });
-
           hasCountedView.current = true;
         } catch (err) {
           console.log("PLAY EVENT ERROR:", err);
         }
-
         onPlay?.();
       };
 
       player.addEventListener("play", handlePlay);
-
-      return () => {
-        player.removeEventListener("play", handlePlay);
-      };
+      return () => player.removeEventListener("play", handlePlay);
     }, [videoId, onPlay]);
 
-    // =========================
-    // Resume progress cũ
-    // =========================
     useEffect(() => {
       const player = playerRef.current;
       if (!player) return;
@@ -131,26 +134,15 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         if (!trackingEnabled) {
           player.currentTime = 0;
           hasSeeked.current = true;
-
-          setTimeout(() => {
-            isInitialSeekingRef.current = false;
-          }, 800);
-
-          if (autoPlay) {
-            player.play().catch(() => {});
-          }
-
+          setTimeout(() => { isInitialSeekingRef.current = false; }, 800);
+          if (autoPlay) player.play().catch(() => {});
           return;
         }
 
         const duration = player.duration || 0;
         if (duration <= 0) return;
 
-        const resumeAt = Math.max(
-          savedProgress || 0,
-          localResumeRef.current || 0,
-        );
-
+        const resumeAt = Math.max(savedProgress || 0, localResumeRef.current || 0);
         if (resumeAt > 1 && resumeAt < duration * 0.9) {
           player.currentTime = resumeAt;
           lastKnownProgress.current = resumeAt;
@@ -162,14 +154,8 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         }
 
         hasSeeked.current = true;
-
-        setTimeout(() => {
-          isInitialSeekingRef.current = false;
-        }, 800);
-
-        if (autoPlay) {
-          player.play().catch(() => {});
-        }
+        setTimeout(() => { isInitialSeekingRef.current = false; }, 800);
+        if (autoPlay) player.play().catch(() => {});
       };
 
       player.addEventListener("canplay", handleCanPlay);
@@ -178,19 +164,13 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
     useEffect(() => {
       if (!trackingEnabled) return;
-
       const player = playerRef.current;
       if (!player) return;
 
       let lastSaved = 0;
-
       const handleTimeUpdate = () => {
-        if (isInitialSeekingRef.current) return;
-        if (isVideoCompletedRef.current) return;
-        if (isSwitchingVideoRef.current) return;
-
+        if (isInitialSeekingRef.current || isVideoCompletedRef.current || isSwitchingVideoRef.current) return;
         const current = Math.floor(player.currentTime || 0);
-
         lastKnownProgress.current = current;
         localResumeRef.current = current;
 
@@ -200,55 +180,26 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
         utils.videos.getOne.setData({ id: videoId }, (old: any) => {
           if (!old) return old;
-          return {
-            ...old,
-            progress: current,
-          };
+          return { ...old, progress: current };
         });
 
         if (current - lastSaved >= 2 && !savingRef.current) {
           lastSaved = current;
           savingRef.current = true;
-
-          updateProgressMutation.mutate(
-            {
-              videoId,
-              progress: current,
-            },
-            {
-              onSettled: () => {
-                savingRef.current = false;
-              },
-            },
-          );
+          updateProgressMutation.mutate({ videoId, progress: current }, {
+            onSettled: () => { savingRef.current = false; },
+          });
         }
       };
 
       player.addEventListener("timeupdate", handleTimeUpdate);
-
-      return () => {
-        player.removeEventListener("timeupdate", handleTimeUpdate);
-      };
+      return () => player.removeEventListener("timeupdate", handleTimeUpdate);
     }, [videoId, trackingEnabled]);
 
-    // =========================
-    // Save khi thoát trang / unmount
-    // =========================
     useEffect(() => {
       const saveOnExit = () => {
-        if (!trackingEnabled) return;
-        if (lastKnownProgress.current <= 0) return;
-        if (isVideoCompletedRef.current) return;
-        if (isSwitchingVideoRef.current) return;
-
-        navigator.sendBeacon(
-          "/api/save-progress",
-          JSON.stringify({
-            videoId,
-            progress: lastKnownProgress.current,
-          }),
-        );
-
+        if (!trackingEnabled || lastKnownProgress.current <= 0 || isVideoCompletedRef.current || isSwitchingVideoRef.current) return;
+        navigator.sendBeacon("/api/save-progress", JSON.stringify({ videoId, progress: lastKnownProgress.current }));
         utils.videos.getMany.invalidate();
         utils.videos.getManyTrending.invalidate();
         utils.videos.getManySubscribed.invalidate();
@@ -256,24 +207,19 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         utils.suggestions.getMany.invalidate();
       };
       window.addEventListener("beforeunload", saveOnExit);
-
       return () => {
         saveOnExit();
         window.removeEventListener("beforeunload", saveOnExit);
       };
     }, [videoId, trackingEnabled]);
-    // =========================
-    // Video ended
-    // =========================
+
     useEffect(() => {
       const player = playerRef.current;
       if (!player) return;
 
       const handleEnded = async () => {
         const duration = Math.floor(player?.duration || 0);
-
         isVideoCompletedRef.current = true;
-
         lastKnownProgress.current = duration;
         localResumeRef.current = duration;
 
@@ -283,48 +229,26 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
         utils.videos.getOne.setData({ id: videoId }, (old: any) => {
           if (!old) return old;
-          return {
-            ...old,
-            progress: duration,
-          };
+          return { ...old, progress: duration };
         });
 
         if (trackingEnabled) {
-          await updateProgressMutation.mutateAsync({
-            videoId,
-            progress: duration,
-          });
+          await updateProgressMutation.mutateAsync({ videoId, progress: duration });
         }
 
         if (loopEnabled) {
           isVideoCompletedRef.current = false;
-
-          // ✅ cho phép event play lần sau tăng viewsCount tiếp
           hasCountedView.current = false;
-
-          // ✅ reset progress refs cho session xem mới
           lastKnownProgress.current = 0;
           localResumeRef.current = 0;
-
-          if (typeof window !== "undefined") {
-            localStorage.setItem(`video-${videoId}-progress`, "0");
-          }
-
-          if (trackingEnabled) {
-            await updateProgressMutation.mutateAsync({
-              videoId,
-              progress: 0,
-              isRestart: true,
-            });
-          }
-
+          if (typeof window !== "undefined") localStorage.setItem(`video-${videoId}-progress`, "0");
+          if (trackingEnabled) await updateProgressMutation.mutateAsync({ videoId, progress: 0, isRestart: true });
           player.currentTime = 0;
           player.play();
           return;
         }
 
         if (!autoNextEnabled) return;
-
         if (isVertical) {
           setCountdown(0);
           setShowNext(false);
@@ -338,81 +262,50 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
       player.addEventListener("ended", handleEnded);
       return () => player.removeEventListener("ended", handleEnded);
-    }, [
-      autoNextEnabled,
-      loopEnabled,
-      videoId,
-      trackingEnabled,
-      updateProgressMutation,
-    ]);
+    }, [autoNextEnabled, loopEnabled, videoId, trackingEnabled, updateProgressMutation, isVertical]);
 
-    // =========================
-    // Reset state khi đổi video
-    // =========================
     useEffect(() => {
       setShowNext(false);
       setCountdown(6);
       setHasRedirected(false);
-
       hasCountedView.current = false;
       hasSeeked.current = false;
       lastKnownProgress.current = 0;
-
       isVideoCompletedRef.current = false;
       isSwitchingVideoRef.current = false;
-
       localResumeRef.current = savedProgress;
       isInitialSeekingRef.current = true;
     }, [videoId]);
-    // =========================
-    // Countdown overlay
-    // =========================
+
     useEffect(() => {
       if (!showNext) return;
-
-      const interval = setInterval(() => {
-        setCountdown((p) => p - 1);
-      }, 1000);
-
+      const interval = setInterval(() => { setCountdown((p) => p - 1); }, 1000);
       return () => clearInterval(interval);
     }, [showNext]);
 
-    // =========================
-    // Auto next
-    // =========================
     useEffect(() => {
       if (countdown <= 0 && nextVideo && !hasRedirected && autoNextEnabled) {
         setHasRedirected(true);
-
         if (onEnded) {
           onEnded();
         } else if (nextVideo.playlistId) {
-          router.push(
-            `/videos/${nextVideo.id}?list=${nextVideo.playlistId}&index=${nextVideo.index}`,
-          );
+          router.push(`/videos/${nextVideo.id}?list=${nextVideo.playlistId}&index=${nextVideo.index}`);
         } else {
           router.push(`/videos/${nextVideo.id}`);
         }
       }
     }, [countdown, nextVideo, hasRedirected, onEnded, router, autoNextEnabled]);
-    
+
     useEffect(() => {
       const player = playerRef.current;
       if (!player || !isVertical) return;
-
-      const handleFullscreen = () => {
-        if (document.fullscreenElement) {
-          document.exitFullscreen(); // tự thoát nếu video dọc
-        }
-      };
-
+      const handleFullscreen = () => { if (document.fullscreenElement) document.exitFullscreen(); };
       document.addEventListener("fullscreenchange", handleFullscreen);
-      return () =>
-        document.removeEventListener("fullscreenchange", handleFullscreen);
+      return () => document.removeEventListener("fullscreenchange", handleFullscreen);
     }, [isVertical]);
+
     return (
       <div className="relative w-full h-full group">
-        {/* Ambient Glow */}
         <div 
           className="absolute inset-0 scale-[1.02] blur-3xl opacity-20 dark:opacity-40 -z-10 pointer-events-none transition-opacity duration-1000"
           style={{
@@ -427,10 +320,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           streamType="on-demand"
           poster={thumbnailUrl || THUMBNAIL_FALLBACK}
           autoPlay={autoPlay ? "any" : false}
-          className={cn(
-            "w-full h-full object-cover",
-            isVertical && "mux-player-vertical",
-          )}
+          className={cn("w-full h-full object-cover", isVertical && "mux-player-vertical")}
           accentColor="#FF2056"
           preferPlayback="mse"
         />
@@ -440,24 +330,17 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
             <p className="mb-2 text-xs sm:text-sm opacity-80 text-center w-full">
               Video tiếp theo sau {countdown}
             </p>
-
             <div className="w-full max-w-md flex items-center gap-3 mb-4">
               <div className="relative flex-shrink-0 w-24 aspect-video rounded-lg overflow-hidden -translate-y-2">
-                <img
-                  src={nextVideo.thumbnail}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
+                <img src={nextVideo.thumbnail} className="absolute inset-0 w-full h-full object-cover" />
               </div>
-
-              <p className="text-xs sm:text-sm font-medium line-clamp-2 flex-1">
-                {nextVideo.title}
-              </p>
+              <p className="text-xs sm:text-sm font-medium line-clamp-2 flex-1">{nextVideo.title}</p>
             </div>
           </div>
         )}
       </div>
     );
-  },
+  }
 );
 
 VideoPlayer.displayName = "VideoPlayer";
