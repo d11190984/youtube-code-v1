@@ -103,11 +103,11 @@ export const postsRouter = createTRPCRouter({
           })
           .nullish(),
         limit: z.number().min(1).max(100),
-        direction: z.string().optional(),
+        sortOrder: z.enum(["asc", "desc"]).default("desc"),
       })
     )
     .query(async ({ input, ctx }) => {
-      const { userId: inputUserId, status, cursor, limit } = input;
+      const { userId: inputUserId, status, cursor, limit, sortOrder } = input;
       
       let targetUserId = inputUserId;
 
@@ -164,17 +164,23 @@ export const postsRouter = createTRPCRouter({
               ? gt(posts.scheduledAt, now)
               : undefined,
             cursor
-
-              ? or(
-                  lt(posts.createdAt, cursor.createdAt),
-                  and(eq(posts.createdAt, cursor.createdAt), lt(posts.id, cursor.id))
-                )
+              ? sortOrder === "desc"
+                ? or(
+                    lt(posts.createdAt, cursor.createdAt),
+                    and(eq(posts.createdAt, cursor.createdAt), lt(posts.id, cursor.id))
+                  )
+                : or(
+                    gt(posts.createdAt, cursor.createdAt),
+                    and(eq(posts.createdAt, cursor.createdAt), gt(posts.id, cursor.id))
+                  )
               : undefined
           )
         )
-        .orderBy(desc(posts.createdAt), desc(posts.id))
+        .orderBy(
+          sortOrder === "desc" ? desc(posts.createdAt) : posts.createdAt,
+          sortOrder === "desc" ? desc(posts.id) : posts.id
+        )
         .limit(limit + 1);
-
 
       const hasMore = data.length > limit;
       const items = hasMore ? data.slice(0, -1) : data;
@@ -245,6 +251,29 @@ export const postsRouter = createTRPCRouter({
       }));
 
       return { items: postsWithData, nextCursor };
+    }),
+
+  removeMany: protectedProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()) }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      await db.delete(posts).where(and(inArray(posts.id, input.ids), eq(posts.userId, userId)));
+      return { success: true };
+    }),
+
+  updateMany: protectedProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()), content: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      await db
+        .update(posts)
+        .set({ 
+          ...(input.content !== undefined && { content: input.content }),
+          isEdited: true,
+          updatedAt: new Date() 
+        })
+        .where(and(inArray(posts.id, input.ids), eq(posts.userId, userId)));
+      return { success: true };
     }),
 
   react: protectedProcedure

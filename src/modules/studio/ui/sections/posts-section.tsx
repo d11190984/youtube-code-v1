@@ -1,7 +1,5 @@
-"use client";
-
-import { Suspense } from "react";
 import Link from "next/link";
+import { Suspense, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { format } from "date-fns";
 import { ErrorBoundary } from "react-error-boundary";
@@ -9,17 +7,19 @@ import {
   BarChart2Icon, 
   MessageSquareIcon, 
   ThumbsUpIcon, 
-  FileQuestionIcon, 
   ImageIcon, 
   TypeIcon,
   Globe2Icon,
   LockIcon,
-  PencilIcon
+  PencilIcon,
+  ArrowDownIcon,
+  ArrowUpIcon
 } from "lucide-react";
 
 import { ErrorFallback } from "@/components/error-fallback";
 import { trpc } from "@/trpc/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import {
   Table,
@@ -59,7 +59,12 @@ const PostsSectionSkeleton = () => {
             <TableHead>Loại</TableHead>
             <TableHead>Chế độ hiển thị</TableHead>
             <TableHead>Hạn chế</TableHead>
-            <TableHead>Ngày</TableHead>
+            <TableHead>
+              <div className="flex items-center gap-1">
+                Ngày
+                <ArrowDownIcon className="size-4" />
+              </div>
+            </TableHead>
             <TableHead className="text-right">Bình luận</TableHead>
             <TableHead className="text-right">Lượt thích</TableHead>
             <TableHead className="text-right pr-6">Phản hồi</TableHead>
@@ -90,15 +95,24 @@ const PostsSectionSkeleton = () => {
 };
 
 const PostsSectionSuspense = ({ limit, userId }: { limit: number; userId: string }) => {
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
   const [posts, query] = trpc.posts.getMany.useSuspenseInfiniteQuery(
     {
       limit,
       userId,
+      sortOrder,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     },
   );
+
+  const allItems = posts.pages.flatMap((page) => page.items);
+
+  const toggleSortOrder = () => {
+    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+  };
 
   const getPostTypeInfo = (type: string, pollType?: string | null) => {
     switch (type) {
@@ -135,93 +149,103 @@ const PostsSectionSuspense = ({ limit, userId }: { limit: number; userId: string
               <TableHead>Loại</TableHead>
               <TableHead>Chế độ hiển thị</TableHead>
               <TableHead>Hạn chế</TableHead>
-              <TableHead>Ngày</TableHead>
+              <TableHead 
+                className="cursor-pointer select-none group"
+                onClick={toggleSortOrder}
+              >
+                <div className="flex items-center gap-1">
+                  Ngày
+                  {sortOrder === "desc" ? (
+                    <ArrowDownIcon className="size-4" />
+                  ) : (
+                    <ArrowUpIcon className="size-4" />
+                  )}
+                </div>
+              </TableHead>
               <TableHead className="text-right">Bình luận</TableHead>
               <TableHead className="text-right">Lượt thích</TableHead>
               <TableHead className="text-right pr-6">Phản hồi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {posts.pages
-              .flatMap((page) => page.items)
-              .map((post) => {
-                const typeInfo = getPostTypeInfo(post.type, post.poll?.type);
-                const Icon = typeInfo.icon;
+            {allItems.map((post) => {
+              const typeInfo = getPostTypeInfo(post.type, post.poll?.type);
+              const Icon = typeInfo.icon;
 
-                return (
-                  <TableRow key={post.id} className="group hover:bg-neutral-800/50 transition-colors">
-                    <TableCell className="pl-6">
-                      <div className="flex items-center gap-4">
-                        <div className="relative shrink-0 w-36 aspect-video bg-neutral-800 rounded-md flex items-center justify-center border border-neutral-700">
-                          {post.images && post.images.length > 0 ? (
-                            <img 
-                              src={post.images[0].imageUrl} 
-                              alt="Post" 
-                              className="w-full h-full object-cover rounded-md"
-                            />
-                          ) : (
-                             <Icon className="size-6 text-neutral-400" />
-                          )}
-                        </div>
-                        
-                        {/* Hover Actions */}
-                        <div className="flex items-center gap-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={`/studio/posts/${post.id}`}>
-                            <div className="p-2 hover:bg-neutral-700 rounded-full cursor-pointer transition-colors" title="Chi tiết">
-                              <PencilIcon className="size-4 text-neutral-400" />
-                            </div>
-                          </Link>
-                          <Link href={`/studio/posts/${post.id}/comments`}>
-                            <div className="p-2 hover:bg-neutral-700 rounded-full cursor-pointer transition-colors" title="Bình luận">
-                              <MessageSquareIcon className="size-4 text-neutral-400" />
-                            </div>
-                          </Link>
-                        </div>
+              return (
+                <TableRow key={post.id} className="group hover:bg-neutral-800/50 transition-colors">
+                  <TableCell className="pl-6">
+                    <div className="flex items-center gap-4">
+                      <div className="relative shrink-0 w-36 aspect-video bg-neutral-800 rounded-md flex items-center justify-center border border-neutral-700">
+                        {post.images && post.images.length > 0 ? (
+                          <img 
+                            src={post.images[0].imageUrl} 
+                            alt="Post" 
+                            className="w-full h-full object-cover rounded-md"
+                          />
+                        ) : (
+                            <Icon className="size-6 text-neutral-400" />
+                        )}
+                      </div>
+                      
+                      {/* Hover Actions */}
+                      <div className="flex items-center gap-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Link href={`/studio/posts/${post.id}`}>
+                          <div className="p-2 hover:bg-neutral-700 rounded-full cursor-pointer transition-colors" title="Chi tiết">
+                            <PencilIcon className="size-4 text-neutral-400" />
+                          </div>
+                        </Link>
+                        <Link href={`/studio/posts/${post.id}/comments`}>
+                          <div className="p-2 hover:bg-neutral-700 rounded-full cursor-pointer transition-colors" title="Bình luận">
+                            <MessageSquareIcon className="size-4 text-neutral-400" />
+                          </div>
+                        </Link>
+                      </div>
 
-                        <div className="flex flex-col overflow-hidden">
-                          <span className="text-sm font-medium line-clamp-2">
-                            {post.content || "Không có nội dung"}
-                          </span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-x-2 text-sm">
-                        <Icon className="size-4 text-neutral-400" />
-                        <span>{typeInfo.label}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-x-2 text-sm">
-                        <Globe2Icon className="size-4 text-neutral-400" />
-                        <span>Công khai</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-neutral-400">
-                      Không có
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-sm">
-                          {format(new Date(post.createdAt), "d 'thg' M, yyyy")}
-                        </span>
-                        <span className="text-xs text-neutral-500">
-                          Đã đăng
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-sm font-medium line-clamp-2">
+                          {post.content || "Không có nội dung"}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right text-sm">
-                      {post.commentCount}
-                    </TableCell>
-                    <TableCell className="text-right text-sm">
-                      {post.likeCount}
-                    </TableCell>
-                    <TableCell className="text-right text-sm pr-6">
-                      {post.poll ? "0" : "—"}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-x-2 text-sm">
+                      <Icon className="size-4 text-neutral-400" />
+                      <span>{typeInfo.label}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-x-2 text-sm">
+                      <Globe2Icon className="size-4 text-neutral-400" />
+                      <span>Công khai</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-neutral-400">
+                    Không có
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm">
+                        {format(new Date(post.createdAt), "d 'thg' M, yyyy")}
+                      </span>
+                      <span className="text-xs text-neutral-500">
+                        Đã đăng
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right text-sm">
+                    {post.commentCount}
+                  </TableCell>
+                  <TableCell className="text-right text-sm">
+                    {post.likeCount}
+                  </TableCell>
+                  <TableCell className="text-right text-sm pr-6">
+                    {post.poll ? "0" : "—"}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

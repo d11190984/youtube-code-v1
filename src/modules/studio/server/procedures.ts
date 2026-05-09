@@ -91,10 +91,11 @@ export const studioRouter = createTRPCRouter({
           .nullish(),
         limit: z.number().min(1).max(100),
         isShorts: z.boolean().optional(),
+        sortOrder: z.enum(["asc", "desc"]).default("desc"),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { cursor, limit, isShorts } = input;
+      const { cursor, limit, isShorts, sortOrder } = input;
       const { id: userId } = ctx.user;
 
       // Lọc theo loại video (Shorts vs Regular)
@@ -125,17 +126,28 @@ export const studioRouter = createTRPCRouter({
             eq(videos.userId, userId),
             typeFilter,
             cursor
-              ? or(
-                  lt(videos.createdAt, cursor.createdAt),
-                  and(
-                    eq(videos.createdAt, cursor.createdAt),
-                    lt(videos.id, cursor.id),
-                  ),
-                )
+              ? sortOrder === "desc"
+                ? or(
+                    lt(videos.createdAt, cursor.createdAt),
+                    and(
+                      eq(videos.createdAt, cursor.createdAt),
+                      lt(videos.id, cursor.id),
+                    ),
+                  )
+                : or(
+                    gt(videos.createdAt, cursor.createdAt),
+                    and(
+                      eq(videos.createdAt, cursor.createdAt),
+                      gt(videos.id, cursor.id),
+                    ),
+                  )
               : undefined,
           ),
         )
-        .orderBy(desc(videos.createdAt), desc(videos.id))
+        .orderBy(
+          sortOrder === "desc" ? desc(videos.createdAt) : videos.createdAt,
+          sortOrder === "desc" ? desc(videos.id) : videos.id
+        )
         .limit(limit + 1);
 
       const hasMore = data.length > limit;

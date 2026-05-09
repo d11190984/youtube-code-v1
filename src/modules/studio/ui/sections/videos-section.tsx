@@ -3,14 +3,22 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { format } from "date-fns";
-import { Globe2Icon, LockIcon } from "lucide-react";
+import { useState } from "react";
+import { 
+  ArrowDownIcon, 
+  ArrowUpIcon, 
+  Globe2Icon, 
+  LockIcon 
+} from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
-import { ErrorFallback } from "@/components/error-fallback";
-import { STATUS_MAP, VISIBILITY_MAP } from "@/lib/status-map";
+
+import { cn } from "@/lib/utils";
 import { trpc } from "@/trpc/client";
-import { DEFAULT_LIMIT } from "@/constants";
-import { snakeCaseToTitle, cn } from "@/lib/utils";
+import { STATUS_MAP, VISIBILITY_MAP } from "@/lib/status-map";
+
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ErrorFallback } from "@/components/error-fallback";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import {
   Table,
@@ -22,9 +30,6 @@ import {
 } from "@/components/ui/table";
 
 import { VideoThumbnail } from "@/modules/videos/ui/components/video-thumbnail";
-
-import { useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { BulkActions } from "@/modules/studio/ui/components/bulk-actions";
 
 interface VideosSectionProps {
@@ -55,7 +60,12 @@ const VideosSectionSkeleton = () => {
               <TableHead className="w-[510px]">Video</TableHead>
               <TableHead>Quyền riêng tư</TableHead>
               <TableHead>Trạng thái</TableHead>
-              <TableHead>Ngày</TableHead>
+              <TableHead>
+                <div className="flex items-center gap-1">
+                  Ngày
+                  <ArrowDownIcon className="size-4" />
+                </div>
+              </TableHead>
               <TableHead className="text-right">Lượt xem</TableHead>
               <TableHead className="text-right">Bình luận</TableHead>
               <TableHead className="text-right pr-6">Lượt thích</TableHead>
@@ -105,10 +115,13 @@ const VideosSectionSkeleton = () => {
 
 const VideosSectionSuspense = ({ limit, isShorts }: VideosSectionProps) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
   const [videos, query] = trpc.studio.getMany.useSuspenseInfiniteQuery(
     {
       limit,
       isShorts,
+      sortOrder,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -126,6 +139,11 @@ const VideosSectionSuspense = ({ limit, isShorts }: VideosSectionProps) => {
 
   const toggleSelectAll = () => {
     setSelectedIds(selectedIds.length === allIds.length ? [] : allIds);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+    setSelectedIds([]); // Clear selection when sorting changes
   };
 
   return (
@@ -148,7 +166,19 @@ const VideosSectionSuspense = ({ limit, isShorts }: VideosSectionProps) => {
               <TableHead className="w-[510px]">Video</TableHead>
               <TableHead>Quyền riêng tư</TableHead>
               <TableHead>Trạng thái</TableHead>
-              <TableHead>Ngày</TableHead>
+              <TableHead 
+                className="cursor-pointer select-none group"
+                onClick={toggleSortOrder}
+              >
+                <div className="flex items-center gap-1">
+                  Ngày
+                  {sortOrder === "desc" ? (
+                    <ArrowDownIcon className="size-4" />
+                  ) : (
+                    <ArrowUpIcon className="size-4" />
+                  )}
+                </div>
+              </TableHead>
               <TableHead className="text-right">Lượt xem</TableHead>
               <TableHead className="text-right">Bình luận</TableHead>
               <TableHead className="text-right pr-6">Lượt thích</TableHead>
@@ -222,8 +252,15 @@ const VideosSectionSuspense = ({ limit, isShorts }: VideosSectionProps) => {
                       ] || "Lỗi"}
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm truncate">
-                    {format(new Date(video.createdAt), "dd/MM/yyyy")}
+                  <TableCell className="text-sm">
+                    <div className="flex flex-col">
+                      <span>
+                        {format(new Date(video.createdAt), "d 'thg' M, yyyy")}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Đã đăng
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-right text-sm">
                     {video.viewCount}
