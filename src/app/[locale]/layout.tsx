@@ -20,6 +20,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "YouTube",
   description: "Trang web video của chủ nhân-sama",
+  manifest: "/manifest.json",
 };
 
 export default async function RootLayout({
@@ -44,6 +45,11 @@ export default async function RootLayout({
       <html lang={locale} suppressHydrationWarning>
         <head>
           <link rel="icon" href="/favicon.ico" />
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="theme-color" content="#ff0000" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content="NewTube" />
         </head>
         <body className={inter.className}>
           <ThemeProvider
