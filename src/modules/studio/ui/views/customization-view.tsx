@@ -3,7 +3,18 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Wand2Icon, ImageIcon, UserCircleIcon, LinkIcon, PlusIcon, Trash2Icon, CopyIcon } from "lucide-react";
+import { 
+  Wand2Icon, 
+  ImageIcon, 
+  UserCircleIcon, 
+  LinkIcon, 
+  PlusIcon, 
+  Trash2Icon, 
+  CopyIcon,
+  AlertCircleIcon
+} from "lucide-react";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
@@ -22,6 +33,9 @@ export const CustomizationView = () => {
   const [handle, setHandle] = useState(user.handle || "");
   const [bio, setBio] = useState(user.bio || "");
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+
+  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const isHandleBlocked = !!(user.handlePreviousUpdatedAt && new Date(user.handlePreviousUpdatedAt) > fourteenDaysAgo);
 
   const updateChannel = trpc.users.updateChannel.useMutation({
     onSuccess: () => {
@@ -114,16 +128,32 @@ export const CustomizationView = () => {
           <div className="space-y-2 max-w-2xl">
             <h3 className="text-base font-bold">Tên người dùng</h3>
             <p className="text-sm text-muted-foreground">Tên người dùng là một tên độc nhất bắt đầu bằng ký tự @. Bạn có thể đổi tên người dùng hai lần trong vòng 14 ngày.</p>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
-              <Input 
-                value={handle} 
-                onChange={(e) => setHandle(e.target.value)}
-                className="pl-8 bg-neutral-50 dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700"
-                placeholder="ten-nguoi-dung"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">https://youtube-code-v1.vercel.app/@{handle || "ten-nguoi-dung"}</p>
+            
+            {isHandleBlocked ? (
+              <div className="flex items-start gap-3 p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                <AlertCircleIcon className="size-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Bạn đã đạt giới hạn đổi tên người dùng</p>
+                  <p className="text-xs text-muted-foreground">
+                    Bạn có thể đổi lại sau ngày {format(new Date(new Date(user.handlePreviousUpdatedAt!).getTime() + 14 * 24 * 60 * 60 * 1000), "d 'thg' M, yyyy", { locale: vi })}.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                <Input 
+                  value={handle} 
+                  onChange={(e) => setHandle(e.target.value)}
+                  className="pl-8 bg-neutral-50 dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700"
+                  placeholder="ten-nguoi-dung"
+                />
+              </div>
+            )}
+            
+            {!isHandleBlocked && (
+              <p className="text-xs text-muted-foreground mt-1">https://youtube-code-v1.vercel.app/@{handle || "ten-nguoi-dung"}</p>
+            )}
           </div>
 
           {/* Section: Bio */}

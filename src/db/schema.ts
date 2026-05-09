@@ -189,6 +189,8 @@ export const users = pgTable(
 
     bio: text("bio"),
     handle: text("handle").unique(),
+    handleUpdatedAt: timestamp("handle_updated_at"),
+    handlePreviousUpdatedAt: timestamp("handle_previous_updated_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

@@ -123,18 +123,41 @@ export const usersRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const [updatedUser] = await db
-        .update(users)
-        .set({
-          ...input,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.clerkId, clerkUserId))
-        .returning();
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.clerkId, clerkUserId));
 
-      if (!updatedUser) {
+      if (!user) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
+
+      const updateData: any = {
+        ...input,
+        updatedAt: new Date(),
+      };
+
+      if (input.handle && input.handle !== user.handle) {
+        const now = new Date();
+        const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+        // Check if handlePreviousUpdatedAt exists and is within 14 days
+        if (user.handlePreviousUpdatedAt && user.handlePreviousUpdatedAt > fourteenDaysAgo) {
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Bạn chỉ có thể đổi tên người dùng hai lần trong vòng 14 ngày." 
+          });
+        }
+
+        updateData.handlePreviousUpdatedAt = user.handleUpdatedAt;
+        updateData.handleUpdatedAt = now;
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set(updateData)
+        .where(eq(users.clerkId, clerkUserId))
+        .returning();
 
       return updatedUser;
     }),
