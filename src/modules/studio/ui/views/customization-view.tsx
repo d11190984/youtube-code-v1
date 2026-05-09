@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Wand2Icon, ImageIcon, UserCircleIcon, LinkIcon, PlusIcon, Trash2Icon, CopyIcon } from "lucide-react";
@@ -55,7 +56,11 @@ export const CustomizationView = () => {
           <h1 className="text-2xl font-bold">Tùy chỉnh kênh</h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" className="font-bold text-blue-500">Xem kênh</Button>
+          <Button variant="ghost" asChild className="font-bold text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30">
+            <Link href={`/users/${user.id}`} target="_blank">
+              Xem kênh
+            </Link>
+          </Button>
           <Button variant="ghost" disabled={!hasChanges} onClick={() => {
             setName(user.name);
             setHandle(user.handle || "");

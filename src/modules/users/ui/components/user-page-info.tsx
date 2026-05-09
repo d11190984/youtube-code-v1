@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Link from "next/link";
 import { useClerk, useAuth } from "@clerk/nextjs";
 import { 
@@ -11,7 +10,6 @@ import {
   UsersIcon, 
   VideoIcon,
   ChevronRightIcon,
-  XIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -20,7 +18,6 @@ import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/user-avatar";
 import {
@@ -36,7 +33,6 @@ import { UserGetOneOutput } from "../../types";
 
 import { useSubscription } from "@/modules/subscriptions/hooks/use-subscription";
 import { SubscriptionButton } from "@/modules/subscriptions/ui/components/subscription-button";
-import { useUpdateBio } from "@/hooks/useUpdateBio";
 
 interface UserPageInfoProps {
   user: UserGetOneOutput & { viewCount?: number };
@@ -68,25 +64,6 @@ export const UserPageInfo = ({ user }: UserPageInfoProps) => {
   });
 
   const isOwner = userId === user.clerkId;
-  const [bio, setBio] = useState(user.bio || "");
-  const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const updateBioMutation = useUpdateBio();
-
-  const handleSave = async () => {
-    if (!bio) return;
-    setLoading(true);
-    try {
-      await updateBioMutation.mutateAsync({ bio });
-      setEditing(false);
-      toast.success("Đã cập nhật mô tả kênh!");
-    } catch (error) {
-      console.error("Lỗi khi update bio:", error);
-      toast.error("Không thể cập nhật mô tả kênh.");
-    }
-    setLoading(false);
-  };
 
   const handleCopyChannelLink = () => {
     const url = window.location.href;
@@ -146,36 +123,9 @@ export const UserPageInfo = ({ user }: UserPageInfoProps) => {
                   <div className="space-y-4">
                      <div className="space-y-1">
                         <h3 className="text-base font-bold">Mô tả</h3>
-                        {isOwner && editing ? (
-                           <div className="space-y-2">
-                              <Textarea 
-                                 value={bio} 
-                                 onChange={(e) => setBio(e.target.value)}
-                                 className="min-h-[100px] bg-neutral-200 dark:bg-neutral-800 border-none focus-visible:ring-1"
-                                 placeholder="Nhập mô tả kênh..."
-                              />
-                              <div className="flex gap-2 justify-end">
-                                 <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Hủy</Button>
-                                 <Button size="sm" onClick={handleSave} disabled={loading}>Lưu</Button>
-                              </div>
-                           </div>
-                        ) : (
-                           <div className="relative group">
-                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                 {user.bio || "Chưa có mô tả cho kênh này."}
-                              </p>
-                              {isOwner && (
-                                 <Button 
-                                    variant="link" 
-                                    size="sm" 
-                                    className="p-0 h-auto text-blue-500 font-bold"
-                                    onClick={() => setEditing(true)}
-                                 >
-                                    Chỉnh sửa
-                                 </Button>
-                              )}
-                           </div>
-                        )}
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                           {user.bio || "Chưa có mô tả cho kênh này."}
+                        </p>
                      </div>
 
                      <div className="space-y-3">
