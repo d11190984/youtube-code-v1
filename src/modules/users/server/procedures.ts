@@ -82,4 +82,60 @@ export const usersRouter = createTRPCRouter({
 
       return updatedUser;
     }),
+  // GET CURRENT USER
+  getCurrent: baseProcedure
+    .query(async ({ ctx }) => {
+      const { clerkUserId } = ctx;
+
+      if (!clerkUserId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const [user] = await db
+        .select({
+          ...getTableColumns(users),
+          videoCount: db.$count(videos, eq(videos.userId, users.id)),
+          subscriberCount: db.$count(
+            subscriptions,
+            eq(subscriptions.creatorId, users.id),
+          ),
+        })
+        .from(users)
+        .where(eq(users.clerkId, clerkUserId));
+
+      if (!user) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return user;
+    }),
+  // UPDATE CHANNEL
+  updateChannel: baseProcedure
+    .input(z.object({
+      name: z.string().min(1).max(50).optional(),
+      bio: z.string().max(1000).optional(),
+      handle: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { clerkUserId } = ctx;
+
+      if (!clerkUserId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          ...input,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.clerkId, clerkUserId))
+        .returning();
+
+      if (!updatedUser) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return updatedUser;
+    }),
 });

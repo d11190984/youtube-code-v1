@@ -187,7 +187,8 @@ export const users = pgTable(
     imageUrl: text("image_url").notNull(),
     trackHistory: boolean("track_history").default(true).notNull(),
 
-    bio: text("bio"), // ← THÊM DÒNG NÀY
+    bio: text("bio"),
+    handle: text("handle").unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

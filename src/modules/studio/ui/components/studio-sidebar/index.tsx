@@ -7,6 +7,7 @@ import {
   VideoIcon,
   BarChart3Icon,
   UsersIcon,
+  Wand2Icon,
   LogOutIcon,
 } from "lucide-react";
 
@@ -44,6 +45,11 @@ const menuItems = [
     href: "/studio/community",
     label: "Cộng đồng",
     icon: UsersIcon,
+  },
+  {
+    href: "/studio/customization",
+    label: "Tùy chỉnh",
+    icon: Wand2Icon,
   },
 ];
 

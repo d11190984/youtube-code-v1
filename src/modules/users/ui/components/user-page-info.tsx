@@ -94,7 +94,7 @@ export const UserPageInfo = ({ user }: UserPageInfoProps) => {
     toast.success("Đã sao chép liên kết kênh!");
   };
 
-  const userHandle = `@${user.name.toLowerCase().replace(/\s+/g, "-")}`;
+  const userHandle = user.handle ? `@${user.handle}` : `@${user.name.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
     <div className="py-6">
@@ -231,12 +231,12 @@ export const UserPageInfo = ({ user }: UserPageInfoProps) => {
             {isOwner ? (
               <>
                 <Button variant="secondary" asChild className="rounded-full font-bold px-6">
-                  <Link prefetch href="/studio">
+                  <Link prefetch href="/studio/customization" target="_blank">
                     Tùy chỉnh kênh
                   </Link>
                 </Button>
                 <Button variant="secondary" asChild className="rounded-full font-bold px-6">
-                  <Link prefetch href="/studio">
+                  <Link prefetch href="/studio" target="_blank">
                     Quản lý video
                   </Link>
                 </Button>
