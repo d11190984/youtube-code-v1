@@ -446,6 +446,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                     title={video.title}
                     playbackId={video.muxPlaybackId}
                     thumbnailUrl={video.thumbnailUrl}
+                    component="studio"
                   />
                 </div>
                 <div className="p-4 flex flex-col gap-y-6">

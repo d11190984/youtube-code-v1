@@ -30,6 +30,7 @@ interface VideoPlayerProps {
   autoNextEnabled?: boolean;
   loopEnabled?: boolean;
   isVertical?: boolean; 
+  component?: "watch" | "studio";
 }
 
 export const VideoPlayerSkeleton = () => (
@@ -52,6 +53,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       autoNextEnabled = true,
       loopEnabled = false,
       trackingEnabled = true,
+      component = "watch",
     },
     ref,
   ) => {
@@ -61,9 +63,9 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     const utils = trpc.useContext();
     const { setVideo, setCurrentTime, currentTime: globalCurrentTime } = usePlayerStore();
 
-    // Sync with global store when playbackId is available
+    // Sync with global store when playbackId is available (only for watch page)
     useEffect(() => {
-      if (playbackId) {
+      if (playbackId && component === "watch") {
         setVideo({
           id: videoId,
           title: title,
@@ -71,7 +73,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           thumbnailUrl: thumbnailUrl || undefined,
         });
       }
-    }, [videoId, playbackId, title, thumbnailUrl, setVideo]);
+    }, [videoId, playbackId, title, thumbnailUrl, setVideo, component]);
 
     const incrementViewMutation = trpc.videos.incrementView.useMutation({
       onMutate: async () => {
