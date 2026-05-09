@@ -2,7 +2,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { notifications, users, videos, posts, comments } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
-import { eq, and, desc, count, getTableColumns } from "drizzle-orm";
+import { eq, and, desc, count, getTableColumns, or, lt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 export const notificationsRouter = createTRPCRouter({
@@ -14,7 +14,7 @@ export const notificationsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { userId } = ctx;
+      const { id: userId } = ctx.user;
       const { cursor, limit } = input;
 
       const data = await db
@@ -48,11 +48,17 @@ export const notificationsRouter = createTRPCRouter({
           and(
             eq(notifications.userId, userId),
             cursor
-              ? z.any() // TODO: Implement infinite scroll logic if needed
+              ? or(
+                  lt(notifications.createdAt, cursor.createdAt),
+                  and(
+                    eq(notifications.createdAt, cursor.createdAt),
+                    lt(notifications.id, cursor.id)
+                  )
+                )
               : undefined
           )
         )
-        .orderBy(desc(notifications.createdAt))
+        .orderBy(desc(notifications.createdAt), desc(notifications.id))
         .limit(limit + 1);
 
       const hasNextPage = data.length > limit;
@@ -72,7 +78,7 @@ export const notificationsRouter = createTRPCRouter({
     }),
 
   getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
-    const { userId } = ctx;
+    const { id: userId } = ctx.user;
 
     const [data] = await db
       .select({ count: count() })
@@ -87,7 +93,7 @@ export const notificationsRouter = createTRPCRouter({
   markAsRead: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { userId } = ctx;
+      const { id: userId } = ctx.user;
 
       const [updated] = await db
         .update(notifications)
@@ -103,7 +109,7 @@ export const notificationsRouter = createTRPCRouter({
     }),
 
   markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
-    const { userId } = ctx;
+    const { id: userId } = ctx.user;
 
     await db
       .update(notifications)
@@ -116,7 +122,7 @@ export const notificationsRouter = createTRPCRouter({
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { userId } = ctx;
+      const { id: userId } = ctx.user;
 
       const [deleted] = await db
         .delete(notifications)
