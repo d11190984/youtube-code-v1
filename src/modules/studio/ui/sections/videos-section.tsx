@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { format } from "date-fns";
 import { Globe2Icon, LockIcon } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 import { STATUS_MAP, VISIBILITY_MAP } from "@/lib/status-map";
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
@@ -25,7 +26,7 @@ import { VideoThumbnail } from "@/modules/videos/ui/components/video-thumbnail";
 export const VideosSection = () => {
   return (
     <Suspense fallback={<VideosSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <VideosSectionSuspense />
       </ErrorBoundary>
     </Suspense>

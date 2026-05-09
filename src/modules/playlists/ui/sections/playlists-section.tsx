@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
@@ -12,7 +13,7 @@ import { PlaylistGridCard, PlaylistGridCardSkeleton } from "../components/playli
 export const PlaylistsSection = () => {
   return (
     <Suspense fallback={<PlaylistsSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <PlaylistsSectionSuspense />
       </ErrorBoundary>
     </Suspense>

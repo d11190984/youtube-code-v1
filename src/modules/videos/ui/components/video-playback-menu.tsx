@@ -17,6 +17,7 @@ import {
   SettingsIcon,
   ClockIcon,
   DownloadIcon,
+  Loader2Icon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadManager } from "@/lib/download-manager";
@@ -168,7 +169,11 @@ export const VideoPlaybackMenu = ({
           className={`flex items-center gap-2 ${downloading ? "opacity-50 pointer-events-none" : ""}`}
           onClick={handleDownload}
         >
-          <DownloadIcon className="w-4 h-4 text-gray-500" />
+          {downloading ? (
+            <Loader2Icon className="w-4 h-4 text-gray-500 animate-spin" />
+          ) : (
+            <DownloadIcon className="w-4 h-4 text-gray-500" />
+          )}
           <span>{downloading ? "Đang tải..." : "Tải video"}</span>
         </DropdownMenuItem>
         {/* SPEED Submenu */}

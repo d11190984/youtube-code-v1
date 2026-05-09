@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
@@ -12,7 +13,7 @@ import { VideoGridCard, VideoGridCardSkeleton } from "@/modules/videos/ui/compon
 export const TrendingVideosSection = () => {
   return (
     <Suspense fallback={<TrendingVideosSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <TrendingVideosSectionSuspense />
       </ErrorBoundary>
     </Suspense>

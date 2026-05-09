@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 
@@ -38,7 +39,12 @@ export const InfiniteScroll = ({
           disabled={!hasNextPage || isFetchingNextPage}
           onClick={() => fetchNextPage()}
         >
-          {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
+          {isFetchingNextPage ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Đang tải...
+            </>
+          ) : "Tải thêm"}
         </Button>
       ) : (
         <p className="text-xs text-muted-foreground">

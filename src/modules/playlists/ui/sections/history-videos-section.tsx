@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
@@ -21,7 +22,7 @@ import { PauseIcon, Trash2Icon, PlayIcon } from "lucide-react";
 export const HistoryVideosSection = () => {
   return (
     <Suspense fallback={<HistoryVideosSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <HistoryVideosSectionSuspense />
       </ErrorBoundary>
     </Suspense>

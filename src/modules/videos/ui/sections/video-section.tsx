@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { trpc } from "@/trpc/client";
+import { ErrorFallback } from "@/components/error-fallback";
+
 import { THUMBNAIL_FALLBACK } from "../../constants";
 import { VideoPlayer, VideoPlayerSkeleton } from "../components/video-player";
 import { VideoTopRow, VideoTopRowSkeleton } from "../components/video-top-row";
@@ -18,7 +20,7 @@ interface VideoSectionProps {
 export const VideoSection = ({ videoId, hideInfo, loopEnabled }: VideoSectionProps) => {
   return (
     <Suspense fallback={<VideoSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <VideoSectionSuspense 
           videoId={videoId} 
           hideInfo={hideInfo} 

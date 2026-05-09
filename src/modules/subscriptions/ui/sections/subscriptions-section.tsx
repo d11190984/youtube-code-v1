@@ -4,6 +4,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
@@ -17,7 +18,7 @@ import {
 export const SubscriptionsSection = () => {
   return (
     <Suspense fallback={<SubscriptionsSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <SubscriptionsSectionSuspense />
       </ErrorBoundary>
     </Suspense>

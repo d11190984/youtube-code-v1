@@ -128,7 +128,6 @@ const itemsWithAvgView = await Promise.all(
   })
 );
 ```
-> Mỗi video cần 1 query riêng để tính `averageViewPercent`. Nên dùng subquery hoặc window function.
 
 ### 2. Thiếu Error Handling UI
 - Nhiều chỗ chỉ hiện `<p>Error</p>` trong ErrorBoundary
@@ -140,19 +139,11 @@ const itemsWithAvgView = await Promise.all(
 - `updateBio` dùng `baseProcedure` thay vì `protectedProcedure` (tuy có check `clerkUserId` manual)
 - Thiếu input sanitization cho comment `value` (có DOMPurify trong deps nhưng chưa rõ dùng ở đâu)
 
-### 4. Code Duplication
-- Pattern lấy `viewerId` từ `clerkUserId` lặp lại ở nhiều procedures
-- Query pattern `viewCount`, `likeCount`, `dislikeCount` copy-paste giữa các procedures
-- Nên extract thành shared utilities hoặc middleware
 
 ### 5. CSS & Styling
 - `globals.css` có `body { user-select: none }` → chặn user select text trên toàn trang
 - `font-family: Arial` override font Inter đã import từ Google Fonts
 - Duplicate `@layer base { * { @apply border-border; } }`
-
-### 7. Database
-- `viewsCount` trên bảng `videos` có thể bị race condition khi nhiều user xem cùng lúc
-- Thiếu index cho một số query phổ biến (ví dụ: `videos.userId` + `visibility`)
 
 ---
 

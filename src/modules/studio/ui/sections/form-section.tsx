@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import {
@@ -67,7 +68,7 @@ interface FormSectionProps {
 export const FormSection = ({ videoId }: FormSectionProps) => {
   return (
     <Suspense fallback={<FormSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <FormSectionSuspense videoId={videoId} />
       </ErrorBoundary>
     </Suspense>

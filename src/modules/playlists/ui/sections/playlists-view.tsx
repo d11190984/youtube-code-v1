@@ -6,6 +6,25 @@ import { THUMBNAIL_FALLBACK } from "@/modules/videos/constants";
 
 const PAGE_SIZE = 20;
 
+import { Skeleton } from "@/components/ui/skeleton";
+
+export const PlaylistsViewSkeleton = () => {
+  return (
+    <div className="px-4 mt-4">
+      <Skeleton className="h-7 w-48 mb-4" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="space-y-3">
+            <Skeleton className="aspect-video w-full rounded-xl" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const PlaylistsView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -17,7 +36,7 @@ export const PlaylistsView = () => {
     trpc.playlists.getPublicMixPlaylists.useQuery();
 
   if (isLoading) {
-    return <p className="p-4">Đang tải...</p>;
+    return <PlaylistsViewSkeleton />;
   }
 
   if (!data || data.length === 0) {

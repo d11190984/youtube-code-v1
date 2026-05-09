@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { Loader2Icon, ListFilterIcon } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
@@ -25,7 +26,7 @@ interface CommentsSectionProps {
 export const CommentsSection = ({ videoId }: CommentsSectionProps) => {
   return (
     <Suspense fallback={<CommentsSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <CommentsSectionSuspense videoId={videoId} />
       </ErrorBoundary>
     </Suspense>

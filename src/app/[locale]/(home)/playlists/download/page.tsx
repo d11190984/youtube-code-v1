@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { downloadManager, DownloadedVideo } from "@/lib/download-manager";
 import { Button } from "@/components/ui/button";
+import { formatDuration } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -117,7 +118,7 @@ export default function DownloadPage() {
                   <PlayIcon className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition transform scale-75 group-hover:scale-100" />
                 </div>
                 <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-medium rounded">
-                  {Math.floor(video.duration / 60)}:{(Math.floor(video.duration) % 60).toString().padStart(2, '0')}
+                  {formatDuration(video.duration)}
                 </div>
               </div>
               <div className="p-3">

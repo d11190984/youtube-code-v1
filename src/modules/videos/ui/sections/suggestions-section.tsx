@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
 
@@ -47,7 +48,7 @@ export const SuggestionsSection = ({
 }: SuggestionsSectionProps) => {
   return (
     <Suspense fallback={<SuggestionsSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <SuggestionsSectionSuspense 
           videoId={videoId} 
           isManual={isManual} 

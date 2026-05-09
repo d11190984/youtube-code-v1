@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 
 import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ export const PlaylistHeaderSection = ({
 }: PlaylistHeaderSectionProps) => {
   return (
     <Suspense fallback={<PlaylistHeaderSectionSkeleton />}>
-      <ErrorBoundary fallback={<p>Error</p>}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <PlaylistHeaderSectionSuspense playlistId={playlistId} />
       </ErrorBoundary>
     </Suspense>
