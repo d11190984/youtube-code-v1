@@ -150,10 +150,6 @@ const itemsWithAvgView = await Promise.all(
 - `font-family: Arial` override font Inter đã import từ Google Fonts
 - Duplicate `@layer base { * { @apply border-border; } }`
 
-### 6. Thiếu Testing
-- Không có unit test, integration test, hoặc E2E test nào
-- Không có Storybook cho UI components
-
 ### 7. Database
 - `viewsCount` trên bảng `videos` có thể bị race condition khi nhiều user xem cùng lúc
 - Thiếu index cho một số query phổ biến (ví dụ: `videos.userId` + `visibility`)
@@ -196,11 +192,6 @@ const itemsWithAvgView = await Promise.all(
 - Click tag để filter/search
 - Trending tags section
 - Autocomplete tags khi nhập
-
-#### 12. Picture-in-Picture (PiP) Nâng Cao
-- Tiếp tục xem video khi navigate trang khác
-- Mini player ở góc màn hình
-- Queue video để xem tiếp
 
 #### 13. Multi-Language Support (i18n)
 - Hiện tại UI hoàn toàn bằng Tiếng Việt

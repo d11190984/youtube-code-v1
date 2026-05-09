@@ -64,11 +64,30 @@ export const VideoPlaybackMenu = ({
     toast.success("Đang bắt đầu tải video để xem ngoại tuyến...");
 
     try {
-      const response = await fetch(`/api/download-video?assetId=${assetId}`);
-      if (!response.ok) throw new Error("Tải xuống thất bại");
-      
-      const blob = await response.blob();
-      
+      const downloadUrl = `https://stream.mux.com/${playbackId}/highest.mp4`;
+      const response = await fetch(downloadUrl);
+      let blob: Blob;
+
+      if (!response.ok) {
+        // Fallback to API if direct fetch fails
+        const apiResponse = await fetch(`/api/download-video?assetId=${assetId}`);
+        if (!apiResponse.ok) throw new Error("Tải xuống thất bại");
+        blob = await apiResponse.blob();
+      } else {
+        blob = await response.blob();
+      }
+
+      // 1. Tải file về máy người dùng
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${video.title || "video"}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      // 2. Lưu vào mục Nội dung tải xuống (Offline)
       await downloadManager.saveVideo({
         id: video.id,
         title: video.title,
@@ -81,10 +100,10 @@ export const VideoPlaybackMenu = ({
         playbackId: playbackId,
       }, blob);
 
-      toast.success("Đã tải video thành công! Bạn có thể xem trong mục Nội dung tải xuống.");
+      toast.success("Đã tải video về máy và lưu vào mục Nội dung tải xuống!");
     } catch (error) {
       console.error("OFFLINE DOWNLOAD ERROR:", error);
-      toast.error("Không thể tải video để xem ngoại tuyến.");
+      toast.error("Không thể tải video.");
     } finally {
       setDownloading(false);
     }

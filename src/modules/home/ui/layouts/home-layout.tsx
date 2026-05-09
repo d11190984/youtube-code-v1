@@ -2,7 +2,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 
 import { HomeNavbar } from "../components/home-navbar";
 import { HomeSidebar } from "../components/home-sidebar";
-import { GlobalPlayer } from "@/modules/videos/ui/components/global-player";
 
 interface HomeLayoutProps {
   children: React.ReactNode;
@@ -19,7 +18,6 @@ export const HomeLayout = ({ children }: HomeLayoutProps) => {
             {children}
           </main>
         </div>
-        <GlobalPlayer />
       </div>
     </SidebarProvider>
   );

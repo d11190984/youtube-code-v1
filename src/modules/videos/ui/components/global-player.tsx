@@ -1,10 +1,10 @@
 "use client";
 
-import { XIcon, Maximize2Icon, MinusIcon, ChevronRightIcon, ListVideoIcon } from "lucide-react";
+import { XIcon, Maximize2Icon, MinusIcon, ChevronRightIcon, ListVideoIcon, Minimize2Icon, ExternalLinkIcon } from "lucide-react";
 import MuxPlayer from "@mux/mux-player-react";
 import { usePlayerStore } from "@/modules/videos/store/use-player-store";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -21,8 +21,12 @@ export const GlobalPlayer = () => {
     maximize,
     queue,
     playNext,
-    removeFromQueue
+    removeFromQueue,
+    currentTime,
+    setCurrentTime
   } = usePlayerStore();
+
+  const playerRef = useRef<any>(null);
 
   const [showQueue, setShowQueue] = useState(false);
 
@@ -43,12 +47,17 @@ export const GlobalPlayer = () => {
   return (
     <div 
       className={cn(
-        "fixed bottom-4 right-4 z-[100] transition-all duration-300 ease-in-out shadow-2xl rounded-xl overflow-hidden bg-background border border-border",
-        isMinimized ? "w-[300px] sm:w-[400px]" : "w-full max-w-[800px] aspect-video"
+        "group fixed z-[9999] transition-all duration-300 ease-in-out shadow-2xl rounded-xl overflow-hidden bg-background border border-border",
+        "bottom-4 right-4", // Desktop
+        "max-sm:bottom-[80px] max-sm:right-2 max-sm:left-2", // Mobile (above bottom bar)
+        isMinimized ? "w-[280px] sm:w-[400px] ml-auto" : "w-[calc(100%-1rem)] sm:max-w-[800px] aspect-video"
       )}
     >
       {/* Header / Controls */}
-      <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-black/60 to-transparent flex items-center justify-end px-2 gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className={cn(
+        "absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-black/60 to-transparent flex items-center justify-end px-2 gap-1 z-10 transition-opacity",
+        "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+      )}>
          <Button 
           variant="ghost" 
           size="icon" 
@@ -62,19 +71,21 @@ export const GlobalPlayer = () => {
           size="icon" 
           className="size-8 text-white hover:bg-white/20"
           onClick={() => isMinimized ? maximize() : minimize()}
+          title={isMinimized ? "Mở rộng" : "Thu nhỏ"}
         >
-          {isMinimized ? <Maximize2Icon className="size-4" /> : <MinusIcon className="size-4" />}
+          {isMinimized ? <Maximize2Icon className="size-4" /> : <Minimize2Icon className="size-4" />}
         </Button>
         <Button 
           variant="ghost" 
           size="icon" 
-          className="size-8 text-white hover:bg-white/20 underline decoration-white"
+          className="size-8 text-white hover:bg-white/20"
           onClick={() => {
             router.push(`/videos/${activeVideo.id}`);
             maximize();
           }}
+          title="Xem trang video"
         >
-          <Maximize2Icon className="size-4" />
+          <ExternalLinkIcon className="size-4" />
         </Button>
         <Button 
           variant="ghost" 
@@ -86,15 +97,23 @@ export const GlobalPlayer = () => {
         </Button>
       </div>
 
-      <div className="group relative w-full aspect-video flex">
+      <div className="relative w-full aspect-video flex">
         {/* Video Player */}
         <div className="flex-1 bg-black">
           <MuxPlayer
+            ref={playerRef}
             playbackId={activeVideo.playbackId || ""}
             streamType="on-demand"
             autoPlay
+            startTime={currentTime}
             className="w-full h-full"
             accentColor="#FF2056"
+            onTimeUpdate={(e) => {
+              const player = playerRef.current;
+              if (player) {
+                setCurrentTime(Math.floor(player.currentTime));
+              }
+            }}
             onEnded={() => {
               if (queue.length > 0) {
                 playNext();

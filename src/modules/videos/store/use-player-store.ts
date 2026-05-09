@@ -13,6 +13,7 @@ interface PlayerState {
   isMinimized: boolean;
   isOpen: boolean;
   queue: PlayerVideo[];
+  currentTime: number;
   
   // Actions
   setVideo: (video: PlayerVideo) => void;
@@ -23,6 +24,7 @@ interface PlayerState {
   removeFromQueue: (videoId: string) => void;
   playNext: () => void;
   clearQueue: () => void;
+  setCurrentTime: (time: number) => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set) => ({
@@ -31,18 +33,21 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   isMinimized: false,
   isOpen: false,
   queue: [],
+  currentTime: 0,
 
-  setVideo: (video) => set({ 
+  setVideo: (video) => set((state) => ({ 
     activeVideo: video, 
     activeVideoId: video.id,
     isOpen: true,
-    isMinimized: false 
-  }),
+    isMinimized: false,
+    currentTime: state.activeVideoId === video.id ? state.currentTime : 0
+  })),
   
   close: () => set({ 
     isOpen: false, 
     activeVideo: null, 
-    activeVideoId: null 
+    activeVideoId: null,
+    currentTime: 0,
   }),
   
   minimize: () => set({ isMinimized: true }),
@@ -65,9 +70,11 @@ export const usePlayerStore = create<PlayerState>((set) => ({
       activeVideoId: next.id,
       queue: rest,
       isOpen: true,
-      isMinimized: false
+      isMinimized: false,
+      currentTime: 0
     };
   }),
   
   clearQueue: () => set({ queue: [] }),
+  setCurrentTime: (time) => set({ currentTime: time }),
 }));

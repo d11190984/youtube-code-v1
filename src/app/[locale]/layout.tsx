@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
 import { ScrollToTopCharacter } from "@/components/scroll-to-top";
+import { GlobalPlayer } from "@/modules/videos/ui/components/global-player";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import ClickEffect from "@/components/ui/ClickEffect";
@@ -56,6 +57,7 @@ export default async function RootLayout({
                 <Toaster />
                 <ClickEffect imageSrc="/toTop.Cuiv4RfP.svg">{children}</ClickEffect>
                 <ScrollToTopCharacter />
+                <GlobalPlayer />
               </NextIntlClientProvider>
             </TRPCProvider>
           </ThemeProvider>

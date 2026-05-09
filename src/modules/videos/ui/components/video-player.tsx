@@ -59,7 +59,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
     const internalRef = useRef<any>(null);
     const playerRef = (ref as React.RefObject<any>) || internalRef;
     const utils = trpc.useContext();
-    const { setVideo } = usePlayerStore();
+    const { setVideo, setCurrentTime, currentTime: globalCurrentTime } = usePlayerStore();
 
     // Sync with global store when playbackId is available
     useEffect(() => {
@@ -142,8 +142,8 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         const duration = player.duration || 0;
         if (duration <= 0) return;
 
-        const resumeAt = Math.max(savedProgress || 0, localResumeRef.current || 0);
-        if (resumeAt > 1 && resumeAt < duration * 0.9) {
+        const resumeAt = Math.max(savedProgress || 0, localResumeRef.current || 0, globalCurrentTime || 0);
+        if (resumeAt > 1 && resumeAt < duration * 0.99) { // Nới lỏng 90% -> 99%
           player.currentTime = resumeAt;
           lastKnownProgress.current = resumeAt;
           localResumeRef.current = resumeAt;
@@ -173,6 +173,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         const current = Math.floor(player.currentTime || 0);
         lastKnownProgress.current = current;
         localResumeRef.current = current;
+        setCurrentTime(current); // Sync to global store
 
         if (typeof window !== "undefined") {
           localStorage.setItem(`video-${videoId}-progress`, String(current));

@@ -20,19 +20,9 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger 
-} from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { downloadManager } from "@/lib/download-manager";
 import { VideoGetOneOutput } from "../../types";
 import { CommentsSection } from "../sections/comments-section";
 
@@ -180,13 +170,19 @@ export const ShortsActions = ({
             try {
               toast.info("Đang chuẩn bị tệp tải xuống...");
               
-              // Mở link trong tab mới để trình duyệt tự xử lý (fallback nếu fetch bị chặn CORS)
-              window.open(downloadUrl, "_blank");
-              
-              // Hoặc cố gắng tải trực tiếp nếu muốn (có thể lỗi CORS tùy config của Mux)
-              /*
               const response = await fetch(downloadUrl);
-              const blob = await response.blob();
+              let blob: Blob;
+
+              if (!response.ok) {
+                // Fallback to API if direct fetch fails
+                const apiResponse = await fetch(`/api/download-video?assetId=${video.muxAssetId}`);
+                if (!apiResponse.ok) throw new Error("Tải xuống thất bại");
+                blob = await apiResponse.blob();
+              } else {
+                blob = await response.blob();
+              }
+
+              // 1. Tải file về máy người dùng
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement("a");
               a.href = url;
@@ -195,7 +191,21 @@ export const ShortsActions = ({
               a.click();
               window.URL.revokeObjectURL(url);
               document.body.removeChild(a);
-              */
+
+              // 2. Lưu vào mục Nội dung tải xuống (Offline)
+              await downloadManager.saveVideo({
+                id: video.id,
+                title: video.title,
+                thumbnailUrl: video.thumbnailUrl || null,
+                duration: video.duration,
+                authorName: video.user.name,
+                authorImageUrl: video.user.imageUrl,
+                downloadedAt: Date.now(),
+                size: blob.size,
+                playbackId: video.muxPlaybackId,
+              }, blob);
+
+              toast.success("Đã tải video về máy và lưu vào mục Nội dung tải xuống!");
             } catch (error) {
               console.error("Download error:", error);
               toast.error("Không thể tải video trực tiếp. Vui lòng thử lại sau.");
