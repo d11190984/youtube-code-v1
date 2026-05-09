@@ -33,6 +33,15 @@ export const playlistVisibility = pgEnum("playlist_visibility", [
 ]);
 
 export const postType = pgEnum("post_type", ["text", "image", "poll", "video"]);
+export const notificationType = pgEnum("notification_type", [
+  "video_like",
+  "video_comment",
+  "comment_reply",
+  "comment_like",
+  "subscription",
+  "post_like",
+  "post_comment",
+]);
 
 export const posts = pgTable("posts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -198,6 +207,12 @@ export const userRelations = relations(users, ({ many }) => ({
   comments: many(comments),
   commentReactions: many(commentReactions),
   playlists: many(playlists),
+  notifications: many(notifications, {
+    relationName: "notifications_user_id_fkey",
+  }),
+  triggeredNotifications: many(notifications, {
+    relationName: "notifications_actor_id_fkey",
+  }),
 }));
 
 // ====================== CATEGORIES ======================
@@ -481,3 +496,51 @@ export const videoViewRelations = relations(videoViews, ({ one }) => ({
   user: one(users, { fields: [videoViews.userId], references: [users.id] }),
   video: one(videos, { fields: [videoViews.videoId], references: [videos.id] }),
 }));
+
+// ====================== NOTIFICATIONS ======================
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  actorId: uuid("actor_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  type: notificationType("type").notNull(),
+  videoId: uuid("video_id").references(() => videos.id, {
+    onDelete: "cascade",
+  }),
+  postId: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }),
+  commentId: uuid("comment_id").references(() => comments.id, {
+    onDelete: "cascade",
+  }),
+  isRead: boolean("is_read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const notificationRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+    relationName: "notifications_user_id_fkey",
+  }),
+  actor: one(users, {
+    fields: [notifications.actorId],
+    references: [users.id],
+    relationName: "notifications_actor_id_fkey",
+  }),
+  video: one(videos, {
+    fields: [notifications.videoId],
+    references: [videos.id],
+  }),
+  post: one(posts, { fields: [notifications.postId], references: [posts.id] }),
+  comment: one(comments, {
+    fields: [notifications.commentId],
+    references: [comments.id],
+  }),
+}));
+
+export const notificationSelectSchema = createSelectSchema(notifications);
+export const notificationInsertSchema = createInsertSchema(notifications);
+export const notificationUpdateSchema = createUpdateSchema(notifications);

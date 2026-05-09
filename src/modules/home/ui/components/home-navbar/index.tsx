@@ -13,6 +13,7 @@ import { AuthButton } from "@/modules/auth/ui/components/auth-button";
 import { SearchInput } from "./search-input";
 import { CreateButton } from "./create-button";
 import { VoiceSearchModal } from "./voice-search-modal";
+import { NotificationBell } from "@/modules/notifications/ui/components/notification-bell";
 
 export const HomeNavbar = () => {
   const [isVoiceSearchOpen, setIsVoiceSearchOpen] = useState(false);
@@ -68,6 +69,7 @@ export const HomeNavbar = () => {
 
             <div className="flex-shrink-0 items-center flex gap-4">
               <CreateButton />
+              <NotificationBell />
               <AuthButton />
             </div>
           </>

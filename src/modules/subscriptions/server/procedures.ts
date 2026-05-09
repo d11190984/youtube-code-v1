@@ -3,7 +3,7 @@ import { and, desc, eq, getTableColumns, lt, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { TRPCError } from "@trpc/server";
-import { subscriptions, users } from "@/db/schema";
+import { subscriptions, users, notifications } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 
 export const subscriptionsRouter = createTRPCRouter({
@@ -80,6 +80,14 @@ export const subscriptionsRouter = createTRPCRouter({
         .insert(subscriptions)
         .values({ viewerId: ctx.user.id, creatorId: userId })
         .returning();
+
+      if (createdSubscription) {
+        await db.insert(notifications).values({
+          userId: userId,
+          actorId: ctx.user.id,
+          type: "subscription",
+        });
+      }
 
       return createdSubscription;
     }),

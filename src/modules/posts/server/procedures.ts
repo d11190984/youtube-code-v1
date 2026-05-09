@@ -14,6 +14,7 @@ import {
   users,
   videos,
   comments,
+  notifications,
 } from "@/db/schema";
 
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "@/trpc/init";
@@ -250,13 +251,30 @@ export const postsRouter = createTRPCRouter({
         return { success: true };
       }
 
-      await db
+      const [updatedReaction] = await db
         .insert(postReactions)
         .values({ userId, postId, type: type as "like" | "dislike" })
         .onConflictDoUpdate({
           target: [postReactions.userId, postReactions.postId],
           set: { type: type as "like" | "dislike", updatedAt: new Date() },
-        });
+        })
+        .returning();
+
+      if (updatedReaction && type === "like") {
+        const [post] = await db
+          .select({ userId: posts.userId })
+          .from(posts)
+          .where(eq(posts.id, postId));
+
+        if (post && post.userId !== userId) {
+          await db.insert(notifications).values({
+            userId: post.userId,
+            actorId: userId,
+            type: "post_like",
+            postId: postId,
+          });
+        }
+      }
 
       return { success: true };
     }),

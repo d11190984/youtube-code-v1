@@ -2,7 +2,7 @@ import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { videoReactions } from "@/db/schema";
+import { videoReactions, videos, notifications } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 
 export const videoReactionsRouter = createTRPCRouter({
@@ -47,6 +47,22 @@ export const videoReactionsRouter = createTRPCRouter({
           },
         })
         .returning();
+
+      if (createdVideoReaction) {
+        const [video] = await db
+          .select({ userId: videos.userId })
+          .from(videos)
+          .where(eq(videos.id, videoId));
+
+        if (video && video.userId !== userId) {
+          await db.insert(notifications).values({
+            userId: video.userId,
+            actorId: userId,
+            type: "video_like",
+            videoId: videoId,
+          });
+        }
+      }
 
       return createdVideoReaction;
     }),

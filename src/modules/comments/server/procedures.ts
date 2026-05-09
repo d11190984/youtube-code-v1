@@ -15,7 +15,7 @@ import {
 
 import { db } from "@/db";
 import { TRPCError } from "@trpc/server";
-import { commentReactions, comments, users, videos, posts } from "@/db/schema";
+import { commentReactions, comments, users, videos, posts, notifications } from "@/db/schema";
 import {
   baseProcedure,
   createTRPCRouter,
@@ -180,6 +180,56 @@ export const commentsRouter = createTRPCRouter({
         .insert(comments)
         .values({ userId, videoId, postId, parentId, value })
         .returning();
+
+      if (createdComment) {
+        // 1. If it's a reply, notify the parent comment owner
+        if (parentId) {
+          const [parentComment] = await db
+            .select({ userId: comments.userId })
+            .from(comments)
+            .where(eq(comments.id, parentId));
+
+          if (parentComment && parentComment.userId !== userId) {
+            await db.insert(notifications).values({
+              userId: parentComment.userId,
+              actorId: userId,
+              type: "comment_reply",
+              videoId: videoId || undefined,
+              postId: postId || undefined,
+              commentId: createdComment.id,
+            });
+          }
+        } 
+        // 2. If it's a new comment, notify the content owner
+        else {
+          let contentOwnerId: string | undefined;
+
+          if (videoId) {
+            const [video] = await db
+              .select({ userId: videos.userId })
+              .from(videos)
+              .where(eq(videos.id, videoId));
+            contentOwnerId = video?.userId;
+          } else if (postId) {
+            const [post] = await db
+              .select({ userId: posts.userId })
+              .from(posts)
+              .where(eq(posts.id, postId));
+            contentOwnerId = post?.userId;
+          }
+
+          if (contentOwnerId && contentOwnerId !== userId) {
+            await db.insert(notifications).values({
+              userId: contentOwnerId,
+              actorId: userId,
+              type: videoId ? "video_comment" : "post_comment",
+              videoId: videoId || undefined,
+              postId: postId || undefined,
+              commentId: createdComment.id,
+            });
+          }
+        }
+      }
 
       return createdComment;
     }),
