@@ -56,7 +56,7 @@ const HomePostsSectionSuspense = ({ userId, onPostsCount, onSeeAll }: HomePostsS
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
       const { scrollLeft, clientWidth } = scrollContainerRef.current;
-      const scrollTo = direction === "left" ? scrollLeft - clientWidth / 2 : scrollLeft + clientWidth / 2;
+      const scrollTo = direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
       scrollContainerRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
     }
   };
@@ -100,10 +100,10 @@ const HomePostsSectionSuspense = ({ userId, onPostsCount, onSeeAll }: HomePostsS
       <div className="relative group/posts">
         <div 
           ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 scroll-smooth items-stretch"
+          className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 scroll-smooth items-stretch snap-x snap-mandatory"
         >
           {allPosts.map((post) => (
-            <div key={post.id} className="min-w-[320px] max-w-[400px] w-full shrink-0 h-auto">
+            <div key={post.id} className="min-w-[320px] max-w-[400px] w-full shrink-0 h-auto snap-start">
               <PostCard post={post} isCompact />
             </div>
           ))}

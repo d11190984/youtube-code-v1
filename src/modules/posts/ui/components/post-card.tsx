@@ -109,29 +109,27 @@ export const PostCard = ({ post, isCompact }: PostCardProps) => {
                 )}
               </span>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="ml-auto size-8 text-muted-foreground">
-                    <MoreVertical className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {isOwner && (
-                    <>
-                      {post.type === "image" && (
-                        <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                          <Pencil className="size-4 mr-2" />
-                          Chỉnh sửa
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem className="text-red-500" onClick={() => remove.mutate({ id: post.id })}>
-                        <Trash2 className="size-4 mr-2" />
-                        Xóa bài viết
+              {isOwner && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="ml-auto size-8 text-muted-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full">
+                      <MoreVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {post.type === "image" && (
+                      <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                        <Pencil className="size-4 mr-2" />
+                        Chỉnh sửa
                       </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    )}
+                    <DropdownMenuItem className="text-red-500" onClick={() => remove.mutate({ id: post.id })}>
+                      <Trash2 className="size-4 mr-2" />
+                      Xóa bài viết
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
             
             {/* Main Content Area */}
@@ -339,11 +337,22 @@ export const PostCard = ({ post, isCompact }: PostCardProps) => {
         </div>
 
         <div className="flex items-center gap-0.5">
-          {isCompact && (
-            <Button variant="ghost" size="icon" className="size-7 rounded-full">
-              <Share2 className="size-3.5" />
-            </Button>
-          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800",
+              isCompact ? "size-7" : "size-8"
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = `${window.location.origin}/posts/${post.id}`;
+              navigator.clipboard.writeText(url);
+              toast.success("Đã sao chép liên kết bài đăng");
+            }}
+          >
+            <Share2 className={cn("size-4", isCompact && "size-3.5")} />
+          </Button>
           <div className="flex items-center group">
             <Button 
               variant="ghost" 
@@ -361,11 +370,6 @@ export const PostCard = ({ post, isCompact }: PostCardProps) => {
               <span className="text-xs text-muted-foreground">{post.commentCount}</span>
             )}
           </div>
-          {isCompact && (
-            <Button variant="ghost" size="icon" className="size-7 rounded-full">
-              <MoreVertical className="size-3.5" />
-            </Button>
-          )}
         </div>
       </div>
 
