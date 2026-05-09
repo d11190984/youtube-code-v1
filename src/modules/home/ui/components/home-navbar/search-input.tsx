@@ -146,7 +146,7 @@ const SearchInputSuspense = () => {
                   <KeyboardIcon className="size-5 text-muted-foreground" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent side="bottom" align="end" className="p-0 border-none bg-transparent shadow-none w-auto">
+              <PopoverContent side="bottom" align="center" className="p-0 border-none bg-transparent shadow-none w-auto sm:align-end">
                 <VirtualKeyboard 
                   onInput={(char) => setValue((prev) => prev + char)}
                   onBackspace={() => setValue((prev) => prev.slice(0, -1))}

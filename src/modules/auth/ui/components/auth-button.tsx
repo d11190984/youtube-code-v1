@@ -57,13 +57,23 @@ export const AuthButton = () => {
     setMounted(true);
     const isDark = document.documentElement.classList.contains("dark");
     setCurrentTheme(isDark ? "dark" : "light");
+    
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
     const observer = new MutationObserver(() => {
       const isDarkNow = document.documentElement.classList.contains("dark");
       setCurrentTheme(isDarkNow ? "dark" : "light");
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
+
+  const [isMobile, setIsMobile] = useState(false);
 
   if (!mounted) {
     return (
@@ -91,7 +101,7 @@ export const AuthButton = () => {
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-80" align="end" forceMount>
+          <DropdownMenuContent className="w-[280px] sm:w-80" align={isMobile ? "center" : "end"} forceMount>
             <div className="flex items-start gap-3 p-4">
               <Avatar className="h-10 w-10 border border-border">
                 <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User"} />
@@ -137,7 +147,11 @@ export const AuthButton = () => {
                 <GlobeIcon className="mr-3 size-4" />
                 <span>{t("language")}: {currentLanguageName}</span>
               </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-60 max-h-[400px] overflow-y-auto">
+              <DropdownMenuSubContent 
+                className="w-[200px] sm:w-60 max-h-[400px] overflow-y-auto"
+                sideOffset={isMobile ? -40 : 8}
+                collisionPadding={10}
+              >
                 {languages.map((lang) => (
                   <DropdownMenuItem key={lang.code} onClick={() => handleLanguageChange(lang.code)}>
                     <div className="flex w-full items-center justify-between">
