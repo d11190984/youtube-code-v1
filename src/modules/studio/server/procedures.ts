@@ -148,7 +148,7 @@ export const studioRouter = createTRPCRouter({
           .object({ id: z.string().uuid(), createdAt: z.date() })
           .nullish(),
         limit: z.number().min(1).max(100),
-        isShorts: z.boolean().optional(),
+        isShorts: z.boolean().nullish(),
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
       }),
     )

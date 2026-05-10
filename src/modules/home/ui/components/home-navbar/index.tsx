@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 
 import { AuthButton } from "@/modules/auth/ui/components/auth-button";
 
+import { useIsOnline } from "@/hooks/use-is-online";
+
 import { SearchInput } from "./search-input";
 import { CreateButton } from "./create-button";
 import { VoiceSearchModal } from "./voice-search-modal";
@@ -18,6 +20,7 @@ import { NotificationBell } from "@/modules/notifications/ui/components/notifica
 export const HomeNavbar = () => {
   const [isVoiceSearchOpen, setIsVoiceSearchOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const isOnline = useIsOnline();
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-md flex items-center px-2 pr-5 z-50 border-b border-transparent transition-all">
@@ -56,11 +59,12 @@ export const HomeNavbar = () => {
 
             {/* Search bar (Hidden on mobile, shown as icon) */}
             <div className="flex-1 flex justify-center items-center gap-4 max-w-[720px] mx-auto">
-              <SearchInput onExpand={() => setIsSearchExpanded(true)} />
+              <SearchInput onExpand={() => setIsSearchExpanded(true)} disabled={!isOnline} />
               <Button
                 onClick={() => setIsVoiceSearchOpen(true)}
                 variant="secondary"
                 size="icon"
+                disabled={!isOnline}
                 className="rounded-full flex-shrink-0 hover:bg-neutral-200 dark:hover:bg-neutral-800 hidden sm:flex"
               >
                 <MicIcon className="size-5" />
@@ -68,10 +72,14 @@ export const HomeNavbar = () => {
             </div>
 
             <div className="flex-shrink-0 items-center flex gap-4">
-              <CreateButton />
-              <div className="hidden md:block">
-                <NotificationBell />
-              </div>
+              {isOnline && (
+                <>
+                  <CreateButton />
+                  <div className="hidden md:block">
+                    <NotificationBell />
+                  </div>
+                </>
+              )}
               <AuthButton />
             </div>
           </>
@@ -80,3 +88,4 @@ export const HomeNavbar = () => {
     </nav>
   );
 };
+

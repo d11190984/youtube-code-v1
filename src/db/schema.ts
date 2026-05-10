@@ -263,6 +263,11 @@ export const videos = pgTable("videos", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   viewsCount: integer("views_count").default(0).notNull(),
+  canComment: boolean("can_comment").default(true).notNull(),
+  commentModeration: text("comment_moderation").default("none").notNull(),
+  commentPermission: text("comment_permission").default("anyone").notNull(),
+  commentSort: text("comment_sort").default("top").notNull(),
+  showLikeCount: boolean("show_like_count").default(true).notNull(),
 });
 
 export const videoSelectSchema = createSelectSchema(videos);

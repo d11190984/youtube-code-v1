@@ -129,7 +129,7 @@ export const StudioDashboard = () => {
                   <p className="text-lg font-bold">{latestVideo.likeCount || 0}</p>
                 </div>
                 <div className="space-y-0.5">
-                  <p className="text-xs text-muted-foreground">Số bình luận</p>
+                  <p className="text-xs text-muted-foreground">Bình luận</p>
                   <p className="text-lg font-bold">{latestVideo.commentCount || 0}</p>
                 </div>
               </div>

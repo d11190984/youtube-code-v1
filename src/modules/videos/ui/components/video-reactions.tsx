@@ -14,6 +14,7 @@ interface VideoReactionsProps {
   likes: number;
   dislikes: number;
   viewerReaction: VideoGetOneOutput["viewerReaction"];
+  showLikeCount: boolean;
 }
 
 export const VideoReactions = ({
@@ -21,6 +22,7 @@ export const VideoReactions = ({
   likes,
   dislikes,
   viewerReaction,
+  showLikeCount,
 }: VideoReactionsProps) => {
   const clerk = useClerk();
   const utils = trpc.useUtils();
@@ -64,7 +66,7 @@ export const VideoReactions = ({
         <ThumbsUpIcon
           className={cn("size-5 transition-transform", viewerReaction === "like" && "fill-black animate-likeBounce")}
         />
-        {likes}
+        {showLikeCount && likes > 0 && likes}
       </Button>
       <Separator orientation="vertical" className="h-7" />
       <Button
@@ -76,7 +78,7 @@ export const VideoReactions = ({
         <ThumbsDownIcon
           className={cn("size-5 transition-transform", viewerReaction === "dislike" && "fill-black animate-likeBounce")}
         />
-        {dislikes}
+        {showLikeCount && dislikes > 0 && dislikes}
       </Button>
     </div>
   );

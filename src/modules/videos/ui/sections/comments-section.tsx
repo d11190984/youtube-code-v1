@@ -42,6 +42,7 @@ export const CommentsSectionSkeleton = () => {
 };
 
 const CommentsSectionSuspense = ({ videoId }: CommentsSectionProps) => {
+  const [video] = trpc.videos.getOne.useSuspenseQuery({ id: videoId });
   const [sortBy, setSortBy] = useState<"top" | "newest">("top");
 
   const [comments, query] = trpc.comments.getMany.useSuspenseInfiniteQuery(
@@ -54,6 +55,14 @@ const CommentsSectionSuspense = ({ videoId }: CommentsSectionProps) => {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     },
   );
+
+  if (!video.canComment) {
+    return (
+      <div className="mt-6 p-4 border rounded-xl bg-muted/30 text-center">
+        <p className="text-muted-foreground text-sm font-medium">Tính năng bình luận đã bị tắt.</p>
+      </div>
+    );
+  }
 
   const total = comments.pages[0]?.totalCount || 0;
 

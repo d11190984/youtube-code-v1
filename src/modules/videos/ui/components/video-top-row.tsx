@@ -82,6 +82,7 @@ export const VideoTopRow = ({
             likes={video.likeCount}
             dislikes={video.dislikeCount}
             viewerReaction={video.viewerReaction}
+            showLikeCount={video.showLikeCount}
           />
 
           {/* 🔹 VideoPlaybackMenu tự động lấy track từ playerRef */}

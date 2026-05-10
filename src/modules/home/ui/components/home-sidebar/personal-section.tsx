@@ -13,6 +13,8 @@ import {
   BellIcon,
 } from "lucide-react";
 
+import { useIsOnline } from "@/hooks/use-is-online";
+
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -71,13 +73,18 @@ export const PersonalSection = () => {
   const clerk = useClerk();
   const { isSignedIn } = useAuth();
   const pathname = usePathname();
+  const isOnline = useIsOnline();
+
+  const filteredItems = isOnline 
+    ? items 
+    : items.filter(item => item.title === "Nội dung tải xuống");
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Bạn</SidebarGroupLabel>
+      {isOnline && <SidebarGroupLabel>Bạn</SidebarGroupLabel>}
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 tooltip={item.title}
@@ -106,3 +113,4 @@ export const PersonalSection = () => {
     </SidebarGroup>
   );
 };
+

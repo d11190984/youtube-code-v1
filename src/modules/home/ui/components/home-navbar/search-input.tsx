@@ -20,6 +20,7 @@ interface SearchInputProps {
   onExpand?: () => void;
   onCollapse?: () => void;
   isExpanded?: boolean;
+  disabled?: boolean;
 }
 
 export const SearchInput = (props: SearchInputProps) => {
@@ -32,7 +33,7 @@ export const SearchInput = (props: SearchInputProps) => {
 
 const MAX_HISTORY = 10;
 
-const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputProps) => {
+const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded, disabled }: SearchInputProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isMobile = useIsMobile();
@@ -40,10 +41,10 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
 
   // Auto focus when expanded on mobile
   useEffect(() => {
-    if (isExpanded && isMobile && inputRef.current) {
+    if (isExpanded && isMobile && inputRef.current && !disabled) {
       inputRef.current.focus();
     }
-  }, [isExpanded, isMobile]);
+  }, [isExpanded, isMobile, disabled]);
   
   const query = searchParams.get("query") || "";
   const categoryId = searchParams.get("categoryId") || "";
@@ -93,6 +94,7 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
   };
 
   const executeSearch = (searchTerm: string) => {
+    if (disabled) return;
     const url = new URL("/search", APP_URL);
     const newQuery = searchTerm.trim();
 
@@ -130,7 +132,7 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
     };
   }, []);
 
-  const showHistory = isFocused && history.length > 0;
+  const showHistory = isFocused && history.length > 0 && !disabled;
 
   // On mobile, if not expanded, only show the search trigger icon
   if (isMobile && !isExpanded) {
@@ -139,6 +141,7 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
         <Button
           variant="ghost"
           size="icon"
+          disabled={disabled}
           className="rounded-full"
           onClick={onExpand}
         >
@@ -160,11 +163,12 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
           <input
             ref={inputRef}
             value={value}
+            disabled={disabled}
             onChange={(e) => setValue(e.target.value)}
             onFocus={() => setIsFocused(true)}
             type="text"
-            placeholder="Tìm kiếm"
-            className="w-full pl-4 focus:pl-10 py-2 pr-16 rounded-l-full border border-neutral-300 dark:border-neutral-700 focus:outline-none focus:border-blue-500 bg-transparent"
+            placeholder={disabled ? "Đang ngoại tuyến" : "Tìm kiếm"}
+            className="w-full pl-4 focus:pl-10 py-2 pr-16 rounded-l-full border border-neutral-300 dark:border-neutral-700 focus:outline-none focus:border-blue-500 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           />
           
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -173,6 +177,7 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
                 type="button"
                 variant="ghost"
                 size="icon"
+                disabled={disabled}
                 onClick={() => inputRef.current?.focus()}
                 className="h-8 w-8 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800"
               >
@@ -185,6 +190,7 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
                     type="button"
                     variant="ghost"
                     size="icon"
+                    disabled={disabled}
                     className="h-8 w-8 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800"
                   >
                     <KeyboardIcon className="size-5 text-muted-foreground" />
@@ -200,7 +206,7 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
               </Popover>
             )}
 
-            {value && (
+            {value && !disabled && (
               <Button
                 type="button"
                 variant="ghost"
@@ -214,7 +220,7 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
           </div>
         </div>
         <button
-          disabled={!value.trim()}
+          disabled={disabled || !value.trim()}
           type="submit"
           className="px-5 py-2.5 bg-gray-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 border-l-0 rounded-r-full hover:bg-gray-200 dark:hover:bg-neutral-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
@@ -251,3 +257,4 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded }: SearchInputPr
     </div>
   );
 };
+

@@ -95,7 +95,7 @@ export const ShortsActions = ({
         >
           <ThumbsUpIcon className={cn("size-6", video.viewerReaction === "like" && "fill-current animate-likeBounce")} />
         </Button>
-        <span className={labelClass}>{compactLikes}</span>
+        <span className={labelClass}>{video.showLikeCount ? compactLikes : ""}</span>
       </div>
 
       {/* Dislike */}
@@ -112,7 +112,7 @@ export const ShortsActions = ({
         >
           <ThumbsDownIcon className={cn("size-6", video.viewerReaction === "dislike" && "fill-current animate-likeBounce")} />
         </Button>
-        <span className={labelClass}>Không thích</span>
+        <span className={labelClass}>{video.showLikeCount ? "Không thích" : ""}</span>
       </div>
 
       {/* Comments */}
@@ -136,7 +136,7 @@ export const ShortsActions = ({
             </div>
           </SheetContent>
         </Sheet>
-        <span className={labelClass}>{video.commentCount || 0}</span>
+        <span className={labelClass}>{video.canComment ? (video.commentCount || 0) : ""}</span>
       </div>
 
       {/* Share */}

@@ -10,8 +10,21 @@ import { useRouter } from "next/navigation";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/error-fallback";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { useTranslations } from "next-intl";
 import {
+  ChevronDownIcon,
   CopyCheckIcon,
   CopyIcon,
   Globe2Icon,
@@ -26,18 +39,12 @@ import {
 
 import { trpc } from "@/trpc/client";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { videoUpdateSchema } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { STATUS_MAP, TRACK_STATUS_MAP } from "@/lib/status-map";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import {
   Form,
   FormControl,
@@ -60,6 +67,8 @@ import { VideoPlayer } from "@/modules/videos/ui/components/video-player";
 
 import { ThumbnailUploadModal } from "../components/thumbnail-upload-modal";
 import { ThumbnailGenerateModal } from "../components/thumbnail-generate-modal";
+import { PlaylistCreateModal } from "@/modules/playlists/ui/components/playlist-create-modal";
+import { MixPlaylistCreateModal } from "@/modules/playlists/ui/components/mix-playlist-create-modal";
 
 interface FormSectionProps {
   videoId: string;
@@ -140,9 +149,13 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
   const [thumbnailModalOpen, setThumbnailModalOpen] = useState(false);
   const [thumbnailGenerateModalOpen, setThumbnailGenerateModalOpen] =
     useState(false);
+  const [playlistCreateModalOpen, setPlaylistCreateModalOpen] = useState(false);
+  const [mixPlaylistCreateModalOpen, setMixPlaylistCreateModalOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const [video] = trpc.studio.getOne.useSuspenseQuery({ id: videoId });
   const [categories] = trpc.categories.getMany.useSuspenseQuery();
+  const [playlists] = trpc.playlists.getManyForVideo.useSuspenseQuery({ videoId, limit: 100 });
 
   const update = trpc.videos.update.useMutation({
     onSuccess: () => {
@@ -204,6 +217,26 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     },
     onError: () => {
       toast.error(t("error"));
+    },
+  });
+  
+  const addVideoToPlaylist = trpc.playlists.addVideo.useMutation({
+    onSuccess: () => {
+      utils.playlists.getManyForVideo.invalidate({ videoId });
+      toast.success(t("success"));
+    },
+    onError: (error) => {
+      toast.error(error.message || t("error"));
+    },
+  });
+
+  const removeVideoFromPlaylist = trpc.playlists.removeVideo.useMutation({
+    onSuccess: () => {
+      utils.playlists.getManyForVideo.invalidate({ videoId });
+      toast.success(t("success"));
+    },
+    onError: (error) => {
+      toast.error(error.message || t("error"));
     },
   });
 
@@ -413,6 +446,105 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                   </FormItem>
                 )}
               />
+              <div className="space-y-2">
+                <FormLabel>{t("playlists")}</FormLabel>
+                <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      type="button"
+                      className="w-full justify-between"
+                    >
+                      {playlists.items.filter((p) => p.containsVideo).length > 0
+                        ? `${playlists.items.filter((p) => p.containsVideo).length} ${t("playlists")}`
+                        : t("selectPlaylists")}
+                      <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <div className="flex flex-col h-full max-h-[400px]">
+                      {playlists.items.length === 0 ? (
+                        <div className="p-8 text-center text-sm text-muted-foreground">
+                          {t("noPlaylistsFound")}
+                        </div>
+                      ) : (
+                        <div className="p-4 flex-1 overflow-y-auto space-y-2">
+                          {playlists.items.map((playlist) => (
+                            <div
+                              key={playlist.id}
+                              className="flex items-center space-x-3 p-1 hover:bg-muted/50 rounded-md"
+                            >
+                              <Checkbox
+                                id={playlist.id}
+                                checked={playlist.containsVideo}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    addVideoToPlaylist.mutate({
+                                      playlistId: playlist.id,
+                                      videoId,
+                                    });
+                                  } else {
+                                    removeVideoFromPlaylist.mutate({
+                                      playlistId: playlist.id,
+                                      videoId,
+                                    });
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={playlist.id}
+                                className="text-sm font-medium leading-none cursor-pointer flex-1"
+                              >
+                                {playlist.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      <div className="p-2 border-t flex items-center justify-between bg-muted/20">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="gap-2">
+                              {t("playlists")}
+                              <ChevronDownIcon className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuItem onClick={() => setPlaylistCreateModalOpen(true)}>
+                              {t("newPlaylist")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setMixPlaylistCreateModalOpen(true)}>
+                              {t("newMixPlaylist")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setPopoverOpen(false)}
+                        >
+                          {t("done")}
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <div className="flex flex-wrap gap-2">
+                  {playlists.items
+                    .filter((p) => p.containsVideo)
+                    .map((p) => (
+                      <div
+                        key={p.id}
+                        className="bg-muted px-2 py-1 rounded-md text-xs font-medium flex items-center gap-x-1"
+                      >
+                        {p.name}
+                      </div>
+                    ))}
+                </div>
+              </div>
               <FormField
                 control={form.control}
                 name="categoryId"
@@ -542,7 +674,150 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
               />
             </div>
           </div>
+
+          {/* 🔥 BÌNH LUẬN VÀ MỨC PHÂN LOẠI */}
+          <div className="mt-12 pt-8 border-t border-muted">
+            <h2 className="text-xl font-bold mb-1">{t("commentsAndRatings")}</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              {t("commentsDesc")}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="canComment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("comments")}</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === "true")}
+                      value={field.value ? "true" : "false"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("comments")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="true">{t("on")}</SelectItem>
+                        <SelectItem value="false">{t("off")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="commentModeration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("moderation")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value ?? "none"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("moderation")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">{t("none")}</SelectItem>
+                        <SelectItem value="basic">{t("basic")}</SelectItem>
+                        <SelectItem value="strict">{t("strict")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="commentPermission"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("whoCanComment")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value ?? "anyone"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("whoCanComment")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="anyone">{t("anyone")}</SelectItem>
+                        <SelectItem value="subscribers">{t("subscribers")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="commentSort"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("sortBy")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value ?? "top"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("sortBy")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="top">{t("top")}</SelectItem>
+                        <SelectItem value="newest">{t("newest")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="mt-6">
+              <FormField
+                control={form.control}
+                name="showLikeCount"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        {t("showLikeCount")}
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
         </form>
+
+        <PlaylistCreateModal
+          open={playlistCreateModalOpen}
+          onOpenChange={setPlaylistCreateModalOpen}
+        />
+        <MixPlaylistCreateModal
+          open={mixPlaylistCreateModalOpen}
+          onOpenChange={setMixPlaylistCreateModalOpen}
+          initialVideoIds={[videoId]}
+        />
       </Form>
     </>
   );
