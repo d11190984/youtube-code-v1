@@ -562,6 +562,7 @@ const SidebarMenuButton = React.forwardRef<
         data-sidebar="menu-button"
         data-size={size}
         data-active={isActive}
+        {...props}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
         onClick={(e) => {
           if (isMobile) {
@@ -569,7 +570,6 @@ const SidebarMenuButton = React.forwardRef<
           }
           props.onClick?.(e as React.MouseEvent<HTMLButtonElement>);
         }}
-        {...props}
       />
     )
 
