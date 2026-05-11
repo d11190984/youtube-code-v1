@@ -113,6 +113,9 @@ export const StudioDashboard = () => {
 
               <div className="space-y-1">
                 <p className="text-sm font-semibold line-clamp-2">{latestVideo.title}</p>
+                <p className="text-[11px] text-muted-foreground italic">
+                  Đã đăng {formatDistanceToNow(new Date(latestVideo.createdAt), { addSuffix: true, locale: vi })}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-2">
