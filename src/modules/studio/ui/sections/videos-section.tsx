@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { format } from "date-fns";
@@ -20,7 +21,12 @@ import {
   DownloadIcon,
   SparklesIcon,
   Trash2Icon,
-  ExternalLinkIcon
+  ExternalLinkIcon,
+  CalendarIcon,
+  EyeIcon,
+  ThumbsUpIcon,
+  ActivityIcon,
+  SearchIcon
 } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
@@ -58,6 +64,7 @@ import {
 import { VideoThumbnail } from "@/modules/videos/ui/components/video-thumbnail";
 import { BulkActions } from "@/modules/studio/ui/components/bulk-actions";
 import { VideoEditModal } from "@/modules/studio/ui/components/video-edit-modal";
+import { VideoFilters } from "@/modules/studio/ui/components/video-filters";
 
 interface VideosSectionProps {
   limit: number;
@@ -65,12 +72,22 @@ interface VideosSectionProps {
 }
 
 export const VideosSection = ({ limit, isShorts }: VideosSectionProps) => {
+  const [filters, setFilters] = useState<{
+    title?: string;
+    description?: string;
+    viewCount?: number;
+    visibility?: "public" | "private";
+  }>({});
+
   return (
-    <Suspense key={`${limit}-${isShorts}`} fallback={<VideosSectionSkeleton />}>
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <VideosSectionSuspense limit={limit} isShorts={isShorts} />
-      </ErrorBoundary>
-    </Suspense>
+    <div>
+      <VideoFilters onFilterChange={(newFilters) => setFilters(newFilters)} />
+      <Suspense key={`${limit}-${isShorts}-${JSON.stringify(filters)}`} fallback={<VideosSectionSkeleton />}>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <VideosSectionSuspense limit={limit} isShorts={isShorts} filters={filters} />
+        </ErrorBoundary>
+      </Suspense>
+    </div>
   );
 };
 
@@ -140,7 +157,16 @@ const VideosSectionSkeleton = () => {
   );
 };
 
-const VideosSectionSuspense = ({ limit, isShorts }: VideosSectionProps) => {
+interface VideosSectionSuspenseProps extends VideosSectionProps {
+  filters: {
+    title?: string;
+    description?: string;
+    viewCount?: number;
+    visibility?: "public" | "private";
+  };
+}
+
+const VideosSectionSuspense = ({ limit, isShorts, filters }: VideosSectionSuspenseProps) => {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -167,6 +193,7 @@ const VideosSectionSuspense = ({ limit, isShorts }: VideosSectionProps) => {
       limit,
       isShorts,
       sortOrder,
+      ...filters,
     },
     {
       getNextPageParam: (lastPage: any) => lastPage.nextCursor,
@@ -230,6 +257,16 @@ const VideosSectionSuspense = ({ limit, isShorts }: VideosSectionProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {allItems.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={8} className="h-[400px] text-center text-muted-foreground">
+                   <div className="flex flex-col items-center justify-center gap-y-4">
+                    <SearchIcon className="size-16 text-muted-foreground/50" />
+                    <p className="text-sm text-muted-foreground">Không có video nào phù hợp</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
             {allItems.map((video: any) => (
               <TableRow 
                 key={video.id}

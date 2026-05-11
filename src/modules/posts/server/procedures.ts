@@ -104,10 +104,12 @@ export const postsRouter = createTRPCRouter({
           .nullish(),
         limit: z.number().min(1).max(100),
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
+        types: z.array(z.string()).nullish(),
+        visibility: z.enum(["public", "private"]).nullish(),
       })
     )
     .query(async ({ input, ctx }) => {
-      const { userId: inputUserId, status, cursor, limit, sortOrder } = input;
+      const { userId: inputUserId, status, cursor, limit, sortOrder, types, visibility } = input;
       
       let targetUserId = inputUserId;
 
@@ -163,6 +165,26 @@ export const postsRouter = createTRPCRouter({
               : status === "scheduled"
               ? gt(posts.scheduledAt, now)
               : undefined,
+            visibility ? eq(sql`'public'`, visibility) : undefined, // Currently posts are public or private? Check schema
+            types && types.length > 0 ? (
+              or(
+                ...types.map(t => {
+                  if (t === "quiz") {
+                    return and(
+                      eq(posts.type, "poll"),
+                      sql`EXISTS (SELECT 1 FROM ${postPolls} pp JOIN ${postPollOptions} ppo ON pp.id = ppo.poll_id WHERE pp.post_id = ${posts.id} AND ppo.is_correct = true)`
+                    );
+                  }
+                  if (t === "poll") {
+                    return and(
+                      eq(posts.type, "poll"),
+                      sql`NOT EXISTS (SELECT 1 FROM ${postPolls} pp JOIN ${postPollOptions} ppo ON pp.id = ppo.poll_id WHERE pp.post_id = ${posts.id} AND ppo.is_correct = true)`
+                    );
+                  }
+                  return eq(posts.type, t as any);
+                })
+              )
+            ) : undefined,
             cursor
               ? sortOrder === "desc"
                 ? or(

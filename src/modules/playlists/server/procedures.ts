@@ -636,11 +636,12 @@ export const playlistsRouter = createTRPCRouter({
           })
           .nullish(),
         limit: z.number().min(1).max(100),
+        name: z.string().nullish(),
       }),
     )
     .query(async ({ input, ctx }) => {
       const { id: userId } = ctx.user;
-      const { cursor, limit } = input;
+      const { cursor, limit, name } = input;
 
       const data = await db
         .select({
@@ -667,12 +668,19 @@ export const playlistsRouter = createTRPCRouter({
           ORDER BY pv.created_at ASC
           LIMIT 1
         )`,
+          viewCount: sql<number>`(
+            SELECT COALESCE(SUM(v.views_count), 0)
+            FROM ${playlistVideos} pv
+            JOIN ${videos} v ON v.id = pv.video_id
+            WHERE pv.playlist_id = ${playlists.id}
+          )`,
         })
         .from(playlists)
         .innerJoin(users, eq(playlists.userId, users.id))
         .where(
           and(
             eq(playlists.userId, userId),
+            name ? sql`LOWER(${playlists.name}) LIKE LOWER(${`%${name}%`})` : undefined,
             cursor
               ? or(
                   lt(playlists.updatedAt, cursor.updatedAt),

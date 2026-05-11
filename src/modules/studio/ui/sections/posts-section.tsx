@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useUser } from "@clerk/nextjs";
@@ -15,12 +17,12 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   CheckCircle2Icon,
+  SearchIcon,
 } from "lucide-react";
 
 import { ErrorFallback } from "@/components/error-fallback";
 import { trpc } from "@/trpc/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Checkbox } from "@/components/ui/checkbox";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import {
   Table,
@@ -30,7 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { PostFilters } from "@/modules/studio/ui/components/post-filters";
 
 interface PostsSectionProps {
   limit: number;
@@ -38,15 +40,22 @@ interface PostsSectionProps {
 
 export const PostsSection = ({ limit }: PostsSectionProps) => {
   const { user } = useUser();
+  const [filters, setFilters] = useState<{
+    types?: string[];
+    visibility?: "public" | "private";
+  }>({});
 
   if (!user) return null;
 
   return (
-    <Suspense key={`${limit}-${user.id}`} fallback={<PostsSectionSkeleton />}>
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <PostsSectionSuspense limit={limit} userId={user.id} />
-      </ErrorBoundary>
-    </Suspense>
+    <div>
+      <PostFilters onFilterChange={(newFilters) => setFilters(newFilters)} />
+      <Suspense key={`${limit}-${user.id}-${JSON.stringify(filters)}`} fallback={<PostsSectionSkeleton />}>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <PostsSectionSuspense limit={limit} userId={user.id} filters={filters} />
+        </ErrorBoundary>
+      </Suspense>
+    </div>
   );
 };
 
@@ -95,7 +104,16 @@ const PostsSectionSkeleton = () => {
   );
 };
 
-const PostsSectionSuspense = ({ limit, userId }: { limit: number; userId: string }) => {
+interface PostsSectionSuspenseProps {
+  limit: number;
+  userId: string;
+  filters: {
+    types?: string[];
+    visibility?: "public" | "private";
+  };
+}
+
+const PostsSectionSuspense = ({ limit, userId, filters }: PostsSectionSuspenseProps) => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const [posts, query] = trpc.posts.getMany.useSuspenseInfiniteQuery(
@@ -103,6 +121,7 @@ const PostsSectionSuspense = ({ limit, userId }: { limit: number; userId: string
       limit,
       userId,
       sortOrder,
+      ...filters,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -130,7 +149,7 @@ const PostsSectionSuspense = ({ limit, userId }: { limit: number; userId: string
       case "video":
         return {
           label: "Video",
-          icon: ImageIcon, // Or specific video icon
+          icon: ImageIcon,
         };
       default:
         return {
@@ -169,6 +188,16 @@ const PostsSectionSuspense = ({ limit, userId }: { limit: number; userId: string
             </TableRow>
           </TableHeader>
           <TableBody>
+            {allItems.length === 0 && (
+               <TableRow>
+                <TableCell colSpan={8} className="h-[400px] text-center text-muted-foreground">
+                   <div className="flex flex-col items-center justify-center gap-y-4">
+                    <SearchIcon className="size-16 text-muted-foreground/50" />
+                    <p className="text-sm text-muted-foreground">Không có bài đăng nào phù hợp</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
             {allItems.map((post) => {
               const isQuiz = post.poll?.options?.some((opt: any) => opt.isCorrect);
               const totalVotes = post.poll?.options?.reduce((acc: number, o: any) => acc + (o.voteCount || 0), 0) || 0;
@@ -191,7 +220,6 @@ const PostsSectionSuspense = ({ limit, userId }: { limit: number; userId: string
                         )}
                       </div>
                       
-                      {/* Hover Actions */}
                       <div className="flex items-center gap-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Link href={`/studio/posts/${post.id}`}>
                           <div className="p-2 hover:bg-neutral-700 rounded-full cursor-pointer transition-colors" title="Chi tiết">

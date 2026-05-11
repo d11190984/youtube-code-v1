@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq, and, or, lt, gt, lte, isNull, desc, getTableColumns, sql } from "drizzle-orm";
+import { eq, and, or, lt, gt, lte, gte, isNull, desc, getTableColumns, sql } from "drizzle-orm";
 import {
   subscriptions,
   comments,
@@ -150,10 +150,14 @@ export const studioRouter = createTRPCRouter({
         limit: z.number().min(1).max(100),
         isShorts: z.boolean().nullish(),
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
+        title: z.string().nullish(),
+        description: z.string().nullish(),
+        viewCount: z.number().nullish(),
+        visibility: z.enum(["public", "private"]).nullish(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { cursor, limit, isShorts, sortOrder } = input;
+      const { cursor, limit, isShorts, sortOrder, title, description, viewCount, visibility } = input;
       const { id: userId } = ctx.user;
 
       // Lọc theo loại video (Shorts vs Regular)
@@ -183,6 +187,10 @@ export const studioRouter = createTRPCRouter({
           and(
             eq(videos.userId, userId),
             typeFilter,
+            title ? sql`LOWER(${videos.title}) LIKE LOWER(${`%${title}%`})` : undefined,
+            description ? sql`LOWER(${videos.description}) LIKE LOWER(${`%${description}%`})` : undefined,
+            viewCount ? gte(videos.viewsCount, viewCount) : undefined,
+            visibility ? eq(videos.visibility, visibility) : undefined,
             cursor
               ? sortOrder === "desc"
                 ? or(
