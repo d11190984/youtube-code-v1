@@ -41,6 +41,13 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger 
+} from "@/components/ui/popover";
+import { CheckIcon } from "lucide-react";
+import { AdvancedAnalyticsModal } from "../components/advanced-analytics-modal";
 
 // --- SUB-COMPONENTS (SECTIONS) ---
 
@@ -48,7 +55,7 @@ const AnalyticsLoading = () => {
   return <div className="p-8">Đang tải dữ liệu...</div>;
 };
 
-const AllContentSection = ({ data }: { data: any }) => {
+const AllContentSection = ({ data, days }: { data: any, days: number }) => {
   const viewsBreakdown = data.contentBreakdown.views;
   const totalViews = viewsBreakdown.shorts + viewsBreakdown.video + viewsBreakdown.posts;
   const getPercentage = (val: number) => totalViews > 0 ? ((val / totalViews) * 100).toFixed(1) : "0";
@@ -196,7 +203,7 @@ const AllContentSection = ({ data }: { data: any }) => {
          <Card className="rounded-xl shadow-sm overflow-hidden bg-white dark:bg-neutral-900">
             <CardHeader>
                <CardTitle className="text-base font-bold">Số lượt hiển thị và cách chỉ số này đã tạo ra thời gian xem</CardTitle>
-               <p className="text-[10px] text-muted-foreground font-bold uppercase">Dữ liệu hiện có 12 thg 4 – 9 thg 5, 2026 (28 ngày)</p>
+               <p className="text-[10px] text-muted-foreground font-bold uppercase">Dữ liệu hiện có ({days === 3650 ? "Toàn thời gian" : `${days} ngày`})</p>
             </CardHeader>
             <CardContent className="p-0">
                <div className="flex flex-col items-center bg-neutral-50 dark:bg-neutral-900/50 p-6">
@@ -279,7 +286,7 @@ const AllContentSection = ({ data }: { data: any }) => {
   );
 };
 
-const VideoContentSection = ({ data }: { data: any }) => {
+const VideoContentSection = ({ data, days }: { data: any, days: number }) => {
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(data.topVideos[0]?.id || null);
   const selectedVideo = data.topVideos.find((v: any) => v.id === selectedVideoId) || data.topVideos[0];
 
@@ -289,7 +296,7 @@ const VideoContentSection = ({ data }: { data: any }) => {
          <div className="grid grid-cols-1 md:grid-cols-4 border-b divide-x dark:divide-neutral-800">
             {[
               { label: "Số lượt xem", val: data.contentBreakdown.views.video, sub: "" },
-              { label: "Lượt hiển thị hình thu nhỏ", val: data.contentBreakdown.discovery.impressions, sub: "Giảm 8% so với 28 ngày trước" },
+              { label: "Lượt hiển thị hình thu nhỏ", val: data.contentBreakdown.discovery.impressions, sub: `Giảm 8% so với ${days} ngày trước` },
               { label: "Tỷ lệ nhấp", val: `${data.contentBreakdown.discovery.ctr}%`, sub: "—" },
               { label: "Thời lượng xem trung bình", val: data.contentBreakdown.discovery.avgViewDuration, sub: "" },
             ].map((m, i) => (
@@ -527,7 +534,7 @@ const VideoContentSection = ({ data }: { data: any }) => {
   );
 };
 
-const ShortsContentSection = ({ data }: { data: any }) => {
+const ShortsContentSection = ({ data, days }: { data: any, days: number }) => {
   const hasShorts = data.contentBreakdown.views.shorts > 0 || data.contentBreakdown.shorts.topShorts.length > 0;
 
   if (!hasShorts) {
@@ -553,9 +560,9 @@ const ShortsContentSection = ({ data }: { data: any }) => {
       <Card className="rounded-xl shadow-sm border-none bg-white dark:bg-neutral-900 overflow-hidden">
          <div className="grid grid-cols-1 md:grid-cols-4 border-b divide-x dark:divide-neutral-800">
             {[
-              { label: "Số lượt xem", val: data.contentBreakdown.views.shorts, sub: "Giảm 74% so với 28 ngày trước" },
-              { label: "Lượt xem có chủ đích", val: data.contentBreakdown.shorts.intentionalViews, sub: "Giảm 69% so với 28 ngày trước" },
-              { label: "Số lượt thích", val: data.contentBreakdown.shorts.likes, sub: "Tăng 100% so với 28 ngày trước" },
+              { label: "Số lượt xem", val: data.contentBreakdown.views.shorts, sub: `Giảm 74% so với ${days} ngày trước` },
+              { label: "Lượt xem có chủ đích", val: data.contentBreakdown.shorts.intentionalViews, sub: `Giảm 69% so với ${days} ngày trước` },
+              { label: "Số lượt thích", val: data.contentBreakdown.shorts.likes, sub: `Tăng 100% so với ${days} ngày trước` },
               { label: "Số người đăng ký", val: data.contentBreakdown.subscribers.shorts, sub: "—" },
             ].map((m, i) => (
               <div key={i} className="p-4 flex flex-col items-center justify-center text-center">
@@ -655,7 +662,7 @@ const ShortsContentSection = ({ data }: { data: any }) => {
             <Card className="rounded-xl shadow-sm">
                <CardHeader>
                   <CardTitle className="text-base font-bold">Mức độ tương tác của người xem</CardTitle>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase">28 ngày qua</p>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase">{days === 3650 ? "Toàn thời gian" : `${days} ngày qua`}</p>
                </CardHeader>
                <CardContent className="space-y-6">
                   <div className="space-y-2">
@@ -711,7 +718,7 @@ const ShortsContentSection = ({ data }: { data: any }) => {
             <Card className="rounded-xl shadow-sm">
                <CardHeader>
                   <CardTitle className="text-base font-bold">Nội dung được phối lại nhiều nhất</CardTitle>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase">28 ngày qua</p>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase">{days === 3650 ? "Toàn thời gian" : `${days} ngày qua`}</p>
                </CardHeader>
                <CardContent className="py-8 flex items-center justify-center border-2 border-dashed rounded-lg">
                   <p className="text-xs text-muted-foreground">Chưa có đủ dữ liệu phối lại</p>
@@ -723,7 +730,7 @@ const ShortsContentSection = ({ data }: { data: any }) => {
   );
 };
 
-const PostsContentSection = ({ data }: { data: any }) => {
+const PostsContentSection = ({ data, days }: { data: any, days: number }) => {
   const [activePostType, setActivePostType] = useState<"image" | "poll" | "question" | "text" | "video">("image");
 
   const postTypes = [
@@ -860,8 +867,8 @@ const PostsContentSection = ({ data }: { data: any }) => {
   );
 };
 
-const ContentTab = () => {
-  const [data] = trpc.studio.getAnalytics.useSuspenseQuery();
+const ContentTab = ({ days }: { days: number }) => {
+  const [data] = trpc.studio.getAnalytics.useSuspenseQuery({ days });
   const [activeSubTab, setActiveSubTab] = useState("all");
 
   return (
@@ -880,16 +887,16 @@ const ContentTab = () => {
         ))}
       </div>
 
-      {activeSubTab === "all" && <AllContentSection data={data} />}
-      {activeSubTab === "video" && <VideoContentSection data={data} />}
-      {activeSubTab === "shorts" && <ShortsContentSection data={data} />}
-      {activeSubTab === "posts" && <PostsContentSection data={data} />}
+      {activeSubTab === "all" && <AllContentSection data={data} days={days} />}
+      {activeSubTab === "video" && <VideoContentSection data={data} days={days} />}
+      {activeSubTab === "shorts" && <ShortsContentSection data={data} days={days} />}
+      {activeSubTab === "posts" && <PostsContentSection data={data} days={days} />}
     </div>
   );
 };
 
-const AnalyticsContent = () => {
-  const [data] = trpc.studio.getAnalytics.useSuspenseQuery();
+const AnalyticsContent = ({ days }: { days: number }) => {
+  const [data] = trpc.studio.getAnalytics.useSuspenseQuery({ days });
   const [activeStat, setActiveStat] = useState<"views" | "watchTime" | "subscribers">("views");
 
   return (
@@ -897,7 +904,7 @@ const AnalyticsContent = () => {
       {/* CỘT TRÁI - CHI TIẾT */}
       <div className="flex-1 space-y-6 min-w-0">
         <div className="text-center py-6">
-          <h2 className="text-2xl font-bold">Kênh của bạn có {data.totalViews} lượt xem trong 28 ngày qua</h2>
+          <h2 className="text-2xl font-bold">Kênh của bạn có {data.totalViews} lượt xem trong {days === 3650 ? "toàn thời gian" : `${days} ngày qua`}</h2>
         </div>
 
         {/* THẺ CHỈ SỐ LỚN */}
@@ -909,7 +916,7 @@ const AnalyticsContent = () => {
             )}
             onClick={() => setActiveStat("views")}
           >
-             <p className="text-[11px] text-muted-foreground uppercase font-bold mb-1">Số lượt xem</p>
+             <p className="text-[11px] text-muted-foreground uppercase font-bold mb-1">Số lượt xem ({days === 3650 ? "Toàn thời gian" : `${days} ngày`})</p>
              <div className="flex items-center gap-x-2">
                 <span className="text-2xl font-bold">{data.totalViews}</span>
                 <div className="size-4 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
@@ -1046,18 +1053,35 @@ const AnalyticsContent = () => {
             
             <div className="pt-4 border-t">
                <div className="flex items-center justify-between mb-2">
-                  <span className="text-lg font-bold">3</span>
+                  <span className="text-lg font-bold">{data.realtime.totalViews}</span>
                   <span className="text-[10px] text-muted-foreground">Số lượt xem • 48 giờ qua</span>
                </div>
                {/* BAR CHART REALTIME */}
-               <div className="h-16 w-full flex items-end gap-x-0.5">
-                  {Array.from({ length: 24 }).map((_, i) => (
-                    <div 
-                      key={i} 
-                      className="flex-1 bg-blue-500/20 hover:bg-blue-500 transition-colors rounded-t-sm" 
-                      style={{ height: `${Math.random() * 80 + 10}%` }}
-                    />
-                  ))}
+               <div className="h-16 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data.realtime.viewsByHour} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                      <Tooltip 
+                        cursor={{ fill: 'transparent' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-neutral-800 text-white p-2 rounded-md shadow-lg text-[10px] border border-white/10">
+                                <p className="font-bold">{payload[0].payload.fullLabel}</p>
+                                <p className="text-lg mt-1">{payload[0].value}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar 
+                        dataKey="views" 
+                        fill="#3ea6ff" 
+                        radius={[2, 2, 0, 0]}
+                        barSize={4}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                </div>
                <div className="flex justify-between text-[9px] text-muted-foreground mt-1">
                   <span>48 giờ trước</span>
@@ -1070,7 +1094,7 @@ const AnalyticsContent = () => {
                   <span>Nội dung hàng đầu</span>
                   <span>Số lượt xem</span>
                </div>
-               {data.topVideos.slice(0, 3).map((v) => (
+               {data.realtime.topVideos.map((v: any) => (
                  <div key={v.id} className="flex items-center justify-between group cursor-pointer">
                     <div className="flex items-center gap-x-2 min-w-0">
                        <div className="size-8 bg-neutral-100 dark:bg-neutral-800 rounded shrink-0 overflow-hidden">
@@ -1078,7 +1102,7 @@ const AnalyticsContent = () => {
                        </div>
                        <span className="text-xs truncate group-hover:text-blue-500 transition-colors">{v.title}</span>
                     </div>
-                    <span className="text-xs font-bold ml-2">{Math.floor(v.viewsCount / 10) || 1}</span>
+                    <span className="text-xs font-bold ml-2">{v.viewsCount}</span>
                  </div>
                ))}
             </div>
@@ -1122,8 +1146,8 @@ const AnalyticsContent = () => {
 
 // --- MAIN EXPORT ---
 
-const AudienceTab = () => {
-  const [data] = trpc.studio.getAnalytics.useSuspenseQuery();
+const AudienceTab = ({ days }: { days: number }) => {
+  const [data] = trpc.studio.getAnalytics.useSuspenseQuery({ days });
   const [activeStat, setActiveStat] = useState<"viewers" | "subscribers">("viewers");
 
   return (
@@ -1309,16 +1333,76 @@ const AudienceTab = () => {
 };
 
 export const AnalyticsView = () => {
+  const [dateRange, setDateRange] = useState("28 ngày qua");
+  const [isAdvancedModalOpen, setIsAdvancedModalOpen] = useState(false);
+
+  const getDaysFromRange = (range: string) => {
+    const now = new Date();
+    if (range === "7 ngày qua") return 7;
+    if (range === "28 ngày qua") return 28;
+    if (range === "90 ngày qua") return 90;
+    if (range === "365 ngày qua") return 365;
+    if (range === "Toàn thời gian") return 3650;
+    
+    // Năm
+    if (/^\d{4}$/.test(range)) {
+      const year = parseInt(range);
+      const startOfYear = new Date(year, 0, 1);
+      const diffTime = Math.abs(now.getTime() - startOfYear.getTime());
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    // Tháng
+    if (range.startsWith("Tháng ")) {
+      const month = parseInt(range.split(" ")[1]) - 1;
+      const startOfMonth = new Date(now.getFullYear(), month, 1);
+      const diffTime = Math.abs(now.getTime() - startOfMonth.getTime());
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    return 28;
+  };
+
+  const days = getDaysFromRange(dateRange);
+  const [data] = trpc.studio.getAnalytics.useSuspenseQuery({ days });
+
+  const formatDateRange = (d: number) => {
+    if (d === 3650) return "Toàn thời gian";
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - d);
+    const formatStr = (date: Date) => `${date.getDate()} thg ${date.getMonth() + 1}`;
+    return `${formatStr(start)} – ${formatStr(end)}, ${end.getFullYear()}`;
+  };
+
+  const menuSections = [
+    { items: ["7 ngày qua", "28 ngày qua", "90 ngày qua", "365 ngày qua", "Toàn thời gian"] },
+    { items: ["2026", "2025"] },
+    { items: ["Tháng 5", "Tháng 4", "Tháng 3"] },
+    { items: ["Tùy chỉnh"] },
+  ];
+
   return (
     <div className="flex flex-col gap-y-4 p-4 lg:p-8 bg-neutral-50 dark:bg-black min-h-screen">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">Số liệu phân tích về kênh</h1>
         <div className="flex items-center gap-x-2">
-           <Button variant="outline" size="sm" className="bg-white dark:bg-neutral-900">
+           <Button 
+             variant="outline" 
+             size="sm" 
+             className="bg-white dark:bg-neutral-900"
+             onClick={() => setIsAdvancedModalOpen(true)}
+           >
               Chế độ nâng cao
            </Button>
         </div>
       </div>
+
+      <AdvancedAnalyticsModal 
+        isOpen={isAdvancedModalOpen} 
+        onClose={() => setIsAdvancedModalOpen(false)} 
+        dateRange={dateRange}
+      />
 
       <Tabs defaultValue="overview" className="w-full">
         <div className="flex items-center justify-between border-b mb-4">
@@ -1334,17 +1418,40 @@ export const AnalyticsView = () => {
             ))}
           </TabsList>
 
-          <div className="flex items-center gap-x-2 text-sm text-muted-foreground">
-             <span>12 thg 4 – 9 thg 5, 2026</span>
-             <span className="font-bold">28 ngày qua</span>
-             <ChevronDownIcon className="size-4" />
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <div className="flex items-center gap-x-2 text-sm text-muted-foreground cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 p-2 rounded-md transition-colors">
+                 <span>{formatDateRange(days)}</span>
+                 <span className="font-bold">{dateRange}</span>
+                 <ChevronDownIcon className="size-4" />
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-0 bg-[#282828] border-white/10 text-white shadow-2xl" align="end">
+               <div className="py-1">
+                  {menuSections.map((section, sIdx) => (
+                    <div key={sIdx}>
+                       {section.items.map((range) => (
+                        <div 
+                          key={range}
+                          className="px-4 py-2 hover:bg-white/10 cursor-pointer text-sm flex items-center justify-between transition-colors"
+                          onClick={() => setDateRange(range)}
+                        >
+                          <span>{range}</span>
+                          {dateRange === range && <CheckIcon className="size-4 text-[#3ea6ff]" />}
+                        </div>
+                       ))}
+                       {sIdx < menuSections.length - 1 && <div className="h-px bg-white/10 my-1" />}
+                    </div>
+                  ))}
+               </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <TabsContent value="overview" className="mt-0 outline-none">
           <Suspense fallback={<AnalyticsLoading />}>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <AnalyticsContent />
+              <AnalyticsContent days={days} />
             </ErrorBoundary>
           </Suspense>
         </TabsContent>
@@ -1352,7 +1459,7 @@ export const AnalyticsView = () => {
         <TabsContent value="content" className="mt-0 outline-none">
           <Suspense fallback={<AnalyticsLoading />}>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <ContentTab />
+              <ContentTab days={days} />
             </ErrorBoundary>
           </Suspense>
         </TabsContent>
@@ -1360,7 +1467,7 @@ export const AnalyticsView = () => {
         <TabsContent value="audience" className="mt-0 outline-none">
           <Suspense fallback={<AnalyticsLoading />}>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <AudienceTab />
+              <AudienceTab days={days} />
             </ErrorBoundary>
           </Suspense>
         </TabsContent>
