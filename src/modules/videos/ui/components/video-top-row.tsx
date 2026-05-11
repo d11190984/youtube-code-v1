@@ -76,18 +76,36 @@ export const VideoTopRow = ({
       const player = playerRef.current;
       if (!player) return;
 
-      // MuxPlayer is a web component, we need to find the video element
-      // It might be in shadowRoot or directly in the element depending on version/config
-      const videoElement = player.shadowRoot?.querySelector("video") || player.querySelector("video");
+      // Tìm video element bằng mọi cách có thể
+      const videoElement: any = 
+        player.media || // Cách chính thống của MuxPlayer
+        player.video || // Một số phiên bản khác
+        player.shadowRoot?.querySelector("video") || 
+        player.querySelector("video") ||
+        document.querySelector("video"); // Phương án cuối: quét toàn bộ trang
 
       if (videoElement) {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        } else {
-          await videoElement.requestPictureInPicture();
+        // 1. Hỗ trợ chuẩn W3C (Chrome, Android, Desktop)
+        if (videoElement.requestPictureInPicture) {
+          if (document.pictureInPictureElement) {
+            await document.exitPictureInPicture();
+          } else {
+            await videoElement.requestPictureInPicture();
+          }
+        } 
+        // 2. Hỗ trợ chuẩn Webkit (Safari, iPhone, iPad)
+        else if (videoElement.webkitSupportsPresentationMode && videoElement.webkitSupportsPresentationMode("picture-in-picture")) {
+          videoElement.webkitSetPresentationMode(
+            videoElement.webkitPresentationMode === "picture-in-picture" 
+              ? "inline" 
+              : "picture-in-picture"
+          );
+        }
+        else {
+          toast.error("Trình duyệt này không hỗ trợ tính năng Popup");
         }
       } else {
-        toast.error("Trình duyệt của bạn không hỗ trợ hoặc không tìm thấy video");
+        toast.error("Không tìm thấy trình phát video");
       }
     } catch (error) {
       console.error("PiP ERROR:", error);
