@@ -252,6 +252,12 @@ export const playlistsRouter = createTRPCRouter({
             AND pv.video_id = ${videoId}
           )
         )`,
+          viewCount: sql<number>`(
+            SELECT COALESCE(SUM(v.views_count), 0)
+            FROM ${playlistVideos} pv
+            JOIN ${videos} v ON v.id = pv.video_id
+            WHERE pv.playlist_id = ${playlists.id}
+          )`,
         })
         .from(playlists)
         .innerJoin(users, eq(playlists.userId, users.id))
@@ -363,6 +369,7 @@ export const playlistsRouter = createTRPCRouter({
           title: videos.title,
           description: videos.description,
           thumbnail: videos.thumbnailUrl,
+          viewsCount: videos.viewsCount,
           createdAt: videos.createdAt,
           updatedAt: videos.updatedAt,
         })
@@ -373,12 +380,13 @@ export const playlistsRouter = createTRPCRouter({
 
       if (playlistVideosData.length === 0) continue;
 
-      result.push({
+        result.push({
         id: playlist.id,
         name: playlist.name,
         description: playlist.description,
         videos: playlistVideosData,
         videoCount: playlistVideosData.length,
+        viewCount: playlistVideosData.reduce((acc, v) => acc + (v.viewsCount || 0), 0),
         thumbnail: playlistVideosData[0]?.thumbnail || "/placeholder.jpg",
       });
     }
@@ -593,6 +601,12 @@ export const playlistsRouter = createTRPCRouter({
               )
             )`
             : sql<boolean>`false`,
+          viewCount: sql<number>`(
+            SELECT COALESCE(SUM(v.views_count), 0)
+            FROM ${playlistVideos} pv
+            JOIN ${videos} v ON v.id = pv.video_id
+            WHERE pv.playlist_id = ${playlists.id}
+          )`,
         })
         .from(playlists)
         .innerJoin(users, eq(playlists.userId, users.id))
