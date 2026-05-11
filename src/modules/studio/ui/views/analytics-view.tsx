@@ -70,12 +70,18 @@ const AllContentSection = ({ data, days }: { data: any, days: number }) => {
                <p className="text-[10px] text-muted-foreground uppercase font-bold">28 ngày qua</p>
             </CardHeader>
             <CardContent className="space-y-4">
-               {["Shorts", "Video", "Bài đăng"].map((type) => (
-                 <div key={type} className="flex justify-between items-center text-xs">
-                    <span>{type}</span>
-                    <span className="font-bold">0</span>
-                 </div>
-               ))}
+                <div className="flex justify-between items-center text-xs">
+                   <span>Shorts</span>
+                   <span className="font-bold">{data.contentBreakdown.newViewers.shorts}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                   <span>Video</span>
+                   <span className="font-bold">{data.contentBreakdown.newViewers.video}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                   <span>Bài đăng</span>
+                   <span className="font-bold">{data.contentBreakdown.newViewers.posts}</span>
+                </div>
                <Button variant="secondary" className="w-full text-xs font-bold h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 border-none">
                   Xem thêm
                </Button>
@@ -89,12 +95,18 @@ const AllContentSection = ({ data, days }: { data: any, days: number }) => {
                <p className="text-[10px] text-muted-foreground uppercase font-bold">28 ngày qua</p>
             </CardHeader>
             <CardContent className="space-y-4">
-               {["Shorts", "Video", "Bài đăng"].map((type) => (
-                 <div key={type} className="flex justify-between items-center text-xs">
-                    <span>{type}</span>
-                    <span className="font-bold">0</span>
-                 </div>
-               ))}
+                <div className="flex justify-between items-center text-xs">
+                   <span>Shorts</span>
+                   <span className="font-bold">{data.contentBreakdown.returningViewers.shorts}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                   <span>Video</span>
+                   <span className="font-bold">{data.contentBreakdown.returningViewers.video}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                   <span>Bài đăng</span>
+                   <span className="font-bold">{data.contentBreakdown.returningViewers.posts}</span>
+                </div>
                <Button variant="secondary" className="w-full text-xs font-bold h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 border-none">
                   Xem thêm
                </Button>

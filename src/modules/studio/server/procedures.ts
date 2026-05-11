@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { format, formatDistanceToNow } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { vi } from "date-fns/locale";
 import { TRPCError } from "@trpc/server";
 import { eq, and, or, lt, gt, lte, gte, isNull, isNotNull, desc, getTableColumns, sql, inArray } from "drizzle-orm";
@@ -554,8 +555,11 @@ export const studioRouter = createTRPCRouter({
         const viewsByHour = [];
         for (let i = 47; i >= 0; i--) {
           const d = new Date();
-          d.setHours(d.getHours() - i, 0, 0, 0);
-          const hourStr = format(d, "yyyy-MM-dd HH:00");
+          d.setUTCMinutes(0, 0, 0);
+          d.setUTCHours(d.getUTCHours() - i);
+          
+          // Tạo string format YYYY-MM-DD HH:00 theo chuẩn UTC để khớp với DB
+          const hourStr = d.toISOString().replace("T", " ").slice(0, 13) + ":00";
           const found = viewsByHourRaw.find(v => v.hour === hourStr);
           
           let label = "";
@@ -563,9 +567,11 @@ export const studioRouter = createTRPCRouter({
           else if (i < 24) label = "Hôm nay";
           else label = "Hôm qua";
 
+          const userTz = "Asia/Ho_Chi_Minh";
+
           viewsByHour.push({
-            hour: format(d, "HH:00"),
-            fullLabel: `${label}, ${format(d, "HH:00")}–${format(new Date(d.getTime() + 3600000), "HH:00")}`,
+            hour: formatInTimeZone(d, userTz, "HH:00"),
+            fullLabel: `${label}, ${formatInTimeZone(d, userTz, "HH:00")}–${formatInTimeZone(new Date(d.getTime() + 3600000), userTz, "HH:00")}`,
             views: found ? found.count : 0,
           });
         }
@@ -587,9 +593,19 @@ export const studioRouter = createTRPCRouter({
       })),
       contentBreakdown: {
         views: {
-          shorts: await db.$count(videoViews, and(inArray(videoViews.videoId, db.select({ id: videos.id }).from(videos).where(and(eq(videos.userId, userId), gt(videos.videoHeight, videos.videoWidth)))))),
-          video: await db.$count(videoViews, and(inArray(videoViews.videoId, db.select({ id: videos.id }).from(videos).where(and(eq(videos.userId, userId), lte(videos.videoHeight, videos.videoWidth)))))),
-          posts: await db.$count(postReactions, and(inArray(postReactions.postId, db.select({ id: posts.id }).from(posts).where(eq(posts.userId, userId))))),
+          shorts: await db.$count(videoViews, and(inArray(videoViews.videoId, db.select({ id: videos.id }).from(videos).where(and(eq(videos.userId, userId), gt(videos.videoHeight, videos.videoWidth)))), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))),
+          video: await db.$count(videoViews, and(inArray(videoViews.videoId, db.select({ id: videos.id }).from(videos).where(and(eq(videos.userId, userId), or(lte(videos.videoHeight, videos.videoWidth), isNull(videos.videoHeight), isNull(videos.videoWidth))))), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))),
+          posts: await db.$count(postReactions, and(inArray(postReactions.postId, db.select({ id: posts.id }).from(posts).where(eq(posts.userId, userId))), gte(postReactions.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))),
+        },
+        newViewers: {
+          shorts: await db.$count(videoViews, and(inArray(videoViews.videoId, db.select({ id: videos.id }).from(videos).where(and(eq(videos.userId, userId), gt(videos.videoHeight, videos.videoWidth)))), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))),
+          video: await db.$count(videoViews, and(inArray(videoViews.videoId, db.select({ id: videos.id }).from(videos).where(and(eq(videos.userId, userId), or(lte(videos.videoHeight, videos.videoWidth), isNull(videos.videoHeight), isNull(videos.videoWidth))))), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))),
+          posts: await db.$count(postReactions, and(inArray(postReactions.postId, db.select({ id: posts.id }).from(posts).where(eq(posts.userId, userId))), gte(postReactions.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))),
+        },
+        returningViewers: {
+          shorts: 0,
+          video: 0,
+          posts: 0,
         },
         subscribers: {
           shorts: 0,

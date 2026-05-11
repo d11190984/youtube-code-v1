@@ -162,7 +162,7 @@ export const videosRouter = createTRPCRouter({
         .select({
           ...getTableColumns(videos),
           user: users,
-          progress: videoViews.progress, // 🔹 tiến độ user hiện tại
+          progress: sql<number>`user_progress.progress`, // 🔹 tiến độ user hiện tại
           viewCount: videos.viewsCount, // 🔹 lấy tổng viewCount trực tiếp
           likeCount: db.$count(
             videoReactions,
@@ -182,13 +182,16 @@ export const videosRouter = createTRPCRouter({
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
         .leftJoin(
-          videoViews,
-          viewerId
-            ? and(
-                eq(videoViews.videoId, videos.id),
-                eq(videoViews.userId, viewerId),
-              )
-            : sql`1=0`,
+          db.select({
+            videoId: videoViews.videoId,
+            userId: videoViews.userId,
+            progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
+          })
+          .from(videoViews)
+          .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
+          .groupBy(videoViews.videoId, videoViews.userId)
+          .as("user_progress"),
+          eq(videos.id, sql`user_progress.video_id`)
         )
         .where(
           and(
@@ -251,7 +254,7 @@ export const videosRouter = createTRPCRouter({
         .select({
           ...getTableColumns(videos),
           user: users,
-          progress: videoViews.progress, // tiến độ user hiện tại
+          progress: sql<number>`user_progress_shorts.progress`, // tiến độ user hiện tại
           viewCount: videos.viewsCount, // tổng viewCount
           likeCount: db.$count(
             videoReactions,
@@ -271,13 +274,16 @@ export const videosRouter = createTRPCRouter({
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
         .leftJoin(
-          videoViews,
-          viewerId
-            ? and(
-                eq(videoViews.videoId, videos.id),
-                eq(videoViews.userId, viewerId),
-              )
-            : sql`1=0`,
+          db.select({
+            videoId: videoViews.videoId,
+            userId: videoViews.userId,
+            progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
+          })
+          .from(videoViews)
+          .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
+          .groupBy(videoViews.videoId, videoViews.userId)
+          .as("user_progress_shorts"),
+          eq(videos.id, sql`user_progress_shorts.video_id`)
         )
         .where(
           and(
@@ -343,7 +349,7 @@ export const videosRouter = createTRPCRouter({
         .select({
           ...getTableColumns(videos),
           user: users,
-          progress: videoViews.progress,
+          progress: sql<number>`user_progress.progress`,
           viewCount: videos.viewsCount,
           likeCount: db.$count(
             videoReactions,
@@ -363,13 +369,16 @@ export const videosRouter = createTRPCRouter({
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
         .leftJoin(
-          videoViews,
-          viewerId
-            ? and(
-                eq(videoViews.videoId, videos.id),
-                eq(videoViews.userId, viewerId),
-              )
-            : sql`1=0`,
+          db.select({
+            videoId: videoViews.videoId,
+            userId: videoViews.userId,
+            progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
+          })
+          .from(videoViews)
+          .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
+          .groupBy(videoViews.videoId, videoViews.userId)
+          .as("user_progress"),
+          eq(videos.id, sql`user_progress.video_id`)
         )
         .where(
           and(

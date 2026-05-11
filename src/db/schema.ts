@@ -488,22 +488,16 @@ export const videoReactionRelations = relations(videoReactions, ({ one }) => ({
 export const videoViews = pgTable(
   "video_views",
   {
+    id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id")
-      .references(() => users.id, { onDelete: "cascade" })
-      .notNull(),
-
+      .references(() => users.id, { onDelete: "cascade" }),
     videoId: uuid("video_id")
       .references(() => videos.id, { onDelete: "cascade" })
       .notNull(),
-
-    progress: integer("progress").default(0).notNull(), // 👈 THÊM
-
+    progress: integer("progress").default(0).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (t) => [
-    primaryKey({ name: "video_views_pk", columns: [t.userId, t.videoId] }),
-  ],
 );
 
 export const videoViewRelations = relations(videoViews, ({ one }) => ({
