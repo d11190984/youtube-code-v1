@@ -1122,6 +1122,192 @@ const AnalyticsContent = () => {
 
 // --- MAIN EXPORT ---
 
+const AudienceTab = () => {
+  const [data] = trpc.studio.getAnalytics.useSuspenseQuery();
+  const [activeStat, setActiveStat] = useState<"viewers" | "subscribers">("viewers");
+
+  return (
+    <div className="space-y-6">
+      {/* KHÁN GIẢ HÀNG THÁNG & NGƯỜI ĐĂNG KÝ */}
+      <Card className="rounded-xl shadow-sm overflow-hidden bg-transparent border-neutral-200 dark:border-neutral-800">
+         <div className="grid grid-cols-1 md:grid-cols-2 border-b dark:border-neutral-800">
+            <div 
+              className={cn(
+                "p-4 cursor-pointer transition-colors flex flex-col items-center justify-center text-center",
+                activeStat === "viewers" ? "bg-neutral-50 dark:bg-neutral-800/50 border-b-2 border-b-black dark:border-b-white" : "hover:bg-neutral-50 dark:hover:bg-neutral-800/50 border-b-2 border-b-transparent"
+              )}
+              onClick={() => setActiveStat("viewers")}
+            >
+               <p className="text-[11px] text-muted-foreground font-medium mb-1">Khán giả hàng tháng</p>
+               <p className="text-xl font-bold">{data.audience.uniqueViewers}</p>
+            </div>
+            <div 
+              className={cn(
+                "p-4 cursor-pointer transition-colors flex flex-col items-center justify-center text-center border-l dark:border-neutral-800",
+                activeStat === "subscribers" ? "bg-neutral-50 dark:bg-neutral-800/50 border-b-2 border-b-black dark:border-b-white" : "hover:bg-neutral-50 dark:hover:bg-neutral-800/50 border-b-2 border-b-transparent"
+              )}
+              onClick={() => setActiveStat("subscribers")}
+            >
+               <p className="text-[11px] text-muted-foreground font-medium mb-1">Số người đăng ký</p>
+               <p className="text-xl font-bold">{data.audience.subscribersGained}</p>
+            </div>
+         </div>
+         <CardContent className="p-0 pt-6 bg-transparent">
+            <div className="h-[250px] w-full px-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={activeStat === "viewers" ? data.viewsByDay : data.subscribersByDay} margin={{ top: 10, right: 0, left: 0, bottom: 20 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="0" stroke="#e5e5e5" className="dark:stroke-neutral-800" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={{ stroke: '#404040' }} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: '#888' }} 
+                    dy={10}
+                    interval="preserveStartEnd"
+                    ticks={[data.viewsByDay[0]?.date, data.viewsByDay[Math.floor(data.viewsByDay.length / 2)]?.date, data.viewsByDay[data.viewsByDay.length - 1]?.date].filter(Boolean)}
+                  />
+                  <YAxis 
+                    orientation="right" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: '#888' }} 
+                    dx={10}
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#262626', color: '#fff' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey={activeStat === "viewers" ? "views" : "count"} 
+                    stroke="#a855f7" 
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="p-4 flex justify-start px-6">
+               <Button variant="secondary" size="sm" className="text-[10px] font-bold rounded-full bg-neutral-200/50 dark:bg-neutral-800 border-none px-4 h-7">
+                  Xem thêm
+               </Button>
+            </div>
+         </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         {/* Khán giả phân theo hành vi xem */}
+         <Card className="rounded-xl shadow-sm bg-transparent border-neutral-200 dark:border-neutral-800">
+            <CardHeader className="pb-2">
+               <CardTitle className="text-sm font-bold">Khán giả phân theo hành vi xem</CardTitle>
+               <p className="text-[10px] text-muted-foreground">Khán giả hàng tháng • 9 thg 5, 2026</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+               <p className="text-xs text-muted-foreground mt-4 mb-8">Không đủ dữ liệu về người xem để hiện báo cáo này</p>
+               <Button variant="secondary" size="sm" className="text-[10px] font-bold rounded-full bg-neutral-200/50 dark:bg-neutral-800 border-none px-4 h-7 mt-4">
+                  Xem thêm
+               </Button>
+            </CardContent>
+         </Card>
+
+         {/* Phổ biến với nhiều đối tượng người xem */}
+         <Card className="rounded-xl shadow-sm bg-transparent border-neutral-200 dark:border-neutral-800">
+            <CardHeader className="pb-2">
+               <CardTitle className="text-sm font-bold">Phổ biến với nhiều đối tượng người xem</CardTitle>
+               <p className="text-[10px] text-muted-foreground">Số lượt xem • 28 ngày qua</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+               <div className="flex gap-x-2">
+                  {["Mới", "Thông thường", "Thường xuyên"].map((t, i) => (
+                    <Button key={i} variant={i === 0 ? "secondary" : "ghost"} size="sm" className={cn("text-[10px] h-7 px-3 rounded-lg font-bold border", i === 0 ? "bg-black text-white dark:bg-white dark:text-black" : "border-neutral-300 dark:border-neutral-700")}>
+                       {t}
+                    </Button>
+                  ))}
+               </div>
+               <p className="text-xs text-muted-foreground mt-4">Không có dữ liệu để hiển thị cho những ngày này</p>
+            </CardContent>
+         </Card>
+
+         {/* Thời điểm khán giả xem YouTube */}
+         <Card className="rounded-xl shadow-sm bg-transparent border-neutral-200 dark:border-neutral-800">
+            <CardHeader className="pb-2">
+               <CardTitle className="text-sm font-bold">Thời điểm khán giả xem YouTube</CardTitle>
+               <p className="text-[10px] text-muted-foreground">Giờ địa phương (GMT +0700) • 28 ngày qua</p>
+            </CardHeader>
+            <CardContent>
+               <p className="text-xs text-muted-foreground mt-4 mb-4">Không đủ dữ liệu về người xem để hiện báo cáo này</p>
+            </CardContent>
+         </Card>
+
+         {/* Kênh mà khán giả xem */}
+         <Card className="rounded-xl shadow-sm bg-transparent border-neutral-200 dark:border-neutral-800">
+            <CardHeader className="pb-2">
+               <CardTitle className="text-sm font-bold">Kênh mà khán giả xem</CardTitle>
+               <p className="text-[10px] text-muted-foreground">28 ngày qua</p>
+            </CardHeader>
+            <CardContent>
+               <p className="text-[11px] text-muted-foreground mt-4 mb-4">
+                 Không có đủ dữ liệu hợp lệ về khán giả để hiển thị báo cáo này. <span className="text-blue-500 cursor-pointer hover:underline">Tìm hiểu thêm</span>
+               </p>
+            </CardContent>
+         </Card>
+
+         {/* Thời gian xem từ người đăng ký */}
+         <Card className="rounded-xl shadow-sm bg-transparent border-neutral-200 dark:border-neutral-800">
+            <CardHeader className="pb-2">
+               <CardTitle className="text-sm font-bold">Thời gian xem từ người đăng ký</CardTitle>
+               <p className="text-[10px] text-muted-foreground">Thời gian xem • 28 ngày qua</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+               <div className="space-y-3 mt-4">
+                  <div className="flex justify-between text-[11px] font-bold items-center">
+                     <span>Chưa đăng ký</span>
+                     <div className="flex items-center gap-x-3 w-1/2 justify-end">
+                       <div className="h-1.5 bg-[#c084fc] rounded-full" style={{ width: `${Math.max(data.audience.unsubscribedPercent, 1)}%` }} />
+                       <span className="w-8 text-right">{data.audience.unsubscribedPercent.toFixed(1).replace(".", ",")}%</span>
+                     </div>
+                  </div>
+                  <div className="flex justify-between text-[11px] font-bold items-center">
+                     <span>Đã đăng ký</span>
+                     <div className="flex items-center gap-x-3 w-1/2 justify-end">
+                       <div className="h-1.5 bg-[#c084fc] rounded-full" style={{ width: `${Math.max(data.audience.subscribedPercent, 1)}%` }} />
+                       <span className="w-8 text-right">{data.audience.subscribedPercent.toFixed(1).replace(".", ",")}%</span>
+                     </div>
+                  </div>
+               </div>
+               <Button variant="secondary" size="sm" className="text-[10px] font-bold rounded-full bg-neutral-200/50 dark:bg-neutral-800 border-none px-4 h-7 mt-6">
+                  Xem thêm
+               </Button>
+            </CardContent>
+         </Card>
+
+         {/* Nội dung khán giả của bạn xem */}
+         <Card className="rounded-xl shadow-sm bg-transparent border-neutral-200 dark:border-neutral-800">
+            <CardHeader className="pb-2">
+               <CardTitle className="text-sm font-bold">Nội dung khán giả của bạn xem</CardTitle>
+               <p className="text-[10px] text-muted-foreground">7 ngày qua</p>
+            </CardHeader>
+            <CardContent>
+               <p className="text-[11px] text-muted-foreground mt-4 mb-4">
+                 Không có đủ dữ liệu hợp lệ về khán giả để hiển thị báo cáo này. <span className="text-blue-500 cursor-pointer hover:underline">Tìm hiểu thêm</span>
+               </p>
+            </CardContent>
+         </Card>
+
+         {/* Định dạng */}
+         <Card className="rounded-xl shadow-sm bg-transparent border-neutral-200 dark:border-neutral-800">
+            <CardHeader className="pb-2">
+               <CardTitle className="text-sm font-bold">Các định dạng mà khán giả của bạn xem trên YouTube</CardTitle>
+               <p className="text-[10px] text-muted-foreground">28 ngày qua</p>
+            </CardHeader>
+            <CardContent>
+               <p className="text-xs text-muted-foreground mt-4 mb-4">Không đủ dữ liệu để hiện báo cáo này.</p>
+            </CardContent>
+         </Card>
+      </div>
+    </div>
+  );
+};
+
 export const AnalyticsView = () => {
   return (
     <div className="flex flex-col gap-y-4 p-4 lg:p-8 bg-neutral-50 dark:bg-black min-h-screen">
@@ -1167,6 +1353,14 @@ export const AnalyticsView = () => {
           <Suspense fallback={<AnalyticsLoading />}>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
               <ContentTab />
+            </ErrorBoundary>
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="audience" className="mt-0 outline-none">
+          <Suspense fallback={<AnalyticsLoading />}>
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <AudienceTab />
             </ErrorBoundary>
           </Suspense>
         </TabsContent>

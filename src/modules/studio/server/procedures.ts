@@ -2,7 +2,7 @@ import { z } from "zod";
 import { format, formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { TRPCError } from "@trpc/server";
-import { eq, and, or, lt, gt, lte, gte, isNull, desc, getTableColumns, sql, inArray } from "drizzle-orm";
+import { eq, and, or, lt, gt, lte, gte, isNull, isNotNull, desc, getTableColumns, sql, inArray } from "drizzle-orm";
 import {
   subscriptions,
   comments,
@@ -446,7 +446,53 @@ export const studioRouter = createTRPCRouter({
       .groupBy(sql`DATE_TRUNC('day', ${subscriptions.createdAt})`)
       .orderBy(sql`DATE_TRUNC('day', ${subscriptions.createdAt})`);
 
+    // 5. Audience Metrics
+    const [uniqueViewersData] = await db
+      .select({ count: sql<number>`COUNT(DISTINCT ${videoViews.userId})` })
+      .from(videoViews)
+      .innerJoin(videos, eq(videoViews.videoId, videos.id))
+      .where(and(
+        eq(videos.userId, userId),
+        gte(videoViews.createdAt, sql`NOW() - INTERVAL '28 days'`),
+        isNotNull(videoViews.userId)
+      ));
+
+    const viewsFromSubscribersData = await db
+      .select({
+        isSubscribed: sql<boolean>`CASE WHEN ${subscriptions.viewerId} IS NOT NULL THEN true ELSE false END`,
+        count: sql<number>`CAST(COUNT(*) AS INTEGER)`
+      })
+      .from(videoViews)
+      .innerJoin(videos, eq(videoViews.videoId, videos.id))
+      .leftJoin(subscriptions, and(
+        eq(subscriptions.creatorId, videos.userId),
+        eq(subscriptions.viewerId, videoViews.userId)
+      ))
+      .where(and(
+        eq(videos.userId, userId),
+        gte(videoViews.createdAt, sql`NOW() - INTERVAL '28 days'`)
+      ))
+      .groupBy(sql`CASE WHEN ${subscriptions.viewerId} IS NOT NULL THEN true ELSE false END`);
+
+    let subscribedViews = 0;
+    let unsubscribedViews = 0;
+    viewsFromSubscribersData.forEach((r: any) => {
+      if (r.isSubscribed) subscribedViews += Number(r.count);
+      else unsubscribedViews += Number(r.count);
+    });
+
+    const totalAudienceViews = subscribedViews + unsubscribedViews;
+    const subscribedPercent = totalAudienceViews > 0 ? (subscribedViews / totalAudienceViews) * 100 : 0;
+    const unsubscribedPercent = totalAudienceViews > 0 ? (unsubscribedViews / totalAudienceViews) * 100 : 100;
+    const subscribersGained = subscribersByDay.reduce((acc, curr) => acc + curr.count, 0);
+
     return {
+      audience: {
+        uniqueViewers: uniqueViewersData?.count || 0,
+        subscribersGained,
+        subscribedPercent,
+        unsubscribedPercent
+      },
       totalViews: totalStats?.totalViews || 0,
       totalSubscribers: totalSubscribers?.count || 0,
       totalVideos: totalStats?.totalVideos || 0,
