@@ -12,40 +12,46 @@ export const commentReactionsRouter = createTRPCRouter({
       const { commentId } = input;
       const { id: userId } = ctx.user;
 
-      const [existingCommentReactionLike] = await db
+      const [existingReaction] = await db
         .select()
         .from(commentReactions)
         .where(
           and(
             eq(commentReactions.commentId, commentId),
             eq(commentReactions.userId, userId),
-            eq(commentReactions.type, "like"),
           )
         );
 
-      if (existingCommentReactionLike) {
-        const [deletedViewerReaction] = await db
-          .delete(commentReactions)
-          .where(
-            and(
-              eq(commentReactions.userId, userId),
-              eq(commentReactions.commentId, commentId)
+      if (existingReaction) {
+        if (existingReaction.type === "like") {
+          const [deletedViewerReaction] = await db
+            .delete(commentReactions)
+            .where(
+              and(
+                eq(commentReactions.userId, userId),
+                eq(commentReactions.commentId, commentId)
+              )
             )
-          )
-          .returning();
-
-        return deletedViewerReaction;
+            .returning();
+          return deletedViewerReaction;
+        } else {
+          const [updatedReaction] = await db
+            .update(commentReactions)
+            .set({ type: "like" })
+            .where(
+              and(
+                eq(commentReactions.userId, userId),
+                eq(commentReactions.commentId, commentId)
+              )
+            )
+            .returning();
+          return updatedReaction;
+        }
       }
 
       const [createdCommentReaction] = await db
         .insert(commentReactions)
         .values({ userId, commentId, type: "like" })
-        .onConflictDoUpdate({
-          target: [commentReactions.userId, commentReactions.commentId],
-          set: {
-            type: "like",
-          },
-        })
         .returning();
 
       return createdCommentReaction;
@@ -56,40 +62,46 @@ export const commentReactionsRouter = createTRPCRouter({
       const { commentId } = input;
       const { id: userId } = ctx.user;
 
-      const [existingCommentReactionDislike] = await db
+      const [existingReaction] = await db
         .select()
         .from(commentReactions)
         .where(
           and(
             eq(commentReactions.commentId, commentId),
             eq(commentReactions.userId, userId),
-            eq(commentReactions.type, "dislike"),
           )
         );
 
-      if (existingCommentReactionDislike) {
-        const [deletedViewerReaction] = await db
-          .delete(commentReactions)
-          .where(
-            and(
-              eq(commentReactions.userId, userId),
-              eq(commentReactions.commentId, commentId)
+      if (existingReaction) {
+        if (existingReaction.type === "dislike") {
+          const [deletedViewerReaction] = await db
+            .delete(commentReactions)
+            .where(
+              and(
+                eq(commentReactions.userId, userId),
+                eq(commentReactions.commentId, commentId)
+              )
             )
-          )
-          .returning();
-
-        return deletedViewerReaction;
+            .returning();
+          return deletedViewerReaction;
+        } else {
+          const [updatedReaction] = await db
+            .update(commentReactions)
+            .set({ type: "dislike" })
+            .where(
+              and(
+                eq(commentReactions.userId, userId),
+                eq(commentReactions.commentId, commentId)
+              )
+            )
+            .returning();
+          return updatedReaction;
+        }
       }
 
       const [createdCommentReaction] = await db
         .insert(commentReactions)
         .values({ userId, commentId, type: "dislike" })
-        .onConflictDoUpdate({
-          target: [commentReactions.userId, commentReactions.commentId],
-          set: {
-            type: "dislike",
-          },
-        })
         .returning();
 
       return createdCommentReaction;

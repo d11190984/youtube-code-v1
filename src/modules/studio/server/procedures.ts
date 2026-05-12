@@ -7,6 +7,7 @@ import { eq, and, or, lt, gt, lte, gte, isNull, isNotNull, desc, getTableColumns
 import {
   subscriptions,
   comments,
+  commentReactions,
   users,
   videoReactions,
   videos,
@@ -540,4 +541,135 @@ export const studioRouter = createTRPCRouter({
       }
     };
   }),
+
+  getCommunityComments: protectedProcedure
+    .input(z.object({
+      cursor: z.object({ id: z.string().uuid(), createdAt: z.date() }).nullish(),
+      limit: z.number().min(1).max(100).default(20),
+      sortBy: z.enum(["newest", "top"]).default("newest"),
+      status: z.enum(["published", "held"]).default("published"),
+      keyword: z.string().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { cursor, limit, sortBy, status, keyword } = input;
+
+      const repliesCount = db.$with("replies_count").as(
+        db
+          .select({
+            parentId: comments.parentId,
+            count: sql<number>`CAST(COUNT(*) AS INTEGER)`.as("count"),
+          })
+          .from(comments)
+          .where(isNotNull(comments.parentId))
+          .groupBy(comments.parentId)
+      );
+
+      const score = sql<number>`
+        (
+          (
+            SELECT COUNT(*) FROM ${commentReactions}
+            WHERE ${commentReactions.commentId} = ${comments.id}
+            AND ${commentReactions.type} = 'like'
+          ) * 2
+        )
+        +
+        (
+          SELECT COUNT(*) FROM ${comments} c2
+          WHERE c2.parent_id = ${comments.id}
+        )
+      `;
+
+      // Giả lập trạng thái "Bị giữ lại" bằng cách trả về rỗng nếu status === 'held' (chưa có cột này trong DB)
+      // Nếu có hệ thống kiểm duyệt thì thêm cờ isHeldForReview vào bảng comments. Hiện tại giả định 'held' là rỗng.
+      if (status === "held") {
+        return { totalCount: 0, items: [], nextCursor: null };
+      }
+
+      const whereClause = and(
+        or(
+          inArray(comments.videoId, db.select({ id: videos.id }).from(videos).where(eq(videos.userId, userId))),
+          inArray(comments.postId, db.select({ id: posts.id }).from(posts).where(eq(posts.userId, userId)))
+        ),
+        isNull(comments.parentId),
+        keyword ? sql`LOWER(${comments.value}) LIKE LOWER(${`%${keyword}%`})` : undefined,
+        cursor
+          ? or(
+              lt(comments.createdAt, cursor.createdAt),
+              and(
+                eq(comments.createdAt, cursor.createdAt),
+                lt(comments.id, cursor.id),
+              ),
+            )
+          : undefined,
+      );
+
+      const viewerReactions = db.$with("viewer_reactions").as(
+        db
+          .select({
+            commentId: commentReactions.commentId,
+            type: commentReactions.type,
+          })
+          .from(commentReactions)
+          .where(eq(commentReactions.userId, userId))
+      );
+
+      const [totalData, data] = await Promise.all([
+        db
+          .select({ count: sql<number>`CAST(COUNT(*) AS INTEGER)` })
+          .from(comments)
+          .where(and(
+            or(
+              inArray(comments.videoId, db.select({ id: videos.id }).from(videos).where(eq(videos.userId, userId))),
+              inArray(comments.postId, db.select({ id: posts.id }).from(posts).where(eq(posts.userId, userId)))
+            ),
+            isNull(comments.parentId),
+            keyword ? sql`LOWER(${comments.value}) LIKE LOWER(${`%${keyword}%`})` : undefined
+          )),
+
+        db
+          .with(repliesCount, viewerReactions)
+          .select({
+            ...getTableColumns(comments),
+            user: users,
+            replyCount: repliesCount.count,
+            viewerReaction: viewerReactions.type,
+            score,
+            likeCount: db.$count(
+              commentReactions,
+              and(eq(commentReactions.type, "like"), eq(commentReactions.commentId, comments.id))
+            ),
+            dislikeCount: db.$count(
+              commentReactions,
+              and(eq(commentReactions.type, "dislike"), eq(commentReactions.commentId, comments.id))
+            ),
+            videoTitle: videos.title,
+            videoThumbnail: videos.thumbnailUrl,
+            postContent: posts.content,
+          })
+          .from(comments)
+          .where(whereClause)
+          .innerJoin(users, eq(comments.userId, users.id))
+          .leftJoin(videos, eq(comments.videoId, videos.id))
+          .leftJoin(posts, eq(comments.postId, posts.id))
+          .leftJoin(repliesCount, eq(comments.id, repliesCount.parentId))
+          .leftJoin(viewerReactions, eq(comments.id, viewerReactions.commentId))
+          .orderBy(
+            ...(sortBy === "newest"
+              ? [desc(comments.createdAt), desc(comments.id)]
+              : [desc(score), desc(comments.createdAt), desc(comments.id)])
+          )
+          .limit(limit + 1),
+      ]);
+
+      const hasMore = data.length > limit;
+      const items = hasMore ? data.slice(0, -1) : data;
+      const lastItem = items[items.length - 1];
+
+      return {
+        totalCount: totalData[0].count,
+        items,
+        nextCursor: hasMore ? { id: lastItem.id, createdAt: lastItem.createdAt } : null,
+      };
+    }),
 });

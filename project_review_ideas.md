@@ -21,15 +21,6 @@ const itemsWithAvgView = await Promise.all(
 
 ## 💡 Ý Tưởng Phát Triển
 
-### 🔴 Ưu tiên cao — Nên làm ngay
-
-#### 3. Trang Cộng Đồng (Community Page)
-- Route `/studio/community` đã có trong sidebar nhưng chưa build
-- Community posts (text, images, polls)
-- Tương tác giữa creator và subscriber
-
----
-
 ### 🟡 Ưu tiên trung bình — Nên làm trong 1-2 tháng
 
 #### 6. Hệ Thống Live Streaming
