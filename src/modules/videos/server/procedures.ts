@@ -592,14 +592,25 @@ export const videosRouter = createTRPCRouter({
         .where(eq(videos.id, input.videoId));
 
       if (userId && trackingEnabled) {
-        await db
-          .insert(videoViews)
-          .values({
-            userId,
-            videoId: input.videoId,
-            progress: 0,
-          })
-          .onConflictDoNothing();
+        const [existingView] = await db
+          .select()
+          .from(videoViews)
+          .where(
+            and(
+              eq(videoViews.userId, userId),
+              eq(videoViews.videoId, input.videoId),
+            ),
+          );
+
+        if (!existingView) {
+          await db
+            .insert(videoViews)
+            .values({
+              userId,
+              videoId: input.videoId,
+              progress: 0,
+            });
+        }
       }
 
       return { success: true };
