@@ -96,7 +96,9 @@ export const PostCard = ({ post, isCompact }: PostCardProps) => {
             {/* Header info */}
             <div className="flex items-center gap-2 mb-1">
               <Link href={`/users/${post.user.id}`} className="hover:opacity-70 transition-opacity">
-                <span className="text-sm font-semibold">{post.user.name}</span>
+                <span className="text-sm font-semibold">
+                  {post.user.handle ? `@${post.user.handle}` : post.user.name}
+                </span>
               </Link>
               <span className="text-[11px] text-muted-foreground">
                 {post.scheduledAt && isAfter(new Date(post.scheduledAt), new Date()) ? (

@@ -39,7 +39,8 @@ export const VideoDescription = ({
       .replace(hashtagRegex, (tag) => {
         const clean = tag.replace("#", "");
         return `<a 
-          href="/search?q=${clean}" 
+          href="/hashtag/${clean}" 
+          target="_blank"
           class="text-blue-500 hover:underline"
         >${tag}</a>`;
       });

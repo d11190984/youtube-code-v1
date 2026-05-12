@@ -62,6 +62,7 @@ export const FilterCarousel = ({
         opts={{
           align: "start",
           dragFree: true,
+          slidesToScroll: "auto",
         }}
         className="w-full px-12"
       >

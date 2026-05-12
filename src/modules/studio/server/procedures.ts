@@ -549,11 +549,14 @@ export const studioRouter = createTRPCRouter({
       sortBy: z.enum(["newest", "top"]).default("newest"),
       status: z.enum(["published", "held"]).default("published"),
       keyword: z.string().optional(),
+      containsQuestions: z.boolean().optional(),
+      contentTypes: z.array(z.string()).optional(),
+      responseStatuses: z.array(z.string()).optional(),
     }))
     .query(async ({ ctx, input }) => {
       const { id: userId } = ctx.user;
-      const { cursor, limit, sortBy, status, keyword } = input;
-
+      const { cursor, limit, sortBy, status, keyword, containsQuestions, contentTypes, responseStatuses } = input;
+      
       const repliesCount = db.$with("replies_count").as(
         db
           .select({
@@ -581,18 +584,61 @@ export const studioRouter = createTRPCRouter({
       `;
 
       // Giả lập trạng thái "Bị giữ lại" bằng cách trả về rỗng nếu status === 'held' (chưa có cột này trong DB)
-      // Nếu có hệ thống kiểm duyệt thì thêm cờ isHeldForReview vào bảng comments. Hiện tại giả định 'held' là rỗng.
       if (status === "held") {
         return { totalCount: 0, items: [], nextCursor: null };
       }
 
-      const whereClause = and(
+      // Base filters
+      const conditions = [
         or(
           inArray(comments.videoId, db.select({ id: videos.id }).from(videos).where(eq(videos.userId, userId))),
           inArray(comments.postId, db.select({ id: posts.id }).from(posts).where(eq(posts.userId, userId)))
         ),
         isNull(comments.parentId),
-        keyword ? sql`LOWER(${comments.value}) LIKE LOWER(${`%${keyword}%`})` : undefined,
+      ];
+
+      // Filter by keyword
+      if (keyword) {
+        conditions.push(sql`LOWER(${comments.value}) LIKE LOWER(${`%${keyword}%`})`);
+      }
+
+      // Filter by questions
+      if (containsQuestions) {
+        conditions.push(sql`${comments.value} LIKE '%?%'`);
+      }
+
+      // Filter by content types
+      if (contentTypes && contentTypes.length > 0) {
+        const typeConditions = [];
+        if (contentTypes.includes("video")) typeConditions.push(isNotNull(comments.videoId));
+        if (contentTypes.includes("shorts")) {
+           // Shorts logic: joined video is a short
+           typeConditions.push(
+             inArray(comments.videoId, db.select({ id: videos.id }).from(videos).where(and(eq(videos.userId, userId), gt(videos.videoHeight, videos.videoWidth))))
+           );
+        }
+        if (contentTypes.includes("my-posts") || contentTypes.includes("viewer-posts")) {
+           typeConditions.push(isNotNull(comments.postId));
+        }
+        conditions.push(or(...typeConditions) as any);
+      }
+
+      // Filter by response statuses (Approximate for now)
+      if (responseStatuses && responseStatuses.length > 0) {
+        if (responseStatuses.includes("not-responded")) {
+           // No replies at all (simplification)
+           conditions.push(
+             sql`NOT EXISTS (SELECT 1 FROM ${comments} c2 WHERE c2.parent_id = ${comments.id})`
+           );
+        } else if (responseStatuses.includes("responded")) {
+           // Has replies
+           conditions.push(
+             sql`EXISTS (SELECT 1 FROM ${comments} c2 WHERE c2.parent_id = ${comments.id})`
+           );
+        }
+      }
+
+      const whereClause = and(...conditions, 
         cursor
           ? or(
               lt(comments.createdAt, cursor.createdAt),
@@ -618,14 +664,7 @@ export const studioRouter = createTRPCRouter({
         db
           .select({ count: sql<number>`CAST(COUNT(*) AS INTEGER)` })
           .from(comments)
-          .where(and(
-            or(
-              inArray(comments.videoId, db.select({ id: videos.id }).from(videos).where(eq(videos.userId, userId))),
-              inArray(comments.postId, db.select({ id: posts.id }).from(posts).where(eq(posts.userId, userId)))
-            ),
-            isNull(comments.parentId),
-            keyword ? sql`LOWER(${comments.value}) LIKE LOWER(${`%${keyword}%`})` : undefined
-          )),
+          .where(and(...conditions)),
 
         db
           .with(repliesCount, viewerReactions)

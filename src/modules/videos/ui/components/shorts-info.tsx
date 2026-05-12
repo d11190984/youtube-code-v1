@@ -21,7 +21,9 @@ export const ShortsInfo = ({ video }: ShortsInfoProps) => {
       <div className="flex items-center gap-3">
         <Link href={`/users/${video.user.id}`} className="flex items-center gap-2">
           <UserAvatar size="sm" imageUrl={video.user.imageUrl} name={video.user.name} />
-          <span className="font-bold text-sm">@{video.user.name.replace(/\s+/g, "").toLowerCase()}</span>
+          <span className="font-bold text-sm">
+            @{video.user.handle || video.user.name.replace(/\s+/g, "").toLowerCase()}
+          </span>
         </Link>
         {userId !== video.user.clerkId && (
           <Button variant="secondary" size="sm" className="rounded-full h-8 px-4 bg-white text-black hover:bg-neutral-200 font-medium">

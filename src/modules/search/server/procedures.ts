@@ -132,4 +132,68 @@ export const searchRouter = createTRPCRouter({
         nextCursor: hasMore ? offset + limit : null,
       };
     }),
+  getHashtagMany: baseProcedure
+    .input(
+      z.object({
+        tag: z.string(),
+        cursor: z.number().nullish(),
+        limit: z.number().min(1).max(100),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { tag, cursor, limit } = input;
+      const offset = cursor || 0;
+
+      const data = await db
+        .select({
+          ...getTableColumns(videos),
+          user: users,
+          viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
+          likeCount: db.$count(videoReactions, and(
+            eq(videoReactions.videoId, videos.id),
+            eq(videoReactions.type, "like"),
+          )),
+          dislikeCount: db.$count(videoReactions, and(
+            eq(videoReactions.videoId, videos.id),
+            eq(videoReactions.type, "dislike"),
+          )),
+        })
+        .from(videos)
+        .innerJoin(users, eq(videos.userId, users.id))
+        .where(and(
+          eq(videos.visibility, "public"),
+          or(
+            ilike(videos.title, `%#${tag}%`),
+            ilike(videos.description, `%#${tag}%`)
+          )
+        ))
+        .orderBy(desc(videos.createdAt), desc(videos.id))
+        .limit(limit + 1)
+        .offset(offset);
+
+      const hasMore = data.length > limit;
+      const actualVideos = hasMore ? data.slice(0, -1) : data;
+
+      return {
+        items: actualVideos.map(v => ({ itemType: "video", ...v })),
+        nextCursor: hasMore ? offset + limit : null,
+      };
+    }),
+  getTrendingHashtags: baseProcedure
+    .query(async () => {
+      // Trong thực tế, bạn sẽ query từ DB các hashtag xuất hiện nhiều nhất
+      // Ở đây demo trả về danh sách cứng
+      return [
+        "shadow",
+        "music",
+        "vlog",
+        "gaming",
+        "coding",
+        "tutorial",
+        "asmr",
+        "japansong",
+        "anime",
+        "lofi"
+      ];
+    }),
 });

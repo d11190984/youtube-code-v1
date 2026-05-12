@@ -29,12 +29,6 @@ const itemsWithAvgView = await Promise.all(
 - Lưu lại VOD sau khi stream kết thúc
 - Scheduled live streams
 
-#### 10. Hệ Thống Tags & Hashtags
-- Thêm tags cho video
-- Click tag để filter/search
-- Trending tags section
-- Autocomplete tags khi nhập
-
 #### 13. Multi-Language Support (i18n)
 - Hiện tại UI hoàn toàn bằng Tiếng Việt
 - Thêm hỗ trợ English, Japanese,...
