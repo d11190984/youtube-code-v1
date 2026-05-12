@@ -362,7 +362,7 @@ export const CommunityView = () => {
                     {/* Thumbnail video/post bên phải */}
                     <div className="hidden md:flex w-48 shrink-0 flex-col gap-y-1">
                        {comment.videoId ? (
-                         <Link href={`/watch/${comment.videoId}`} className="flex items-start gap-x-2 group/video cursor-pointer">
+                         <Link href={`/videos/${comment.videoId}`} className="flex items-start gap-x-2 group/video cursor-pointer">
                            <div className="relative w-24 aspect-video rounded-sm overflow-hidden bg-neutral-800 shrink-0">
                              <Image 
                                src={comment.videoThumbnail || "/placeholder.svg"} 

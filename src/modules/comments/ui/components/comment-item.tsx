@@ -95,7 +95,11 @@ export const CommentItem = ({
 
   const like = trpc.commentReactions.like.useMutation({
     onSuccess: () => {
-      utils.comments.getMany.invalidate({ videoId: comment.videoId, postId: comment.postId });
+      if (comment.videoId) {
+        utils.comments.getMany.invalidate({ videoId: comment.videoId });
+      } else if (comment.postId) {
+        utils.comments.getMany.invalidate({ postId: comment.postId });
+      }
     },
     onError: (error) => {
       toast.error("Đã xảy ra lỗi");
@@ -107,7 +111,11 @@ export const CommentItem = ({
   });
   const dislike = trpc.commentReactions.dislike.useMutation({
     onSuccess: () => {
-      utils.comments.getMany.invalidate({ videoId: comment.videoId, postId: comment.postId });
+      if (comment.videoId) {
+        utils.comments.getMany.invalidate({ videoId: comment.videoId });
+      } else if (comment.postId) {
+        utils.comments.getMany.invalidate({ postId: comment.postId });
+      }
     },
     onError: (error) => {
       toast.error("Đã xảy ra lỗi");
@@ -213,7 +221,7 @@ export const CommentItem = ({
                 <ThumbsUpIcon
                   className={cn(
                     "transition-transform",
-                    comment.viewerReaction === "like" && "fill-black animate-likeBounce",
+                    comment.viewerReaction === "like" && "fill-black text-black dark:fill-white dark:text-white animate-likeBounce",
                   )}
                 />
               </Button>
@@ -230,7 +238,7 @@ export const CommentItem = ({
                 <ThumbsDownIcon
                   className={cn(
                     "transition-transform",
-                    comment.viewerReaction === "dislike" && "fill-black animate-likeBounce",
+                    comment.viewerReaction === "dislike" && "fill-black text-black dark:fill-white dark:text-white animate-likeBounce",
                   )}
                 />
               </Button>
