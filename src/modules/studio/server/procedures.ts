@@ -552,10 +552,11 @@ export const studioRouter = createTRPCRouter({
       containsQuestions: z.boolean().optional(),
       contentTypes: z.array(z.string()).optional(),
       responseStatuses: z.array(z.string()).optional(),
+      minSubscribers: z.number().optional(),
     }))
     .query(async ({ ctx, input }) => {
       const { id: userId } = ctx.user;
-      const { cursor, limit, sortBy, status, keyword, containsQuestions, contentTypes, responseStatuses } = input;
+      const { cursor, limit, sortBy, status, keyword, containsQuestions, contentTypes, responseStatuses, minSubscribers } = input;
       
       const repliesCount = db.$with("replies_count").as(
         db
@@ -658,6 +659,20 @@ export const studioRouter = createTRPCRouter({
              sql`EXISTS (SELECT 1 FROM ${comments} c2 WHERE c2.parent_id = ${comments.id})`
            );
         }
+      }
+
+      // Filter by subscribers
+      if (minSubscribers !== undefined) {
+        conditions.push(
+          inArray(
+            comments.userId,
+            db
+              .select({ userId: subscriptions.creatorId })
+              .from(subscriptions)
+              .groupBy(subscriptions.creatorId)
+              .having(sql`count(*) >= ${minSubscribers}`)
+          )
+        );
       }
 
       const whereClause = and(...conditions, 

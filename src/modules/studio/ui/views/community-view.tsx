@@ -20,7 +20,9 @@ import {
   SearchXIcon,
   XIcon,
   InfoIcon,
-  ArrowUpRightIcon
+  ArrowUpRightIcon,
+  Trash2Icon,
+  FlagIcon
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -41,6 +43,16 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CommentReplies } from "@/modules/comments/ui/components/comment-replies";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 
@@ -60,6 +72,9 @@ export const CommunityView = () => {
   const [tempResponseStatuses, setTempResponseStatuses] = useState<string[]>([]);
   const [selectedResponseStatuses, setSelectedResponseStatuses] = useState<string[]>([]);
   
+  const [minSubscribers, setMinSubscribers] = useState<number | undefined>();
+  const [tempMinSubscribers, setTempMinSubscribers] = useState<number | undefined>();
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const handleApplyKeyword = () => {
@@ -265,9 +280,64 @@ export const CommunityView = () => {
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
 
-                <DropdownMenuItem className="px-4 py-2 hover:bg-white/10 cursor-pointer">
-                  Số người đăng ký
-                </DropdownMenuItem>
+                {/* Số người đăng ký */}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
+                    Số người đăng ký
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-64 bg-[#282828] border-white/10 text-white rounded-xl p-0 overflow-hidden ml-2">
+                    <div className="p-4 border-b border-white/10">
+                       <span className="text-sm font-medium">Số người đăng ký tối thiểu</span>
+                    </div>
+                    <DropdownMenuRadioGroup 
+                      value={tempMinSubscribers?.toString()} 
+                      onValueChange={(v) => setTempMinSubscribers(v ? parseInt(v) : undefined)}
+                      className="p-2"
+                    >
+                      {[
+                        { id: "100", label: "100" },
+                        { id: "1000", label: "1.000" },
+                        { id: "10000", label: "10.000" },
+                        { id: "100000", label: "100.000" },
+                        { id: "1000000", label: "1.000.000" },
+                        { id: "10000000", label: "10.000.000" },
+                      ].map((item) => (
+                        <DropdownMenuRadioItem 
+                          key={item.id} 
+                          value={item.id}
+                          className="cursor-pointer focus:bg-white/10 focus:text-white py-2"
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          {item.label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                    <div className="p-4 bg-[#1f1f1f] flex justify-end gap-x-2">
+                       <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="rounded-full hover:bg-white/10 text-white font-bold px-4"
+                          onClick={() => {
+                            setTempMinSubscribers(minSubscribers);
+                            setIsFilterOpen(false);
+                          }}
+                       >
+                         Hủy
+                       </Button>
+                       <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50 font-bold px-4"
+                          onClick={() => {
+                            setMinSubscribers(tempMinSubscribers);
+                            setIsFilterOpen(false);
+                          }}
+                       >
+                         Áp dụng
+                       </Button>
+                    </div>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
 
                 <DropdownMenuSeparator className="bg-white/10 my-1" />
 
@@ -387,6 +457,21 @@ export const CommunityView = () => {
                  </button>
               </div>
             )}
+
+            {minSubscribers !== undefined && (
+              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium">
+                 Số người đăng ký: {minSubscribers.toLocaleString("vi-VN")}
+                 <button 
+                  onClick={() => {
+                    setMinSubscribers(undefined);
+                    setTempMinSubscribers(undefined);
+                  }} 
+                  className="ml-1 hover:bg-white/20 rounded-full p-0.5"
+                 >
+                    <XIcon className="size-3" />
+                 </button>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-neutral-200 dark:border-white/10 w-full pt-2 min-h-[400px]">
@@ -411,6 +496,9 @@ export const CommunityView = () => {
                    setTempContentTypes={setTempContentTypes}
                    setSelectedResponseStatuses={setSelectedResponseStatuses}
                    setTempResponseStatuses={setTempResponseStatuses}
+                   minSubscribers={minSubscribers}
+                   setMinSubscribers={setMinSubscribers}
+                   setTempMinSubscribers={setTempMinSubscribers}
                 />
              </Suspense>
           </div>
@@ -447,6 +535,9 @@ interface CommunityCommentsListProps {
   setTempContentTypes: (v: string[]) => void;
   setSelectedResponseStatuses: (v: string[]) => void;
   setTempResponseStatuses: (v: string[]) => void;
+  minSubscribers: number | undefined;
+  setMinSubscribers: (v: number | undefined) => void;
+  setTempMinSubscribers: (v: number | undefined) => void;
 }
 
 const CommunityCommentsList = ({
@@ -456,6 +547,7 @@ const CommunityCommentsList = ({
   containsQuestions,
   selectedContentTypes,
   selectedResponseStatuses,
+  minSubscribers,
   setKeyword,
   setTempKeyword,
   setStatusFilter,
@@ -464,6 +556,8 @@ const CommunityCommentsList = ({
   setTempContentTypes,
   setSelectedResponseStatuses,
   setTempResponseStatuses,
+  setMinSubscribers,
+  setTempMinSubscribers,
 }: CommunityCommentsListProps) => {
   const { user } = useUser();
   const utils = trpc.useUtils();
@@ -471,6 +565,17 @@ const CommunityCommentsList = ({
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [openReplies, setOpenReplies] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  
+  const removeManyMutation = trpc.comments.removeMany.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Đã xóa ${data.count} bình luận`);
+      setSelectedIds([]);
+      utils.studio.getCommunityComments.invalidate();
+    },
+    onError: () => toast.error("Đã xảy ra lỗi khi xóa bình luận"),
+  });
 
   const toggleReplies = (commentId: string) => {
     setOpenReplies((prev) => {
@@ -514,19 +619,103 @@ const CommunityCommentsList = ({
     containsQuestions: containsQuestions || undefined,
     contentTypes: selectedContentTypes.length > 0 ? selectedContentTypes : undefined,
     responseStatuses: selectedResponseStatuses.length > 0 ? selectedResponseStatuses : undefined,
+    minSubscribers,
   }, {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
-  const comments = data.pages.flatMap((page) => page.items);
+   const comments = data.pages.flatMap((page) => page.items);
 
-  return (
-    <div className="flex flex-col">
-      {comments.length > 0 && (
-        <div className="pl-4 pb-2 border-b border-neutral-200 dark:border-white/10">
-          <Checkbox className="border-muted-foreground data-[state=checked]:bg-[#3ea6ff] data-[state=checked]:border-[#3ea6ff]" />
-        </div>
-      )}
+   const toggleSelectAll = () => {
+     if (selectedIds.length === comments.length) {
+       setSelectedIds([]);
+     } else {
+       setSelectedIds(comments.map((c) => c.id));
+     }
+   };
+
+   const toggleSelect = (id: string) => {
+     setSelectedIds((prev) =>
+       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+     );
+   };
+
+   return (
+     <div className="flex flex-col">
+       {comments.length > 0 && (
+         <div className={cn(
+           "flex items-center gap-x-4 px-4 py-2 border-b border-neutral-200 dark:border-white/10 transition-colors sticky top-0 z-20 bg-neutral-50 dark:bg-[#0f0f0f]",
+           selectedIds.length > 0 && "bg-white dark:bg-neutral-800"
+         )}>
+           <Checkbox 
+             checked={selectedIds.length > 0 && selectedIds.length === comments.length}
+             onCheckedChange={toggleSelectAll}
+             className="border-muted-foreground data-[state=checked]:bg-[#3ea6ff] data-[state=checked]:border-[#3ea6ff]" 
+           />
+           
+           {selectedIds.length > 0 ? (
+             <div className="flex items-center justify-between flex-1">
+                <div className="flex items-center gap-x-6">
+                   <div className="flex items-center gap-x-2 text-sm font-medium text-black dark:text-white">
+                      <span>Đã chọn {selectedIds.length}</span>
+                      <button 
+                        onClick={toggleSelectAll}
+                        className="text-[#3ea6ff] hover:underline"
+                      >
+                        ({selectedIds.length === comments.length ? "Bỏ chọn tất cả" : "Chọn tất cả"})
+                      </button>
+                   </div>
+                   <div className="flex items-center gap-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-9 w-9 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 text-black dark:text-white"
+                        onClick={() => setIsDeleteOpen(true)}
+                      >
+                        <Trash2Icon className="size-5" />
+                      </Button>
+
+                      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                        <AlertDialogContent className="bg-[#282828] border-white/10 text-white rounded-2xl max-w-md">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-xl font-bold">Xóa bình luận?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-neutral-400">
+                              Bạn có chắc chắn muốn xóa {selectedIds.length} bình luận đã chọn không? Thao tác này không thể hoàn tác.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="gap-x-2">
+                            <AlertDialogCancel className="rounded-full bg-transparent border-none hover:bg-white/10 text-white font-bold px-6">
+                              Hủy
+                            </AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => removeManyMutation.mutate({ ids: selectedIds })}
+                              className="rounded-full bg-white text-black hover:bg-neutral-200 font-bold px-6"
+                            >
+                              Xóa
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
+                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 text-black dark:text-white">
+                        <FlagIcon className="size-5" />
+                      </Button>
+                   </div>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-9 w-9 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 text-black dark:text-white"
+                  onClick={() => setSelectedIds([])}
+                >
+                   <XIcon className="size-5" />
+                </Button>
+             </div>
+           ) : (
+             <span className="text-sm font-medium text-muted-foreground">Chọn tất cả</span>
+           )}
+         </div>
+       )}
 
       {comments.length === 0 ? (
          <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -564,6 +753,8 @@ const CommunityCommentsList = ({
                 setTempContentTypes([]);
                 setSelectedResponseStatuses([]);
                 setTempResponseStatuses([]);
+                setMinSubscribers(undefined);
+                setTempMinSubscribers(undefined);
               }}
             >
               Xoá tất cả bộ lọc
@@ -571,10 +762,17 @@ const CommunityCommentsList = ({
          </div>
       ) : (
         comments.map((comment) => (
-          <div key={comment.id} className="flex flex-col border-t border-neutral-200 dark:border-white/10">
+          <div key={comment.id} className={cn(
+            "flex flex-col border-t border-neutral-200 dark:border-white/10",
+            selectedIds.includes(comment.id) && "bg-neutral-100 dark:bg-white/10"
+          )}>
             <div className="flex gap-x-4 p-4 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors group">
               <div className="pt-2">
-                <Checkbox className="border-muted-foreground data-[state=checked]:bg-[#3ea6ff] data-[state=checked]:border-[#3ea6ff]" />
+                <Checkbox 
+                 checked={selectedIds.includes(comment.id)}
+                 onCheckedChange={() => toggleSelect(comment.id)}
+                 className="border-muted-foreground data-[state=checked]:bg-[#3ea6ff] data-[state=checked]:border-[#3ea6ff]" 
+                />
               </div>
               
               <Avatar className="size-10 mt-1">

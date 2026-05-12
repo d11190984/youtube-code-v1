@@ -23,6 +23,42 @@ import {
 } from "@/trpc/init";
 
 export const commentsRouter = createTRPCRouter({
+  removeMany: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string().uuid()),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { ids } = input;
+      const { id: userId } = ctx.user;
+
+      const commentsToDelete = await db
+        .select({ id: comments.id })
+        .from(comments)
+        .leftJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(posts, eq(comments.postId, posts.id))
+        .where(
+          and(
+            inArray(comments.id, ids),
+            or(
+              eq(comments.userId, userId),
+              eq(videos.userId, userId),
+              eq(posts.userId, userId)
+            )
+          )
+        );
+
+      const validIds = commentsToDelete.map(c => c.id);
+
+      if (validIds.length === 0) {
+        return { count: 0 };
+      }
+
+      await db.delete(comments).where(inArray(comments.id, validIds));
+
+      return { count: validIds.length };
+    }),
   remove: protectedProcedure
     .input(
       z.object({
