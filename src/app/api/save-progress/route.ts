@@ -37,35 +37,32 @@ export async function POST(req: NextRequest) {
     const oldProgress = existing?.progress ?? 0;
     const newProgress = Math.max(0, Math.floor(progress || 0));
 
-    // ✅ nếu beacon gửi completed hoặc gần completed -> bỏ qua
-    if (videoInfo.duration > 0 && newProgress >= videoInfo.duration * 0.95) {
-      return NextResponse.json({ ok: true });
-    }
+    // ✅ Luôn lưu tiến độ kể cả khi video đã hoàn thành trước đó
 
     // ✅ chặn beacon 0 giả đè progress cũ
     if (newProgress === 0 && oldProgress > 5) {
       return NextResponse.json({ ok: true });
     }
 
-    // ✅ chặn beacon progress lùi mạnh
-    if (newProgress < oldProgress - 3) {
-      return NextResponse.json({ ok: true });
-    }
+    // ✅ Luôn lưu vị trí cuối cùng (không chặn lùi progress)
 
-    await db
-      .insert(videoViews)
-      .values({
+    if (existing) {
+      await db
+        .update(videoViews)
+        .set({
+          progress: newProgress,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(eq(videoViews.userId, me.id), eq(videoViews.videoId, videoId)),
+        );
+    } else {
+      await db.insert(videoViews).values({
         userId: me.id,
         videoId,
         progress: newProgress,
-      })
-      .onConflictDoUpdate({
-        target: [videoViews.userId, videoViews.videoId],
-        set: {
-          progress: newProgress,
-          updatedAt: new Date(),
-        },
       });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {

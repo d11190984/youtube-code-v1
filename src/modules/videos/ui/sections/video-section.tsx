@@ -91,7 +91,9 @@ const VideoSectionSuspense = ({ videoId, hideInfo, loopEnabled: loopEnabledProp 
         )
       : 0;
 
-  const finalProgress = localProgress > 0 ? localProgress : video.progress || 0; // ✅ dùng max để ưu tiên server nếu có
+  // Nếu có tracking (đã đăng nhập + bật lịch sử) -> Ưu tiên tuyệt đối Server
+  // Nếu không có tracking (khách hoặc tắt lịch sử) -> Dùng localStorage
+  const finalProgress = trackingEnabled ? (video.progress || 0) : localProgress;
   // 🔹 playlist public
   const { data: playlists } =
     trpc.playlists.getPublicMixPlaylists.useQuery() as {

@@ -25,6 +25,7 @@ interface PlayerState {
   playNext: () => void;
   clearQueue: () => void;
   setCurrentTime: (time: number) => void;
+  clearCurrentTime: (videoId?: string) => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set) => ({
@@ -77,4 +78,11 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   
   clearQueue: () => set({ queue: [] }),
   setCurrentTime: (time) => set({ currentTime: time }),
+  clearCurrentTime: (videoId) => set((state) => {
+    // Nếu không truyền ID hoặc ID trùng với video đang phát -> reset về 0
+    if (!videoId || state.activeVideoId === videoId) {
+      return { currentTime: 0 };
+    }
+    return state;
+  }),
 }));

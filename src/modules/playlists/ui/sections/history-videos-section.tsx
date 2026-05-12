@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { VideoMenu } from "@/modules/videos/ui/components/video-menu";
 import { PauseIcon, Trash2Icon, PlayIcon } from "lucide-react";
+import { usePlayerStore } from "@/modules/videos/store/use-player-store";
 
 export const HistoryVideosSection = () => {
   return (
@@ -86,6 +87,8 @@ const HistoryVideosSectionSuspense = () => {
 
   const cancelToggleTracking = () => setShowConfirmDialog(false);
 
+  const { clearCurrentTime } = usePlayerStore();
+
   const [videos, query] = trpc.playlists.getHistory.useSuspenseInfiniteQuery(
     { limit: DEFAULT_LIMIT },
     { getNextPageParam: (lastPage) => lastPage.nextCursor },
@@ -93,7 +96,20 @@ const HistoryVideosSectionSuspense = () => {
 
   const clearHistoryMutation = trpc.playlists.clearHistory.useMutation({
     onSuccess: async () => {
-      toast.success("Đã xóa tất cả lịch sử");
+      toast.success("Đã xóa tất cả nhật ký xem");
+      clearCurrentTime(); // Reset progress cho video đang phát
+
+      // Xóa tất cả progress trong localStorage
+      if (typeof window !== "undefined") {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith("video-") && key?.endsWith("-progress")) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      }
 
       await Promise.all([
         utils.playlists.getHistory.invalidate(),
@@ -108,8 +124,13 @@ const HistoryVideosSectionSuspense = () => {
   });
   const removeFromHistoryMutation =
     trpc.playlists.removeFromHistory.useMutation({
-      onSuccess: async () => {
+      onSuccess: async (data, variables) => {
         toast.success("Đã xóa video khỏi lịch sử");
+        clearCurrentTime(variables.videoId); // Reset progress cho video cụ thể
+
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(`video-${variables.videoId}-progress`);
+        }
 
         await Promise.all([
           utils.playlists.getHistory.invalidate(),

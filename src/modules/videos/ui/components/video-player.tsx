@@ -74,17 +74,6 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         });
       }
     }, [videoId, playbackId, title, thumbnailUrl, setVideo, component]);
-    
-    // Ép mở khóa Popup tự động cho mobile/Brave
-    useEffect(() => {
-      if (playerRef.current) {
-        const video = playerRef.current.media || playerRef.current.video || playerRef.current.shadowRoot?.querySelector("video");
-        if (video) {
-          video.autoPictureInPicture = true;
-          video.disablePictureInPicture = false;
-        }
-      }
-    }, [playerRef]);
 
     const incrementViewMutation = trpc.videos.incrementView.useMutation({
       onMutate: async () => {
@@ -155,8 +144,17 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         const duration = player.duration || 0;
         if (duration <= 0) return;
 
-        const resumeAt = Math.max(savedProgress || 0, localResumeRef.current || 0, globalCurrentTime || 0);
-        if (resumeAt > 1 && resumeAt < duration * 0.99) { // Nới lỏng 90% -> 99%
+        // Ưu tiên thời gian đang xem trong session hiện tại, nếu không có mới dùng savedProgress
+        let resumeAt = 0;
+        if (globalCurrentTime > 0 && globalCurrentTime < duration * 0.99) {
+          resumeAt = globalCurrentTime;
+        } else if (localResumeRef.current > 0 && localResumeRef.current < duration * 0.99) {
+          resumeAt = localResumeRef.current;
+        } else if (savedProgress > 0 && savedProgress < duration * 0.99) {
+          resumeAt = savedProgress;
+        }
+
+        if (resumeAt > 1) {
           player.currentTime = resumeAt;
           lastKnownProgress.current = resumeAt;
           localResumeRef.current = resumeAt;
@@ -222,6 +220,9 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
       };
       window.addEventListener("beforeunload", saveOnExit);
       return () => {
+        if (lastKnownProgress.current > 0) {
+          setCurrentTime(lastKnownProgress.current);
+        }
         saveOnExit();
         window.removeEventListener("beforeunload", saveOnExit);
       };

@@ -53,7 +53,7 @@ export const suggestionsRouter = createTRPCRouter({
         .select({
           ...getTableColumns(videos),
           user: users,
-          progress: videoViews.progress, // 🔹 progress user hiện tại
+          progress: sql<number>`user_progress.progress`, // 🔹 progress user hiện tại
           viewCount: videos.viewsCount, // 🔹 tổng viewCount
           likeCount: db.$count(
             videoReactions,
@@ -73,13 +73,16 @@ export const suggestionsRouter = createTRPCRouter({
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
         .leftJoin(
-          videoViews,
-          viewerId
-            ? and(
-                eq(videoViews.videoId, videos.id),
-                eq(videoViews.userId, viewerId),
-              )
-            : sql`1=0`, // ✅ guest-safe
+          db.select({
+            videoId: videoViews.videoId,
+            userId: videoViews.userId,
+            progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
+          })
+          .from(videoViews)
+          .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
+          .groupBy(videoViews.videoId, videoViews.userId)
+          .as("user_progress"),
+          eq(videos.id, sql`user_progress.video_id`)
         )
         .where(
           and(
@@ -104,7 +107,7 @@ export const suggestionsRouter = createTRPCRouter({
         .select({
           ...getTableColumns(videos),
           user: users,
-          progress: videoViews.progress,
+          progress: sql<number>`user_progress_fallback.progress`,
           viewCount: videos.viewsCount,
           likeCount: db.$count(
             videoReactions,
@@ -124,13 +127,16 @@ export const suggestionsRouter = createTRPCRouter({
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
         .leftJoin(
-          videoViews,
-          viewerId
-            ? and(
-                eq(videoViews.videoId, videos.id),
-                eq(videoViews.userId, viewerId),
-              )
-            : sql`1=0`, // guest vẫn join an toàn
+          db.select({
+            videoId: videoViews.videoId,
+            userId: videoViews.userId,
+            progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
+          })
+          .from(videoViews)
+          .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
+          .groupBy(videoViews.videoId, videoViews.userId)
+          .as("user_progress_fallback"),
+          eq(videos.id, sql`user_progress_fallback.video_id`)
         )
         .where(
           and(

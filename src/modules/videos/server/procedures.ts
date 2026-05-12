@@ -65,7 +65,7 @@ export const videosRouter = createTRPCRouter({
         .select({
           ...getTableColumns(videos),
           user: users,
-          progress: videoViews.progress,
+          progress: sql<number>`user_progress.progress`,
           viewCount: videos.viewsCount,
 
           likeCount: db.$count(
@@ -91,8 +91,16 @@ export const videosRouter = createTRPCRouter({
           eq(viewerSubscriptions.userId, users.id),
         )
         .leftJoin(
-          videoViews,
-          and(eq(videoViews.videoId, videos.id), eq(videoViews.userId, userId)),
+          db.select({
+            videoId: videoViews.videoId,
+            userId: videoViews.userId,
+            progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
+          })
+          .from(videoViews)
+          .where(eq(videoViews.userId, userId))
+          .groupBy(videoViews.videoId, videoViews.userId)
+          .as("user_progress"),
+          eq(videos.id, sql`user_progress.video_id`)
         )
         .where(
           and(
@@ -461,7 +469,7 @@ export const videosRouter = createTRPCRouter({
             ),
           },
           viewCount: videos.viewsCount,
-          progress: videoViews.progress,
+          progress: sql<number>`user_progress.progress`,
           likeCount: db.$count(
             videoReactions,
             and(
@@ -490,13 +498,16 @@ export const videosRouter = createTRPCRouter({
           eq(viewerSubscriptions.creatorId, users.id),
         )
         .leftJoin(
-          videoViews,
-          userId
-            ? and(
-                eq(videoViews.videoId, videos.id),
-                eq(videoViews.userId, userId),
-              )
-            : sql`1=0`,
+          db.select({
+            videoId: videoViews.videoId,
+            userId: videoViews.userId,
+            progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
+          })
+          .from(videoViews)
+          .where(userId ? eq(videoViews.userId, userId) : sql`1=0`)
+          .groupBy(videoViews.videoId, videoViews.userId)
+          .as("user_progress"),
+          eq(videos.id, sql`user_progress.video_id`)
         )
         .where(eq(videos.id, input.id));
 
@@ -699,71 +710,28 @@ export const videosRouter = createTRPCRouter({
           ),
         );
 
-      const oldProgress = existing?.progress ?? 0;
-      const newProgress = Math.max(0, Math.floor(input.progress));
+      const finalProgress = Math.max(0, Math.floor(input.progress));
 
-      const wasNearlyCompleted =
-        durationSeconds > 0 && oldProgress >= durationSeconds * 0.85;
-
-      let finalProgress = oldProgress;
-
-      // ====================================
-      // CASE 1: user bấm restart thủ công
-      // ====================================
-      if (input.isRestart) {
-        finalProgress = 0;
-      }
-
-      // ====================================
-      // CASE 2: currentTime=0 giả lúc load
-      // ====================================
-      else if (newProgress === 0 && oldProgress > 5 && !wasNearlyCompleted) {
-        return { success: true };
-      }
-
-      // ====================================
-      // CASE 3: video đã gần/full completed, user replay từ đầu
-      // cho phép tụt xuống
-      // ====================================
-      else if (wasNearlyCompleted && newProgress < oldProgress) {
-        finalProgress = newProgress;
-      }
-
-      // ====================================
-      // CASE 4: xem tiến tới bình thường
-      // ====================================
-      else if (newProgress >= oldProgress) {
-        finalProgress = newProgress;
-      }
-
-      // ====================================
-      // CASE 5: jitter nhẹ
-      // ====================================
-      else if (oldProgress - newProgress < 3) {
-        finalProgress = newProgress;
-      }
-
-      // ====================================
-      // CASE 6: tua lùi mạnh -> bỏ qua
-      // ====================================
-      else {
-        return { success: true };
-      }
-
-      await db
-        .insert(videoViews)
-        .values({
+      if (existing) {
+        await db
+          .update(videoViews)
+          .set({
+            progress: finalProgress,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(videoViews.userId, userId),
+              eq(videoViews.videoId, input.videoId),
+            ),
+          );
+      } else {
+        await db.insert(videoViews).values({
           userId,
           videoId: input.videoId,
           progress: finalProgress,
-        })
-        .onConflictDoUpdate({
-          target: [videoViews.userId, videoViews.videoId],
-          set: {
-            progress: finalProgress,
-            updatedAt: new Date(),
-          },
         });
+      }
 
       return { success: true };
     }),

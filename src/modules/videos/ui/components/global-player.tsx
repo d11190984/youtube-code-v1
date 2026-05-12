@@ -29,6 +29,12 @@ export const GlobalPlayer = () => {
   const playerRef = useRef<any>(null);
 
   const [showQueue, setShowQueue] = useState(false);
+  const isSeekingRef = useRef(true);
+
+  // Reset seeking flag when video changes
+  useEffect(() => {
+    isSeekingRef.current = true;
+  }, [activeVideo?.id]);
 
   // Auto-minimize when navigating away from video page
   useEffect(() => {
@@ -37,17 +43,6 @@ export const GlobalPlayer = () => {
       minimize();
     }
   }, [pathname, isOpen, isMinimized, minimize]);
-
-  // Ép mở khóa Popup tự động cho mobile/Brave
-  useEffect(() => {
-    if (playerRef.current) {
-      const video: any = playerRef.current.media || playerRef.current.video || playerRef.current.shadowRoot?.querySelector("video");
-      if (video) {
-        video.autoPictureInPicture = true;
-        video.disablePictureInPicture = false;
-      }
-    }
-  }, [isOpen, activeVideo]);
 
   if (!isOpen || !activeVideo) return null;
 
@@ -120,11 +115,21 @@ export const GlobalPlayer = () => {
             className="w-full h-full"
             accentColor="#FF2056"
             playsInline
-            onTimeUpdate={(e) => {
+            onTimeUpdate={() => {
               const player = playerRef.current;
-              if (player) {
-                setCurrentTime(Math.floor(player.currentTime));
+              if (player && !isSeekingRef.current) {
+                const newTime = Math.floor(player.currentTime);
+                // Only update if the time is actually moving and not 0 (initial state)
+                if (newTime > 0) {
+                  setCurrentTime(newTime);
+                }
               }
+            }}
+            onPlaying={() => {
+              // Once video starts playing, we assume initial seek (if any) is done
+              setTimeout(() => {
+                isSeekingRef.current = false;
+              }, 500);
             }}
             onEnded={() => {
               if (queue.length > 0) {
