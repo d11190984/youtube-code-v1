@@ -74,6 +74,17 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
         });
       }
     }, [videoId, playbackId, title, thumbnailUrl, setVideo, component]);
+    
+    // Ép mở khóa Popup tự động cho mobile/Brave
+    useEffect(() => {
+      if (playerRef.current) {
+        const video = playerRef.current.media || playerRef.current.video || playerRef.current.shadowRoot?.querySelector("video");
+        if (video) {
+          video.autoPictureInPicture = true;
+          video.disablePictureInPicture = false;
+        }
+      }
+    }, [playerRef]);
 
     const incrementViewMutation = trpc.videos.incrementView.useMutation({
       onMutate: async () => {

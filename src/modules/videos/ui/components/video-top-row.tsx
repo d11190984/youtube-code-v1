@@ -85,8 +85,9 @@ export const VideoTopRow = ({
       
       if (!video) return toast.error("Không tìm thấy trình phát");
 
-      // Ép mở khóa mạnh mẽ hơn cho các dòng máy kén chọn
+      // Ép mở khóa mạnh mẽ hơn cho Brave/Xiaomi
       video.disablePictureInPicture = false;
+      video.autoPictureInPicture = true; 
       video.removeAttribute("disablePictureInPicture");
       video.setAttribute("picture-in-picture", "true");
 
@@ -96,17 +97,18 @@ export const VideoTopRow = ({
       if (video.requestPictureInPicture) {
         try {
           await video.requestPictureInPicture();
-          return; // Thành công
+          return;
         } catch (innerErr) {
-          console.warn("W3C PiP failed, trying fallbacks...", innerErr);
+          console.warn("W3C PiP failed:", innerErr);
         }
       }
 
-      // Thử dùng chuẩn Webkit (Safari/iPhone)
+      // Thử chuẩn Webkit
       if (video.webkitSetPresentationMode) {
         video.webkitSetPresentationMode("picture-in-picture");
       } else {
-        toast.error("Trình duyệt này (hoặc ứng dụng bạn đang dùng) đã khóa tính năng Popup.");
+        // Nếu tất cả thất bại, dùng Mini-player nội bộ
+        throw new Error("Blocked by browser");
       }
     } catch (err: any) {
       console.error("PiP Error:", err);

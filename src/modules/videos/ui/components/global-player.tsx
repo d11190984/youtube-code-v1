@@ -38,6 +38,17 @@ export const GlobalPlayer = () => {
     }
   }, [pathname, isOpen, isMinimized, minimize]);
 
+  // Ép mở khóa Popup tự động cho mobile/Brave
+  useEffect(() => {
+    if (playerRef.current) {
+      const video: any = playerRef.current.media || playerRef.current.video || playerRef.current.shadowRoot?.querySelector("video");
+      if (video) {
+        video.autoPictureInPicture = true;
+        video.disablePictureInPicture = false;
+      }
+    }
+  }, [isOpen, activeVideo]);
+
   if (!isOpen || !activeVideo) return null;
 
   // Don't show global player if we are on the video page and NOT minimized
