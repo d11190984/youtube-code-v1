@@ -13,6 +13,7 @@ import { VideoPlaybackMenu } from "./video-playback-menu";
 import { Button } from "@/components/ui/button";
 import { ExternalLinkIcon } from "lucide-react";
 import { toast } from "sonner";
+import { usePlayerStore } from "@/modules/videos/store/use-player-store";
 
 interface VideoTopRowProps {
   video: VideoGetOneOutput;
@@ -38,6 +39,7 @@ export const VideoTopRow = ({
   loopEnabled,
   setLoopEnabledAction,
 }: VideoTopRowProps) => {
+  const { setVideo, minimize } = usePlayerStore();
   const [playbackRate, setPlaybackRate] = useState(1);
 
   // Áp dụng playbackRate trực tiếp
@@ -106,7 +108,15 @@ export const VideoTopRow = ({
       }
     } catch (err: any) {
       console.error("PiP Error:", err);
-      toast.error("Không thể mở Popup. Bạn hãy thử tắt Chế độ tiết kiệm pin hoặc dùng Chrome/Safari gốc.");
+      // Fallback: Nếu không mở được Popup hệ thống, dùng Mini-player của ứng dụng
+      setVideo({
+        id: video.id,
+        title: video.title,
+        playbackId: video.muxPlaybackId,
+        thumbnailUrl: video.thumbnailUrl || undefined,
+      });
+      minimize();
+      toast.info("Đã chuyển sang Mini-player do trình duyệt chặn Popup");
     }
   };
 
