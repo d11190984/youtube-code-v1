@@ -85,8 +85,10 @@ export const VideoTopRow = ({
       
       if (!video) return toast.error("Không tìm thấy trình phát");
 
-      // Ép mở khóa nếu bị chặn
+      // Ép mở khóa mạnh mẽ hơn cho các dòng máy kén chọn
       video.disablePictureInPicture = false;
+      video.removeAttribute("disablePictureInPicture");
+      video.setAttribute("picture-in-picture", "true");
 
       if (video.paused) await video.play();
 
