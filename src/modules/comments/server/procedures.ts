@@ -369,7 +369,10 @@ export const commentsRouter = createTRPCRouter({
         : isNull(comments.parentId),
       or(
         userId ? eq(comments.userId, userId) : sql<boolean>`FALSE`,
-        sql<boolean>`COALESCE(${channelModerations.type}, '') != 'hidden'`
+        or(
+          isNull(channelModerations.type),
+          sql<boolean>`${channelModerations.type} != 'hidden'`
+        )
       ),
       cursor
         ? or(
@@ -400,7 +403,10 @@ export const commentsRouter = createTRPCRouter({
             isNull(comments.parentId),
             or(
               userId ? eq(comments.userId, userId) : sql<boolean>`FALSE`,
-              sql<boolean>`COALESCE(${channelModerations.type}, '') != 'hidden'`
+              or(
+                isNull(channelModerations.type),
+                sql<boolean>`${channelModerations.type} != 'hidden'`
+              )
             ),
           ),
         ),
