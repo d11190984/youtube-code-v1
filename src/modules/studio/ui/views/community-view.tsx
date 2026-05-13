@@ -992,8 +992,14 @@ const CommunityCommentsList = ({
 
               <div className="flex-1 flex flex-col min-w-0">
                 <div className="flex items-center gap-x-2 text-xs text-muted-foreground mb-1">
-                    <span className="font-bold text-black dark:text-white bg-neutral-200 dark:bg-white/10 px-2 py-0.5 rounded-full">
+                    <span className="font-bold text-black dark:text-white bg-neutral-200 dark:bg-white/10 px-2 py-0.5 rounded-full flex items-center gap-x-1">
                       @{comment.user.handle || comment.user.name}
+                      {comment.moderationType === "manager_mod" && (
+                        <ShieldAlertIcon className="size-4 text-purple-600 fill-purple-600/20" />
+                      )}
+                      {comment.moderationType === "standard_mod" && (
+                        <ShieldCheckIcon className="size-4 text-blue-500 fill-blue-500/20" />
+                      )}
                     </span>
                     <span>•</span>
                     <span>{formatDistanceToNow(new Date(comment.createdAt), { locale: vi, addSuffix: true })}</span>

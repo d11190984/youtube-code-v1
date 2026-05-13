@@ -15,6 +15,8 @@ import {
   HeartIcon,
   ImageIcon,
   TimerIcon,
+  ShieldCheckIcon,
+  ShieldAlertIcon,
 } from "lucide-react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -145,8 +147,14 @@ export const CommentItem = ({
         <div className="flex-1 min-w-0">
           <Link prefetch href={`/users/${comment.userId}`}>
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-medium text-sm pb-0.5">
+              <span className="font-medium text-sm pb-0.5 flex items-center gap-1">
                 {comment.user.handle ? `@${comment.user.handle}` : comment.user.name}
+                {(comment as any).moderationType === 'manager_mod' && (
+                  <ShieldAlertIcon className="size-[18px] text-purple-600 fill-purple-600/20 ml-1" />
+                )}
+                {(comment as any).moderationType === 'standard_mod' && (
+                  <ShieldCheckIcon className="size-[18px] text-blue-500 fill-blue-500/20 ml-1" />
+                )}
               </span>
               <span className="text-xs text-muted-foreground">
                 {formatDistanceToNowStrict(new Date(comment.createdAt), {
@@ -287,7 +295,7 @@ export const CommentItem = ({
                 </DropdownMenuItem>
               </>
             )}
-            {(isCommentOwner || isContentOwner) && (
+            {(isCommentOwner || isContentOwner || (comment as any).currentUserModerationType === 'manager_mod' || (comment as any).currentUserModerationType === 'standard_mod') && (
               <DropdownMenuItem
                 onClick={() => remove.mutate({ id: comment.id })}
               >

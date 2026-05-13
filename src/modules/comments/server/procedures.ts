@@ -15,7 +15,7 @@ import {
 
 import { db } from "@/db";
 import { TRPCError } from "@trpc/server";
-import { commentReactions, comments, users, videos, posts, notifications } from "@/db/schema";
+import { commentReactions, comments, users, videos, posts, notifications, channelModerations } from "@/db/schema";
 import {
   baseProcedure,
   createTRPCRouter,
@@ -88,7 +88,26 @@ export const commentsRouter = createTRPCRouter({
         (comment.videoUserId && comment.videoUserId === userId) || 
         (comment.postUserId && comment.postUserId === userId);
 
-      if (comment.commentUserId !== userId && !isContentOwner) {
+      let isModerator = false;
+      const contentOwnerId = comment.videoUserId || comment.postUserId;
+
+      if (contentOwnerId && comment.commentUserId !== userId && !isContentOwner) {
+        const [modStatus] = await db
+          .select({ type: channelModerations.type })
+          .from(channelModerations)
+          .where(
+             and(
+               eq(channelModerations.creatorId, contentOwnerId),
+               eq(channelModerations.viewerId, userId)
+             )
+          );
+
+        if (modStatus && (modStatus.type === "manager_mod" || modStatus.type === "standard_mod")) {
+          isModerator = true;
+        }
+      }
+
+      if (comment.commentUserId !== userId && !isContentOwner && !isModerator) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
@@ -348,6 +367,10 @@ export const commentsRouter = createTRPCRouter({
       parentId
         ? eq(comments.parentId, parentId)
         : isNull(comments.parentId),
+      or(
+        userId ? eq(comments.userId, userId) : sql<boolean>`FALSE`,
+        sql<boolean>`COALESCE(${channelModerations.type}, '') != 'hidden'`
+      ),
       cursor
         ? or(
             lt(comments.updatedAt, cursor.updatedAt),
@@ -365,10 +388,20 @@ export const commentsRouter = createTRPCRouter({
           count: count(),
         })
         .from(comments)
+        .leftJoin(videos, eq(comments.videoId, videos.id))
+        .leftJoin(posts, eq(comments.postId, posts.id))
+        .leftJoin(channelModerations, and(
+          eq(channelModerations.viewerId, comments.userId),
+          eq(channelModerations.creatorId, sql<string>`COALESCE(${videos.userId}, ${posts.userId})`)
+        ))
         .where(
           and(
             videoId ? eq(comments.videoId, videoId) : eq(comments.postId, postId!),
             isNull(comments.parentId),
+            or(
+              userId ? eq(comments.userId, userId) : sql<boolean>`FALSE`,
+              sql<boolean>`COALESCE(${channelModerations.type}, '') != 'hidden'`
+            ),
           ),
         ),
 
@@ -403,12 +436,18 @@ export const commentsRouter = createTRPCRouter({
           contentOwnerClerkId: sql<string>`(SELECT clerk_id FROM users WHERE id = COALESCE(${videos.userId}, ${posts.userId}))`,
           contentOwnerName: sql<string>`(SELECT name FROM users WHERE id = COALESCE(${videos.userId}, ${posts.userId}))`,
           contentOwnerImageUrl: sql<string>`(SELECT image_url FROM users WHERE id = COALESCE(${videos.userId}, ${posts.userId}))`,
+          moderationType: channelModerations.type,
+          currentUserModerationType: userId ? sql<string>`(SELECT type FROM channel_moderations WHERE creator_id = COALESCE(${videos.userId}, ${posts.userId}) AND viewer_id = ${userId})` : sql<string>`NULL`,
         })
         .from(comments)
         .where(whereClause)
         .innerJoin(users, eq(comments.userId, users.id))
         .leftJoin(videos, eq(comments.videoId, videos.id))
         .leftJoin(posts, eq(comments.postId, posts.id))
+        .leftJoin(channelModerations, and(
+          eq(channelModerations.viewerId, comments.userId),
+          eq(channelModerations.creatorId, sql<string>`COALESCE(${videos.userId}, ${posts.userId})`)
+        ))
         .leftJoin(viewerReactions, eq(comments.id, viewerReactions.commentId))
         .leftJoin(replies, eq(comments.id, replies.parentId))
         .orderBy(
