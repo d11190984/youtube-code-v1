@@ -340,6 +340,7 @@ export const studioRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
     const { id: userId } = ctx.user;
     const { days } = input;
+    const userTz = "Asia/Ho_Chi_Minh";
 
     // 1. Chạy tất cả các câu truy vấn cơ bản song song
     const [
@@ -354,10 +355,10 @@ export const studioRouter = createTRPCRouter({
     ] = await Promise.all([
       db.select({ totalViews: sql<number>`CAST(SUM(${videos.viewsCount}) AS INTEGER)` }).from(videos).where(eq(videos.userId, userId)),
       db.select({ count: sql<number>`CAST(COUNT(*) AS INTEGER)` }).from(subscriptions).where(eq(subscriptions.creatorId, userId)),
-      db.select({ date: sql<string>`DATE_TRUNC('day', ${videoViews.createdAt})`, views: sql<number>`CAST(COUNT(*) AS INTEGER)` }).from(videoViews).innerJoin(videos, eq(videoViews.videoId, videos.id)).where(and(eq(videos.userId, userId), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))).groupBy(sql`DATE_TRUNC('day', ${videoViews.createdAt})`).orderBy(sql`DATE_TRUNC('day', ${videoViews.createdAt})`),
+      db.select({ date: sql<string>`DATE_TRUNC('day', ${videoViews.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh')`, views: sql<number>`CAST(COUNT(*) AS INTEGER)` }).from(videoViews).innerJoin(videos, eq(videoViews.videoId, videos.id)).where(and(eq(videos.userId, userId), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))).groupBy(sql`DATE_TRUNC('day', ${videoViews.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh')`).orderBy(sql`DATE_TRUNC('day', ${videoViews.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh')`),
       db.select({ progress: videoViews.progress, duration: videos.duration }).from(videoViews).innerJoin(videos, eq(videoViews.videoId, videos.id)).where(and(eq(videos.userId, userId), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))),
       db.select({ id: videos.id, title: videos.title, thumbnailUrl: videos.thumbnailUrl, viewsCount: videos.viewsCount, duration: videos.duration, createdAt: videos.createdAt, muxPlaybackId: videos.muxPlaybackId }).from(videos).where(eq(videos.userId, userId)).orderBy(desc(videos.viewsCount)).limit(5),
-      db.select({ date: sql<string>`DATE_TRUNC('day', ${subscriptions.createdAt})`, count: sql<number>`CAST(COUNT(*) AS INTEGER)` }).from(subscriptions).where(and(eq(subscriptions.creatorId, userId), gte(subscriptions.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))).groupBy(sql`DATE_TRUNC('day', ${subscriptions.createdAt})`).orderBy(sql`DATE_TRUNC('day', ${subscriptions.createdAt})`),
+      db.select({ date: sql<string>`DATE_TRUNC('day', ${subscriptions.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh')`, count: sql<number>`CAST(COUNT(*) AS INTEGER)` }).from(subscriptions).where(and(eq(subscriptions.creatorId, userId), gte(subscriptions.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))).groupBy(sql`DATE_TRUNC('day', ${subscriptions.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh')`).orderBy(sql`DATE_TRUNC('day', ${subscriptions.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh')`),
       db.select({ count: sql<number>`COUNT(DISTINCT ${videoViews.userId})` }).from(videoViews).innerJoin(videos, eq(videoViews.videoId, videos.id)).where(and(eq(videos.userId, userId), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`), isNotNull(videoViews.userId))),
       db.select({ isSubscribed: sql<boolean>`CASE WHEN ${subscriptions.viewerId} IS NOT NULL THEN true ELSE false END`, count: sql<number>`CAST(COUNT(*) AS INTEGER)` }).from(videoViews).innerJoin(videos, eq(videoViews.videoId, videos.id)).leftJoin(subscriptions, and(eq(subscriptions.creatorId, videos.userId), eq(subscriptions.viewerId, videoViews.userId))).where(and(eq(videos.userId, userId), gte(videoViews.createdAt, sql`NOW() - INTERVAL '1 day' * ${days}`))).groupBy(sql`CASE WHEN ${subscriptions.viewerId} IS NOT NULL THEN true ELSE false END`),
     ]);
@@ -395,18 +396,42 @@ export const studioRouter = createTRPCRouter({
     const realtime = await (async () => {
       const totalViews = await db.$count(videoViews, and(inArray(videoViews.videoId, db.select({ id: videos.id }).from(videos).where(eq(videos.userId, userId))), gte(videoViews.createdAt, sql`NOW() - INTERVAL '48 hours'`)));
       const topVideosInRange = await db.select({ id: videos.id, title: videos.title, thumbnailUrl: videos.thumbnailUrl, viewsCount: sql<number>`CAST(COUNT(${videoViews.videoId}) AS INTEGER)` }).from(videoViews).innerJoin(videos, eq(videoViews.videoId, videos.id)).where(and(eq(videos.userId, userId), gte(videoViews.createdAt, sql`NOW() - INTERVAL '48 hours'`))).groupBy(videos.id).orderBy(desc(sql`COUNT(${videoViews.videoId})`)).limit(3);
-      const viewsByHourRaw = await db.select({ hour: sql<string>`TO_CHAR(${videoViews.createdAt}, 'YYYY-MM-DD HH24:00')`, count: sql<number>`CAST(COUNT(*) AS INTEGER)` }).from(videoViews).innerJoin(videos, eq(videoViews.videoId, videos.id)).where(and(eq(videos.userId, userId), gte(videoViews.createdAt, sql`NOW() - INTERVAL '48 hours'`))).groupBy(sql`TO_CHAR(${videoViews.createdAt}, 'YYYY-MM-DD HH24:00')`).orderBy(sql`TO_CHAR(${videoViews.createdAt}, 'YYYY-MM-DD HH24:00')`);
+      const viewsByHourRaw = await db.select({ hour: sql<string>`TO_CHAR(${videoViews.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:00')`, count: sql<number>`CAST(COUNT(*) AS INTEGER)` }).from(videoViews).innerJoin(videos, eq(videoViews.videoId, videos.id)).where(and(eq(videos.userId, userId), gte(videoViews.createdAt, sql`NOW() - INTERVAL '48 hours'`))).groupBy(sql`TO_CHAR(${videoViews.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:00')`).orderBy(sql`TO_CHAR(${videoViews.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:00')`);
 
       const viewsByHour = [];
+      const now = new Date();
+      const todayStr = formatInTimeZone(now, userTz, "yyyy-MM-dd");
+      const yesterdayStr = formatInTimeZone(new Date(now.getTime() - 24 * 60 * 60 * 1000), userTz, "yyyy-MM-dd");
+
       for (let i = 47; i >= 0; i--) {
         const d = new Date();
         d.setUTCMinutes(0, 0, 0);
         d.setUTCHours(d.getUTCHours() - i);
-        const hourStr = d.toISOString().replace("T", " ").slice(0, 13) + ":00";
+        
+        const hourStr = formatInTimeZone(d, userTz, "yyyy-MM-dd HH:00");
         const found = viewsByHourRaw.find(v => v.hour === hourStr);
-        let label = i === 0 ? "Đang diễn ra" : i < 24 ? "Hôm nay" : "Hôm qua";
-        const userTz = "Asia/Ho_Chi_Minh";
-        viewsByHour.push({ hour: formatInTimeZone(d, userTz, "HH:00"), fullLabel: `${label}, ${formatInTimeZone(d, userTz, "HH:00")}–${formatInTimeZone(new Date(d.getTime() + 3600000), userTz, "HH:00")}`, views: found ? found.count : 0 });
+        
+        const dateStr = formatInTimeZone(d, userTz, "yyyy-MM-dd");
+        let dayLabel = "";
+        
+        if (i === 0) {
+          dayLabel = "Đang diễn ra";
+        } else if (dateStr === todayStr) {
+          dayLabel = "Hôm nay";
+        } else if (dateStr === yesterdayStr) {
+          dayLabel = "Hôm qua";
+        } else {
+          dayLabel = formatInTimeZone(d, userTz, "d 'thg' M");
+        }
+
+        const startHour = formatInTimeZone(d, userTz, "HH:00");
+        const endHour = formatInTimeZone(new Date(d.getTime() + 3600000), userTz, "HH:00");
+        
+        viewsByHour.push({ 
+          hour: startHour, 
+          fullLabel: `${dayLabel}, ${startHour}–${endHour}`, 
+          views: found ? found.count : 0 
+        });
       }
       return { totalViews, topVideos: topVideosInRange, viewsByHour };
     })();
@@ -419,15 +444,15 @@ export const studioRouter = createTRPCRouter({
       viewsByDay: Array.from({ length: days }).map((_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (days - 1 - i));
-        const formattedDate = format(d, "d 'thg' M, yyyy", { locale: vi });
-        const dbEntry = viewsByDayRaw.find((v) => format(new Date(v.date), "d 'thg' M, yyyy", { locale: vi }) === formattedDate);
+        const formattedDate = formatInTimeZone(d, userTz, "d 'thg' M, yyyy", { locale: vi });
+        const dbEntry = viewsByDayRaw.find((v) => formatInTimeZone(new Date(v.date), userTz, "d 'thg' M, yyyy", { locale: vi }) === formattedDate);
         return { date: formattedDate, views: dbEntry ? dbEntry.views : 0 };
       }),
       subscribersByDay: Array.from({ length: days }).map((_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (days - 1 - i));
-        const formattedDate = format(d, "dd/MM");
-        const dbEntry = subscribersByDayRaw.find((s) => format(new Date(s.date), "dd/MM") === formattedDate);
+        const formattedDate = formatInTimeZone(d, userTz, "dd/MM");
+        const dbEntry = subscribersByDayRaw.find((s) => formatInTimeZone(new Date(s.date), userTz, "dd/MM") === formattedDate);
         return { date: formattedDate, count: dbEntry ? dbEntry.count : 0 };
       }),
       totalWatchTimeHours,

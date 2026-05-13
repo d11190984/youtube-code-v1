@@ -53,6 +53,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { CommentReplies } from "@/modules/comments/ui/components/comment-replies";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 
@@ -87,7 +100,7 @@ export const CommunityView = () => {
       <h1 className="text-2xl font-bold mb-4">Cộng đồng</h1>
 
       <Tabs defaultValue="comments" className="w-full">
-        <TabsList className="bg-transparent h-auto p-0 gap-x-6 border-b border-neutral-200 dark:border-white/10 w-full justify-start rounded-none">
+        <TabsList className="bg-transparent h-auto p-0 gap-x-6 border-b border-neutral-200 dark:border-white/10 w-full justify-start rounded-none overflow-x-auto scrollbar-hide flex-nowrap">
           <TabsTrigger 
             value="comments" 
             className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-black dark:data-[state=active]:border-white bg-transparent data-[state=active]:bg-transparent font-medium capitalize"
@@ -96,13 +109,13 @@ export const CommunityView = () => {
           </TabsTrigger>
           <TabsTrigger 
             value="viewer-posts" 
-            className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-black dark:data-[state=active]:border-white bg-transparent data-[state=active]:bg-transparent font-medium capitalize text-muted-foreground"
+            className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-black dark:data-[state=active]:border-white bg-transparent data-[state=active]:bg-transparent font-medium capitalize text-muted-foreground whitespace-nowrap"
           >
             Bài đăng của người xem
           </TabsTrigger>
           <TabsTrigger 
             value="mentions" 
-            className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-black dark:data-[state=active]:border-white bg-transparent data-[state=active]:bg-transparent font-medium capitalize text-muted-foreground"
+            className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-black dark:data-[state=active]:border-white bg-transparent data-[state=active]:bg-transparent font-medium capitalize text-muted-foreground whitespace-nowrap"
           >
             Lượt đề cập
           </TabsTrigger>
@@ -119,14 +132,14 @@ export const CommunityView = () => {
           )}
 
           {/* Lọc & Sắp xếp */}
-          <div className="flex items-center gap-x-3 mb-4 text-sm flex-wrap gap-y-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-neutral-200 dark:hover:bg-white/10 rounded-full">
+          <div className="flex items-center gap-x-3 mb-4 text-sm overflow-x-auto pb-2 scrollbar-hide flex-nowrap">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-neutral-200 dark:hover:bg-white/10 rounded-full shrink-0">
                <FilterIcon className="size-4" />
             </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" className="rounded-full h-8 px-3 text-xs font-medium bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 border-0">
+                <Button variant="secondary" className="rounded-full h-8 px-3 text-xs font-medium bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 border-0 shrink-0 whitespace-nowrap">
                   {statusFilter === "published" ? "Đã đăng" : "Bị giữ lại"} <ChevronDownIcon className="size-3 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
@@ -140,7 +153,7 @@ export const CommunityView = () => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" className="rounded-full h-8 px-3 text-xs font-medium bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 border-0">
+                <Button variant="secondary" className="rounded-full h-8 px-3 text-xs font-medium bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 border-0 shrink-0 whitespace-nowrap">
                   Sắp xếp theo: {sortBy === "newest" ? "Mới nhất" : "Phù hợp nhất"} <ChevronDownIcon className="size-3 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
@@ -152,266 +165,440 @@ export const CommunityView = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" className="rounded-full h-8 px-3 text-xs font-medium bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 border-0">
-                  Lọc thêm <ChevronDownIcon className="size-3 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64 bg-[#282828] border-white/10 text-white rounded-xl shadow-2xl py-2 px-0">
-                {/* Từ khoá */}
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
-                    Từ khoá
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-72 bg-[#282828] border-white/10 text-white rounded-xl p-4 ml-2">
-                    <div className="flex flex-col gap-y-3" onClick={(e) => e.stopPropagation()}>
-                      <p className="text-sm font-medium">Từ khoá</p>
-                      <Input 
-                        placeholder="Giá trị" 
-                        value={tempKeyword}
-                        onChange={(e) => setTempKeyword(e.target.value)}
-                        className="bg-transparent border-white/20 focus-visible:ring-0 focus-visible:border-blue-500 h-9"
-                        onKeyDown={(e) => e.key === "Enter" && handleApplyKeyword()}
-                      />
-                      <div className="flex justify-end gap-x-4 mt-2">
+            {/* Desktop Filter Button */}
+            <div className="hidden lg:block">
+              <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="secondary" className="rounded-full h-8 px-3 text-xs font-medium bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 border-0 shrink-0 whitespace-nowrap">
+                    Lọc thêm <ChevronDownIcon className="size-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-64 bg-[#282828] border-white/10 text-white rounded-xl shadow-2xl py-2 px-0">
+                  {/* Từ khoá */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
+                      Từ khoá
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-72 bg-[#282828] border-white/10 text-white rounded-xl p-4 ml-2">
+                      <div className="flex flex-col gap-y-3" onClick={(e) => e.stopPropagation()}>
+                        <p className="text-sm font-medium">Từ khoá</p>
+                        <Input 
+                          placeholder="Giá trị" 
+                          value={tempKeyword}
+                          onChange={(e) => setTempKeyword(e.target.value)}
+                          className="bg-transparent border-white/20 focus-visible:ring-0 focus-visible:border-blue-500 h-9"
+                          onKeyDown={(e) => e.key === "Enter" && handleApplyKeyword()}
+                        />
+                        <div className="flex justify-end gap-x-4 mt-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => {
+                              setTempKeyword("");
+                              setIsFilterOpen(false);
+                            }} 
+                            className="hover:bg-white/10 h-8 text-white font-bold"
+                          >
+                            Hủy
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={handleApplyKeyword} 
+                            className="text-[#3ea6ff] hover:bg-[#3ea6ff]/10 h-8 font-bold"
+                          >
+                            Áp dụng
+                          </Button>
+                        </div>
+                      </div>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+
+                  <DropdownMenuItem 
+                    className="px-4 py-2 hover:bg-white/10 cursor-pointer flex justify-between items-center"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setContainsQuestions(!containsQuestions);
+                      setIsFilterOpen(false);
+                    }}
+                  >
+                    Chứa câu hỏi
+                    {containsQuestions && <div className="size-2 bg-blue-500 rounded-full" />}
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="bg-white/10 my-1" />
+
+                  {/* Loại nội dung */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
+                      Loại nội dung
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-64 bg-[#282828] border-white/10 text-white rounded-xl p-0 overflow-hidden ml-2">
+                      <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                        <span className="text-sm font-medium">Loại nội dung</span>
+                      </div>
+                      <div className="p-2 flex flex-col gap-y-1">
+                        {[
+                          { id: "video", label: "Video" },
+                          { id: "shorts", label: "Shorts" },
+                          { id: "my-posts", label: "Bài đăng của tôi" },
+                          { id: "viewer-posts", label: "Bài đăng của người xem" },
+                        ].map((item) => (
+                          <div 
+                            key={item.id} 
+                            className="flex items-center gap-x-3 px-2 py-2 hover:bg-white/5 rounded-md cursor-pointer group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTempContentTypes(prev => 
+                                prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                              );
+                            }}
+                          >
+                            <Checkbox 
+                              checked={tempContentTypes.includes(item.id)}
+                              onCheckedChange={() => {
+                                setTempContentTypes(prev => 
+                                  prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                                );
+                              }}
+                              className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                            />
+                            <span className="text-sm">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-4 bg-[#1f1f1f] flex justify-end gap-x-2">
                         <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => {
-                            setTempKeyword("");
-                            setIsFilterOpen(false);
-                          }} 
-                          className="hover:bg-white/10 h-8 text-white font-bold"
+                            variant="ghost" 
+                            size="sm" 
+                            className="rounded-full hover:bg-white/10 text-white font-bold px-4"
+                            onClick={() => {
+                              setTempContentTypes(selectedContentTypes);
+                              setIsFilterOpen(false);
+                            }}
                         >
                           Hủy
                         </Button>
                         <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={handleApplyKeyword} 
-                          className="text-[#3ea6ff] hover:bg-[#3ea6ff]/10 h-8 font-bold"
+                            variant="secondary" 
+                            size="sm" 
+                            className="rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50 font-bold px-4"
+                            disabled={tempContentTypes.length === 0 && selectedContentTypes.length === 0}
+                            onClick={() => {
+                              setSelectedContentTypes(tempContentTypes);
+                              setIsFilterOpen(false);
+                            }}
                         >
                           Áp dụng
                         </Button>
                       </div>
-                    </div>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
 
-                <DropdownMenuItem 
-                  className="px-4 py-2 hover:bg-white/10 cursor-pointer flex justify-between items-center"
-                  onClick={(e) => {
-                    e.preventDefault(); // Prevent default close if needed, or let it close
-                    setContainsQuestions(!containsQuestions);
-                    setIsFilterOpen(false);
-                  }}
-                >
-                  Chứa câu hỏi
-                  {containsQuestions && <div className="size-2 bg-blue-500 rounded-full" />}
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator className="bg-white/10 my-1" />
-
-                {/* Loại nội dung */}
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
-                    Loại nội dung
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-64 bg-[#282828] border-white/10 text-white rounded-xl p-0 overflow-hidden ml-2">
-                    <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                       <span className="text-sm font-medium">Loại nội dung</span>
-                    </div>
-                    <div className="p-2 flex flex-col gap-y-1">
-                      {[
-                        { id: "video", label: "Video" },
-                        { id: "shorts", label: "Shorts" },
-                        { id: "my-posts", label: "Bài đăng của tôi" },
-                        { id: "viewer-posts", label: "Bài đăng của người xem" },
-                      ].map((item) => (
-                        <div 
-                          key={item.id} 
-                          className="flex items-center gap-x-3 px-2 py-2 hover:bg-white/5 rounded-md cursor-pointer group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTempContentTypes(prev => 
-                              prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
-                            );
-                          }}
-                        >
-                          <Checkbox 
-                            checked={tempContentTypes.includes(item.id)}
-                            onCheckedChange={() => {
-                               setTempContentTypes(prev => 
-                                 prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
-                               );
+                  {/* Số người đăng ký */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
+                      Số người đăng ký
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-64 bg-[#282828] border-white/10 text-white rounded-xl p-0 overflow-hidden ml-2">
+                      <div className="p-4 border-b border-white/10">
+                        <span className="text-sm font-medium">Số người đăng ký tối thiểu</span>
+                      </div>
+                      <DropdownMenuRadioGroup 
+                        value={tempMinSubscribers?.toString()} 
+                        onValueChange={(v) => setTempMinSubscribers(v ? parseInt(v) : undefined)}
+                        className="p-2"
+                      >
+                        {[
+                          { id: "100", label: "100" },
+                          { id: "1000", label: "1.000" },
+                          { id: "10000", label: "10.000" },
+                          { id: "100000", label: "100.000" },
+                          { id: "1000000", label: "1.000.000" },
+                          { id: "10000000", label: "10.000.000" },
+                        ].map((item) => (
+                          <DropdownMenuRadioItem 
+                            key={item.id} 
+                            value={item.id}
+                            className="cursor-pointer focus:bg-white/10 focus:text-white py-2"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            {item.label}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                      <div className="p-4 bg-[#1f1f1f] flex justify-end gap-x-2">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="rounded-full hover:bg-white/10 text-white font-bold px-4"
+                            onClick={() => {
+                              setTempMinSubscribers(minSubscribers);
+                              setIsFilterOpen(false);
                             }}
-                            className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                          />
-                          <span className="text-sm">{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="p-4 bg-[#1f1f1f] flex justify-end gap-x-2">
-                       <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="rounded-full hover:bg-white/10 text-white font-bold px-4"
-                          onClick={() => {
-                            setTempContentTypes(selectedContentTypes);
-                            setIsFilterOpen(false);
-                          }}
-                       >
-                         Hủy
-                       </Button>
-                       <Button 
-                          variant="secondary" 
-                          size="sm" 
-                          className="rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50 font-bold px-4"
-                          disabled={tempContentTypes.length === 0 && selectedContentTypes.length === 0}
-                          onClick={() => {
-                            setSelectedContentTypes(tempContentTypes);
-                            setIsFilterOpen(false);
-                          }}
-                       >
-                         Áp dụng
-                       </Button>
-                    </div>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-
-                {/* Số người đăng ký */}
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
-                    Số người đăng ký
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-64 bg-[#282828] border-white/10 text-white rounded-xl p-0 overflow-hidden ml-2">
-                    <div className="p-4 border-b border-white/10">
-                       <span className="text-sm font-medium">Số người đăng ký tối thiểu</span>
-                    </div>
-                    <DropdownMenuRadioGroup 
-                      value={tempMinSubscribers?.toString()} 
-                      onValueChange={(v) => setTempMinSubscribers(v ? parseInt(v) : undefined)}
-                      className="p-2"
-                    >
-                      {[
-                        { id: "100", label: "100" },
-                        { id: "1000", label: "1.000" },
-                        { id: "10000", label: "10.000" },
-                        { id: "100000", label: "100.000" },
-                        { id: "1000000", label: "1.000.000" },
-                        { id: "10000000", label: "10.000.000" },
-                      ].map((item) => (
-                        <DropdownMenuRadioItem 
-                          key={item.id} 
-                          value={item.id}
-                          className="cursor-pointer focus:bg-white/10 focus:text-white py-2"
-                          onSelect={(e) => e.preventDefault()}
                         >
-                          {item.label}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                    <div className="p-4 bg-[#1f1f1f] flex justify-end gap-x-2">
-                       <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="rounded-full hover:bg-white/10 text-white font-bold px-4"
-                          onClick={() => {
-                            setTempMinSubscribers(minSubscribers);
-                            setIsFilterOpen(false);
-                          }}
-                       >
-                         Hủy
-                       </Button>
-                       <Button 
-                          variant="secondary" 
-                          size="sm" 
-                          className="rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50 font-bold px-4"
-                          onClick={() => {
-                            setMinSubscribers(tempMinSubscribers);
-                            setIsFilterOpen(false);
-                          }}
-                       >
-                         Áp dụng
-                       </Button>
-                    </div>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-
-                <DropdownMenuSeparator className="bg-white/10 my-1" />
-
-                {/* Trạng thái phản hồi */}
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
-                    Trạng thái phản hồi
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-72 bg-[#282828] border-white/10 text-white rounded-xl p-0 overflow-hidden ml-2">
-                    <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                       <span className="text-sm font-medium">Trạng thái phản hồi</span>
-                    </div>
-                    <div className="p-2 flex flex-col gap-y-1">
-                      {[
-                        { id: "not-responded", label: "Chưa phản hồi" },
-                        { id: "responded", label: "Đã phản hồi" },
-                        { id: "new-reply", label: "Câu trả lời mới cho phản hồi của bạn" },
-                      ].map((item) => (
-                        <div 
-                          key={item.id} 
-                          className="flex items-center gap-x-3 px-2 py-2 hover:bg-white/5 rounded-md cursor-pointer group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTempResponseStatuses(prev => 
-                              prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
-                            );
-                          }}
-                        >
-                          <Checkbox 
-                            checked={tempResponseStatuses.includes(item.id)}
-                            onCheckedChange={() => {
-                               setTempResponseStatuses(prev => 
-                                 prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
-                               );
+                          Hủy
+                        </Button>
+                        <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50 font-bold px-4"
+                            onClick={() => {
+                              setMinSubscribers(tempMinSubscribers);
+                              setIsFilterOpen(false);
                             }}
-                            className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                          />
-                          <span className="text-sm">{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="p-4 bg-[#1f1f1f] flex justify-end gap-x-2">
-                       <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="rounded-full hover:bg-white/10 text-white font-bold px-4"
-                          onClick={() => {
-                            setTempResponseStatuses(selectedResponseStatuses);
-                            setIsFilterOpen(false);
-                          }}
-                       >
-                         Hủy
-                       </Button>
-                       <Button 
-                          variant="secondary" 
-                          size="sm" 
-                          className="rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50 font-bold px-4"
-                          disabled={tempResponseStatuses.length === 0 && selectedResponseStatuses.length === 0}
-                          onClick={() => {
-                            setSelectedResponseStatuses(tempResponseStatuses);
-                            setIsFilterOpen(false);
-                          }}
-                       >
-                         Áp dụng
-                       </Button>
-                    </div>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                        >
+                          Áp dụng
+                        </Button>
+                      </div>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+
+                  <DropdownMenuSeparator className="bg-white/10 my-1" />
+
+                  {/* Trạng thái phản hồi */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="px-4 py-2 hover:bg-white/10 cursor-pointer">
+                      Trạng thái phản hồi
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-72 bg-[#282828] border-white/10 text-white rounded-xl p-0 overflow-hidden ml-2">
+                      <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                        <span className="text-sm font-medium">Trạng thái phản hồi</span>
+                      </div>
+                      <div className="p-2 flex flex-col gap-y-1">
+                        {[
+                          { id: "not-responded", label: "Chưa phản hồi" },
+                          { id: "responded", label: "Đã phản hồi" },
+                          { id: "new-reply", label: "Câu trả lời mới cho phản hồi của bạn" },
+                        ].map((item) => (
+                          <div 
+                            key={item.id} 
+                            className="flex items-center gap-x-3 px-2 py-2 hover:bg-white/5 rounded-md cursor-pointer group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTempResponseStatuses(prev => 
+                                prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                              );
+                            }}
+                          >
+                            <Checkbox 
+                              checked={tempResponseStatuses.includes(item.id)}
+                              onCheckedChange={() => {
+                                setTempResponseStatuses(prev => 
+                                  prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                                );
+                              }}
+                              className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                            />
+                            <span className="text-sm">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-4 bg-[#1f1f1f] flex justify-end gap-x-2">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="rounded-full hover:bg-white/10 text-white font-bold px-4"
+                            onClick={() => {
+                              setTempResponseStatuses(selectedResponseStatuses);
+                              setIsFilterOpen(false);
+                            }}
+                        >
+                          Hủy
+                        </Button>
+                        <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-50 font-bold px-4"
+                            disabled={tempResponseStatuses.length === 0 && selectedResponseStatuses.length === 0}
+                            onClick={() => {
+                              setSelectedResponseStatuses(tempResponseStatuses);
+                              setIsFilterOpen(false);
+                            }}
+                        >
+                          Áp dụng
+                        </Button>
+                      </div>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Mobile Filter Button */}
+            <div className="lg:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="secondary" className="rounded-full h-8 px-3 text-xs font-medium bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 border-0 shrink-0 whitespace-nowrap">
+                    Lọc thêm <ChevronDownIcon className="size-3 ml-1" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[85vh] bg-[#282828] border-white/10 text-white rounded-t-2xl p-0 overflow-hidden flex flex-col">
+                  <SheetHeader className="p-4 border-b border-white/10">
+                    <SheetTitle className="text-white">Bộ lọc</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto">
+                    <Accordion type="single" collapsible className="w-full">
+                      {/* Từ khoá */}
+                      <AccordionItem value="keyword" className="border-white/10">
+                        <AccordionTrigger className="px-4 hover:no-underline">Từ khoá</AccordionTrigger>
+                        <AccordionContent className="px-4 pb-4">
+                          <div className="flex flex-col gap-y-3">
+                            <Input 
+                              placeholder="Giá trị" 
+                              value={tempKeyword}
+                              onChange={(e) => setTempKeyword(e.target.value)}
+                              className="bg-transparent border-white/20 focus-visible:ring-0 focus-visible:border-blue-500 h-10"
+                            />
+                            <Button 
+                              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full"
+                              onClick={() => {
+                                handleApplyKeyword();
+                              }}
+                            >
+                              Áp dụng
+                            </Button>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Chứa câu hỏi */}
+                      <div 
+                        className="flex items-center justify-between px-4 py-4 border-b border-white/10 cursor-pointer"
+                        onClick={() => setContainsQuestions(!containsQuestions)}
+                      >
+                        <span className="text-sm font-medium">Chứa câu hỏi</span>
+                        <Checkbox 
+                          checked={containsQuestions}
+                          onCheckedChange={(v) => setContainsQuestions(!!v)}
+                          className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                        />
+                      </div>
+
+                      {/* Loại nội dung */}
+                      <AccordionItem value="content-types" className="border-white/10">
+                        <AccordionTrigger className="px-4 hover:no-underline">Loại nội dung</AccordionTrigger>
+                        <AccordionContent className="px-0 pb-0">
+                          <div className="flex flex-col">
+                            {[
+                              { id: "video", label: "Video" },
+                              { id: "shorts", label: "Shorts" },
+                              { id: "my-posts", label: "Bài đăng của tôi" },
+                              { id: "viewer-posts", label: "Bài đăng của người xem" },
+                            ].map((item) => (
+                              <div 
+                                key={item.id} 
+                                className="flex items-center gap-x-3 px-4 py-3 hover:bg-white/5 cursor-pointer"
+                                onClick={() => {
+                                  setTempContentTypes(prev => 
+                                    prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                                  );
+                                }}
+                              >
+                                <Checkbox 
+                                  checked={tempContentTypes.includes(item.id)}
+                                  className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                                />
+                                <span className="text-sm">{item.label}</span>
+                              </div>
+                            ))}
+                            <div className="p-4 bg-[#1f1f1f] flex justify-end">
+                              <Button 
+                                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full"
+                                onClick={() => setSelectedContentTypes(tempContentTypes)}
+                              >
+                                Áp dụng
+                              </Button>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Số người đăng ký */}
+                      <AccordionItem value="min-subscribers" className="border-white/10">
+                        <AccordionTrigger className="px-4 hover:no-underline">Số người đăng ký</AccordionTrigger>
+                        <AccordionContent className="px-0 pb-0">
+                          <div className="flex flex-col">
+                            <DropdownMenuRadioGroup 
+                              value={tempMinSubscribers?.toString()} 
+                              onValueChange={(v) => setTempMinSubscribers(v ? parseInt(v) : undefined)}
+                              className="p-0"
+                            >
+                              {[
+                                { id: "100", label: "100" },
+                                { id: "1000", label: "1.000" },
+                                { id: "10000", label: "10.000" },
+                                { id: "100000", label: "100.000" },
+                                { id: "1000000", label: "1.000.000" },
+                                { id: "10000000", label: "10.000.000" },
+                              ].map((item) => (
+                                <DropdownMenuRadioItem 
+                                  key={item.id} 
+                                  value={item.id}
+                                  className="px-4 py-3 cursor-pointer focus:bg-white/10 focus:text-white"
+                                >
+                                  {item.label}
+                                </DropdownMenuRadioItem>
+                              ))}
+                            </DropdownMenuRadioGroup>
+                            <div className="p-4 bg-[#1f1f1f] flex justify-end">
+                              <Button 
+                                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full"
+                                onClick={() => setMinSubscribers(tempMinSubscribers)}
+                              >
+                                Áp dụng
+                              </Button>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Trạng thái phản hồi */}
+                      <AccordionItem value="response-status" className="border-white/10 border-b-0">
+                        <AccordionTrigger className="px-4 hover:no-underline">Trạng thái phản hồi</AccordionTrigger>
+                        <AccordionContent className="px-0 pb-0">
+                          <div className="flex flex-col">
+                            {[
+                              { id: "not-responded", label: "Chưa phản hồi" },
+                              { id: "responded", label: "Đã phản hồi" },
+                              { id: "new-reply", label: "Câu trả lời mới cho phản hồi của bạn" },
+                            ].map((item) => (
+                              <div 
+                                key={item.id} 
+                                className="flex items-center gap-x-3 px-4 py-3 hover:bg-white/5 cursor-pointer"
+                                onClick={() => {
+                                  setTempResponseStatuses(prev => 
+                                    prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                                  );
+                                }}
+                              >
+                                <Checkbox 
+                                  checked={tempResponseStatuses.includes(item.id)}
+                                  className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                                />
+                                <span className="text-sm">{item.label}</span>
+                              </div>
+                            ))}
+                            <div className="p-4 bg-[#1f1f1f] flex justify-end">
+                              <Button 
+                                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full"
+                                onClick={() => setSelectedResponseStatuses(tempResponseStatuses)}
+                              >
+                                Áp dụng
+                              </Button>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
 
             {/* Keyword tag */}
             {keyword && (
-              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium">
+              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium shrink-0 whitespace-nowrap">
                  Từ khoá: {keyword}
                  <button onClick={() => { setKeyword(""); setTempKeyword(""); }} className="ml-1 hover:bg-white/20 rounded-full p-0.5">
                     <XIcon className="size-3" />
@@ -420,7 +607,7 @@ export const CommunityView = () => {
             )}
             
             {containsQuestions && (
-              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium">
+              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium shrink-0 whitespace-nowrap">
                  Chứa câu hỏi
                  <button onClick={() => setContainsQuestions(false)} className="ml-1 hover:bg-white/20 rounded-full p-0.5">
                     <XIcon className="size-3" />
@@ -429,7 +616,7 @@ export const CommunityView = () => {
             )}
 
             {selectedContentTypes.length > 0 && (
-              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium">
+              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium shrink-0 whitespace-nowrap">
                  Loại nội dung: {selectedContentTypes.length}
                  <button 
                   onClick={() => {
@@ -444,7 +631,7 @@ export const CommunityView = () => {
             )}
 
             {selectedResponseStatuses.length > 0 && (
-              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium">
+              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium shrink-0 whitespace-nowrap">
                  Trạng thái phản hồi: {selectedResponseStatuses.length}
                  <button 
                   onClick={() => {
@@ -459,7 +646,7 @@ export const CommunityView = () => {
             )}
 
             {minSubscribers !== undefined && (
-              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium">
+              <div className="flex items-center gap-x-1 bg-neutral-200 dark:bg-white/10 rounded-full h-8 px-3 text-xs font-medium shrink-0 whitespace-nowrap">
                  Số người đăng ký: {minSubscribers.toLocaleString("vi-VN")}
                  <button 
                   onClick={() => {
