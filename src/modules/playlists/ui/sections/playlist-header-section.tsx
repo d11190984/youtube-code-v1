@@ -3,7 +3,7 @@
 import { toast } from "sonner";
 import { Suspense } from "react";
 import { Trash2Icon } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/error-fallback";
 

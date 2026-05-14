@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
 import { PlaylistGetManyOutput } from "../../../types";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import {
   DropdownMenu,
   DropdownMenuTrigger,

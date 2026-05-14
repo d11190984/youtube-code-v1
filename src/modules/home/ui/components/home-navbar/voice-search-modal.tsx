@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { MicIcon, XIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ResponsiveModal } from "@/components/responsive-modal";
@@ -114,9 +114,9 @@ export const VoiceSearchModal = ({ open, onOpenChange }: VoiceSearchModalProps) 
   const handleDone = () => {
     const finalQuery = (transcript + interimTranscript).trim();
     if (finalQuery) {
-      const url = new URL("/search", APP_URL);
-      url.searchParams.set("query", encodeURIComponent(finalQuery));
-      router.push(url.toString());
+      const params = new URLSearchParams();
+      params.set("query", finalQuery);
+      router.push(`/search?${params.toString()}`);
       onOpenChange(false);
     }
   };

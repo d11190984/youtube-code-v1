@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { Loader2Icon, PlusIcon } from "lucide-react"
 import { useTranslations } from "next-intl";
 

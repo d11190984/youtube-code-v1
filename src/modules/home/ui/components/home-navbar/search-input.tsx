@@ -2,7 +2,8 @@
 
 import { Suspense, useState, useEffect, useRef } from "react";
 import { SearchIcon, XIcon, HistoryIcon, KeyboardIcon } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 import { APP_URL } from "@/constants";
@@ -97,23 +98,21 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded, disabled }: Sea
 
   const executeSearch = (searchTerm: string) => {
     if (disabled) return;
-    const url = new URL("/search", APP_URL);
     const newQuery = searchTerm.trim();
+    const params = new URLSearchParams();
 
     if (newQuery) {
-      url.searchParams.set("query", encodeURIComponent(newQuery));
+      params.set("query", newQuery);
       addSearchToHistory(newQuery);
-    } else {
-      url.searchParams.delete("query");
     }
 
     if (categoryId) {
-      url.searchParams.set("categoryId", categoryId);
+      params.set("categoryId", categoryId);
     }
 
     setValue(newQuery);
     setIsFocused(false);
-    router.push(url.toString());
+    router.push(`/search?${params.toString()}`);
   };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Suspense, useState } from "react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";

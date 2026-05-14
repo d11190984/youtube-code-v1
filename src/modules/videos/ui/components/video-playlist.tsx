@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { THUMBNAIL_FALLBACK } from "../../constants";
 

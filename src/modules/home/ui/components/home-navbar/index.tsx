@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
 import { MicIcon, SearchIcon, ArrowLeft } from "lucide-react";
@@ -15,9 +15,11 @@ import { useIsOnline } from "@/hooks/use-is-online";
 import { SearchInput } from "./search-input";
 import { CreateButton } from "./create-button";
 import { VoiceSearchModal } from "./voice-search-modal";
+import { useTranslations } from "next-intl";
 import { NotificationBell } from "@/modules/notifications/ui/components/notification-bell";
 
 export const HomeNavbar = () => {
+  const t = useTranslations("General");
   const [isVoiceSearchOpen, setIsVoiceSearchOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const isOnline = useIsOnline();
@@ -52,7 +54,7 @@ export const HomeNavbar = () => {
               <Link prefetch href="/">
                 <div className="p-4 flex items-center gap-1">
                   <Image src="/yuuka.png" alt="Logo" width={32} height={32} />
-                  <p className="text-xl font-semibold tracking-tight">Hayase Yuuka</p>
+                  <p className="text-xl font-semibold tracking-tight">{t("siteTitle")}</p>
                 </div>
               </Link>
             </div>

@@ -519,7 +519,12 @@
     "errorLoadingCommunity": "コミュニティデータの読み込み中にエラーが発生しました",
     "errorLoadingCustomization": "カスタマイズページの読み込み中にエラーが発生しました",
     "loadingComments": "コメントを読み込み中...",
-    "errorLoadingComments": "コメントの読み込み中にエラーが発生しました"
+    "errorLoadingComments": "コメントの読み込み中にエラーが発生しました",
+    "name": "名前",
+    "channelContentDescription": "チャンネルの動画、ショート動画、再生リスト、投稿を管理します",
+    "shorts": "ショート動画",
+    "rowsPerPage": "1 ページあたりの行数:",
+    "postComments": "投稿のコメント"
   },
   "VideoCard": {
     "noDescription": "説明なし",
@@ -649,7 +654,7 @@
     "visibilityStatus": "公開設定",
     "public": "公開",
     "whatsOnYourMind": "今何を考えていますか？",
-    "editingPost": "編集面...",
+    "editingPost": "編集しています...",
     "images": "画像",
     "imagePoll": "画像アンケート",
     "textPoll": "テキストアンケート",
@@ -694,7 +699,8 @@
     "postUpdatedSuccess": "投稿を更新しました",
     "postUpdateError": "投稿の更新中にエラーが発生しました",
     "ownerCannotVote": "チャンネルの所有者は自分の投稿に投票できません",
-    "scheduledFor": "{time} にスケジュール済み"
+    "scheduledFor": "{time} にスケジュール済み",
+    "video": "動画"
   },
   "General": {
     "loading": "読み込み中...",
@@ -703,7 +709,11 @@
     "search": "検索",
     "save": "保存",
     "notifications": "通知",
-    "siteDescription": "ご主人様の動画サイト"
+    "siteDescription": "ご主人様の動画サイト",
+    "siteTitle": "早瀬ユウカ",
+    "studioTitle": "早瀬ユウカ スタジオ",
+    "on": "オン",
+    "off": "オフ"
   },
   "Subscriptions": {
     "title": "登録チャンネル",
@@ -826,15 +836,15 @@
     "errorLoadingStats": "システム統計の読み込みエラー",
     "hours": "{count} 時間",
     "users": "ユーザー",
-    "totalRegisteredAccounts": "登録アカウント总数",
+    "totalRegisteredAccounts": "登録アカウント総数",
     "videos": "動画",
-    "totalUploadedVideos": "アップロード動画总数",
+    "totalUploadedVideos": "アップロード動画総数",
     "comments": "コメント",
-    "totalDiscussions": "ディスカッション总数",
+    "totalDiscussions": "ディスカッション総数",
     "posts": "投稿",
-    "totalCommunityPosts": "コミュニティ投稿总数",
+    "totalCommunityPosts": "コミュニティ投稿総数",
     "watchTime": "視聴時間",
-    "totalVideoWatchTime": "動画の总視聴時間",
+    "totalVideoWatchTime": "動画の総視聴時間",
     "activeDAU": "アクティブ (DAU)",
     "activeUsers24h": "24時間以内のアクティブユーザー",
     "activeMAU": "アクティブ (MAU)",
@@ -857,7 +867,9 @@
     "unbanAccount": "禁止を解除",
     "adminPanelTitle": "管理パネル",
     "overview": "概要",
-    "reports": "報告"
+    "reports": "報告",
+    "tableHandle": "ハンドル",
+    "noHandle": "ハンドルなし"
   },
   "Offline": {
     "downloadedContent": "オフライン",
@@ -870,5 +882,55 @@
     "errorDeletingVideo": "動画の削除中にエラーが発生しました。",
     "noLocalVideoData": "ローカル動画データが見つかりません。",
     "cannotPlayVideo": "動画を再生できません。"
+  },
+  "VoiceSearch": {
+    "title": "音声検索",
+    "unsupported": "お使いのブラウザは音声検索をサポートしていません。",
+    "listening": "聞き取り中...",
+    "tryAgain": "マイクをタップしてもう一度お試しください",
+    "networkError": "ネットワークエラー。もう一度試すか、インターネット接続を確認してください。",
+    "micBlocked": "マイクがブロックされています。権限を許可してください。",
+    "genericError": "エラーが発生しました。もう一度お試しください。",
+    "cancel": "キャンセル",
+    "done": "完了"
+  },
+  "Profile": {
+    "copySuccess": "チャンネルのリンクをコピーしました！",
+    "subscribers": "{count} 人の登録者",
+    "videos": "{count} 本の動画",
+    "views": "{count} 回視聴",
+    "about": "概要",
+    "description": "説明",
+    "noDescription": "このチャンネルに説明はありません。",
+    "channelDetails": "チャンネルの詳細",
+    "joinedDate": "{date} に登録",
+    "shareChannel": "チャンネルを共有",
+    "customizeChannel": "チャンネルをカスタマイズ",
+    "manageVideos": "動画を管理",
+    "reportUser": "ユーザーを報告",
+    "learnMore": "このチャンネルの詳細",
+    "showMore": "...もっと見る"
+  },
+  "Tabs": {
+    "home": "ホーム",
+    "videos": "動画",
+    "shorts": "ショート動画",
+    "playlists": "再生リスト",
+    "posts": "投稿",
+    "latest": "最新",
+    "popular": "人気",
+    "oldest": "古い順"
+  },
+  "VideoMenu": {
+    "addToQueue": "キューに追加",
+    "share": "共有",
+    "addToPlaylist": "再生リストに追加",
+    "createNewMix": "新しいミックスを作成",
+    "addToMix": "ミックスに追加",
+    "report": "報告",
+    "removeFromHistory": "再生履歴から削除",
+    "removeDownload": "オフライン動画を削除",
+    "queueSuccess": "キューに追加しました",
+    "queueError": "キューに追加できませんでした：情報が不足しています"
   }
 }

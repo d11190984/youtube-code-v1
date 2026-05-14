@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { MusicIcon } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";

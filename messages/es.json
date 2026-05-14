@@ -16,7 +16,7 @@
     "subscriptions": "Suscripciones",
     "trending": "Tendencias",
     "trendingDescription": "Los vídeos más populares en este momento",
-    "shorts": "Shorts",
+    "shorts": "Videos cortos",
     "you": "Tú",
     "yourChannel": "Tu canal",
     "history": "Historial",
@@ -500,7 +500,12 @@
     "errorLoadingCommunity": "Error al cargar los datos de la comunidad",
     "errorLoadingCustomization": "Error al cargar la página de personalización",
     "loadingComments": "Cargando comentarios...",
-    "errorLoadingComments": "Error al cargar los comentarios"
+    "errorLoadingComments": "Error al cargar los comentarios",
+    "name": "Nombre",
+    "channelContentDescription": "Administra tus videos, videos cortos, listas de reproducción y publicaciones en tu canal",
+    "shorts": "Videos cortos",
+    "rowsPerPage": "Filas por página:",
+    "postComments": "Comentarios de la publicación"
   },
   "VideoCard": {
     "noDescription": "Sin descripción",
@@ -651,7 +656,8 @@
     "postUpdatedSuccess": "Publicación actualizada",
     "postUpdateError": "Error al actualizar la publicación",
     "ownerCannotVote": "El propietario del canal no puede votar en su propia publicación",
-    "scheduledFor": "Programado para {time}"
+    "scheduledFor": "Programado para {time}",
+    "video": "Video"
   },
   "General": {
     "loading": "Cargando...",
@@ -660,7 +666,11 @@
     "search": "Buscar",
     "save": "Guardar",
     "notifications": "Notificaciones",
-    "siteDescription": "Sitio web de videos de Owner-sama"
+    "siteDescription": "Sitio web de videos de Owner-sama",
+    "siteTitle": "Hayase Yuuka",
+    "studioTitle": "Hayase Yuuka Studio",
+    "on": "Activado",
+    "off": "Desactivado"
   },
   "Subscriptions": {
     "title": "Suscripciones",
@@ -814,7 +824,9 @@
     "unbanAccount": "Desbanear cuenta",
     "adminPanelTitle": "Panel de administración",
     "overview": "Resumen",
-    "reports": "Reportes"
+    "reports": "Reportes",
+    "tableHandle": "Identificador",
+    "noHandle": "sin-identificador"
   },
   "Offline": {
     "downloadedContent": "Contenido descargado",
@@ -827,5 +839,55 @@
     "errorDeletingVideo": "Error al eliminar el video.",
     "noLocalVideoData": "No se encontraron datos de video locales.",
     "cannotPlayVideo": "No se puede reproducir el video."
+  },
+  "VoiceSearch": {
+    "title": "Búsqueda por voz",
+    "unsupported": "Tu navegador no soporta la búsqueda por voz.",
+    "listening": "Escuchando...",
+    "tryAgain": "Toca el micrófono para intentarlo de nuevo",
+    "networkError": "Error de red. Por favor, inténtalo de nuevo o comprueba tu conexión a internet.",
+    "micBlocked": "Micrófono bloqueado. Por favor, concede permiso.",
+    "genericError": "Ocurrió un error. Por favor, inténtalo de nuevo.",
+    "cancel": "Cancelar",
+    "done": "Hecho"
+  },
+  "Profile": {
+    "copySuccess": "¡Enlace del canal copiado!",
+    "subscribers": "{count} suscriptores",
+    "videos": "{count} vídeos",
+    "views": "{count} visualizaciones",
+    "about": "Información",
+    "description": "Descripción",
+    "noDescription": "No hay descripción para este canal.",
+    "channelDetails": "Detalles del canal",
+    "joinedDate": "Se unió el {date}",
+    "shareChannel": "Compartir canal",
+    "customizeChannel": "Personalizar canal",
+    "manageVideos": "Gestionar vídeos",
+    "reportUser": "Informar sobre el usuario",
+    "learnMore": "Más información sobre este canal",
+    "showMore": "...más"
+  },
+  "Tabs": {
+    "home": "Inicio",
+    "videos": "Vídeos",
+    "shorts": "Videos cortos",
+    "playlists": "Listas de reproducción",
+    "posts": "Publicaciones",
+    "latest": "Más recientes",
+    "popular": "Populares",
+    "oldest": "Más antiguos"
+  },
+  "VideoMenu": {
+    "addToQueue": "Añadir a la cola",
+    "share": "Compartir",
+    "addToPlaylist": "Añadir a lista de reproducción",
+    "createNewMix": "Crear nueva mezcla",
+    "addToMix": "Añadir a la mezcla",
+    "report": "Denunciar",
+    "removeFromHistory": "Eliminar del historial",
+    "removeDownload": "Eliminar descarga",
+    "queueSuccess": "Añadido a la cola",
+    "queueError": "No se pudo añadir a la cola: Falta información"
   }
 }

@@ -7,7 +7,7 @@ import { EyeIcon, ThumbsUpIcon, MessageCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS, vi, ja, ko, zhCN, de, es, fr } from "date-fns/locale";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 
 const dateFnsLocales = {
   en: enUS,

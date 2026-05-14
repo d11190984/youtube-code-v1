@@ -5,7 +5,7 @@ import { PostCard } from "../components/post-card";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 
 interface PostViewProps {
   postId: string;

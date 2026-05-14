@@ -91,7 +91,7 @@ const AllContentSection = ({ data, days, videoId }: { data: any, days: number, v
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex justify-between items-center text-xs">
-                   <span>Shorts</span>
+                   <span>{t("shorts")}</span>
                    <span className="font-bold">{data.contentBreakdown.newViewers.shorts}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">

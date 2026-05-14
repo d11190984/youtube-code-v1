@@ -16,7 +16,7 @@
     "subscriptions": "구독",
     "trending": "인기",
     "trendingDescription": "지금 가장 인기 있는 동영상",
-    "shorts": "Shorts",
+    "shorts": "쇼츠",
     "you": "나",
     "yourChannel": "내 채널",
     "history": "기록",
@@ -484,7 +484,12 @@
     "errorLoadingCommunity": "커뮤니티 데이터를 로드하는 중 오류가 발생했습니다",
     "errorLoadingCustomization": "맞춤설정 페이지를 로드하는 중 오류가 발생했습니다",
     "loadingComments": "댓글 로딩 중...",
-    "errorLoadingComments": "댓글을 로드하는 중 오류가 발생했습니다"
+    "errorLoadingComments": "댓글을 로드하는 중 오류가 발생했습니다",
+    "name": "이름",
+    "channelContentDescription": "채널의 동영상, 쇼츠, 재생목록 및 게시물을 관리하세요",
+    "shorts": "쇼츠",
+    "rowsPerPage": "페이지당 행 수:",
+    "postComments": "게시물 댓글"
   },
   "VideoCard": {
     "noDescription": "설명 없음",
@@ -613,7 +618,8 @@
     "postUpdatedSuccess": "게시물이 업데이트되었습니다",
     "postUpdateError": "게시물 업데이트 중 오류 발생",
     "ownerCannotVote": "채널 소유자는 자신의 게시물에 투표할 수 없습니다",
-    "scheduledFor": "{time}에 예약됨"
+    "scheduledFor": "{time}에 예약됨",
+    "video": "동영상"
   },
   "General": {
     "loading": "로딩 중...",
@@ -622,7 +628,11 @@
     "search": "검색",
     "save": "저장",
     "notifications": "알림",
-    "siteDescription": "주인님의 동영상 웹사이트"
+    "siteDescription": "주인님의 동영상 웹사이트",
+    "siteTitle": "하야세 유우카",
+    "studioTitle": "하야세 유우카 스튜디오",
+    "on": "사용",
+    "off": "사용 안 함"
   },
   "Subscriptions": {
     "title": "구독",
@@ -774,9 +784,11 @@
     "statusActive": "활성",
     "viewChannel": "채널 보기",
     "unbanAccount": "차단 해제",
-    "adminPanelTitle": "管理 패널",
+    "adminPanelTitle": "관리 패널",
     "overview": "개요",
-    "reports": "신고"
+    "reports": "신고",
+    "tableHandle": "핸들",
+    "noHandle": "핸들 없음"
   },
   "Offline": {
     "downloadedContent": "오프라인",
@@ -789,5 +801,55 @@
     "errorDeletingVideo": "동영상 삭제 중 오류가 발생했습니다.",
     "noLocalVideoData": "로컬 동영상 데이터를 찾을 수 없습니다.",
     "cannotPlayVideo": "동영상을 재생할 수 없습니다."
+  },
+  "VoiceSearch": {
+    "title": "음성 검색",
+    "unsupported": "브라우저가 음성 검색을 지원하지 않습니다.",
+    "listening": "듣는 중...",
+    "tryAgain": "마이크를 눌러 다시 시도하세요",
+    "networkError": "네트워크 오류입니다. 다시 시도하거나 인터넷 연결을 확인하세요.",
+    "micBlocked": "마이크가 차단되었습니다. 권한을 허용해주세요.",
+    "genericError": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "cancel": "취소",
+    "done": "완료"
+  },
+  "Profile": {
+    "copySuccess": "채널 링크가 복사되었습니다!",
+    "subscribers": "구독자 {count}명",
+    "videos": "동영상 {count}개",
+    "views": "조회수 {count}회",
+    "about": "정보",
+    "description": "설명",
+    "noDescription": "이 채널에 대한 설명이 없습니다.",
+    "channelDetails": "채널 상세 정보",
+    "joinedDate": "{date} 가입",
+    "shareChannel": "채널 공유",
+    "customizeChannel": "채널 맞춤설정",
+    "manageVideos": "동영상 관리",
+    "reportUser": "사용자 신고",
+    "learnMore": "이 채널에 대해 자세히 알아보기",
+    "showMore": "...더보기"
+  },
+  "Tabs": {
+    "home": "홈",
+    "videos": "동영상",
+    "shorts": "쇼츠",
+    "playlists": "재생목록",
+    "posts": "게시물",
+    "latest": "최신순",
+    "popular": "인기순",
+    "oldest": "오래된순"
+  },
+  "VideoMenu": {
+    "addToQueue": "대기열에 추가",
+    "share": "공유",
+    "addToPlaylist": "재생목록에 추가",
+    "createNewMix": "새 믹스 생성",
+    "addToMix": "믹스에 추가",
+    "report": "신고",
+    "removeFromHistory": "기록에서 삭제",
+    "removeDownload": "오프라인 동영상 삭제",
+    "queueSuccess": "대기열에 추가됨",
+    "queueError": "대기열에 추가할 수 없습니다: 정보 누락"
   }
 }

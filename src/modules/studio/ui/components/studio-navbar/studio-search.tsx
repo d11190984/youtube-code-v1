@@ -1,12 +1,13 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { useState, useRef, useEffect } from "react";
 import { trpc } from "@/trpc/client";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { ErrorBoundary } from "react-error-boundary";
 import { useTranslations } from "next-intl";
 
@@ -29,6 +30,8 @@ export const CategoriesSectionSkeleton = () => {
 const CategoriesSectionSuspense = ({ categoryId }: CategoriesSectionProps) => {
   const t = useTranslations("Categories");
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [categories] = trpc.categories.getMany.useSuspenseQuery();
 
   const data = categories.map((category) => ({
@@ -37,15 +40,15 @@ const CategoriesSectionSuspense = ({ categoryId }: CategoriesSectionProps) => {
   }));
 
   const onSelect = (value: string | null) => {
-    const url = new URL(window.location.href);
+    const params = new URLSearchParams(searchParams.toString());
 
     if (value) {
-      url.searchParams.set("categoryId", value);
+      params.set("categoryId", value);
     } else {
-      url.searchParams.delete("categoryId");
+      params.delete("categoryId");
     }
 
-    router.push(url.toString());
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   return <FilterCarousel onSelect={onSelect} value={categoryId} data={data} />

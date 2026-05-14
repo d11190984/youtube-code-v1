@@ -344,10 +344,10 @@
     "content": "Nội dung",
     "exitStudio": "Thoát Studio",
     "channelContent": "Nội dung của kênh",
-    "channelContentDescription": "Quản lý video, shorts, danh sách phát và bài đăng trên kênh của bạn",
+    "channelContentDescription": "Quản lý video, video ngắn, danh sách phát và bài đăng trên kênh của bạn",
     "rowsPerPage": "Số hàng mỗi trang:",
     "yourVideo": "Video của bạn",
-    "postComments": "Bình luận trên bài đăng",
+    "postComments": "Bình luận bài đăng",
     "yourPost": "Bài đăng của bạn",
     "viewPostOnYouTube": "Xem bài đăng trên YouTube",
     "seeMore": "Xem thêm",
@@ -528,7 +528,9 @@
     "errorLoadingCommunity": "Đã xảy ra lỗi khi tải dữ liệu cộng đồng",
     "errorLoadingCustomization": "Lỗi khi tải trang tùy chỉnh",
     "loadingComments": "Đang tải bình luận...",
-    "errorLoadingComments": "Đã xảy ra lỗi khi tải bình luận"
+    "errorLoadingComments": "Đã xảy ra lỗi khi tải bình luận",
+    "name": "Tên",
+    "shorts": "Video ngắn"
   },
   "VideoCard": {
     "noDescription": "Không có mô tả",
@@ -579,17 +581,17 @@
     "subscribers": "{count} người đăng ký",
     "videos": "{count} video",
     "views": "{count} lượt xem",
-    "about": "Thông tin",
+    "about": "Giới thiệu",
     "description": "Mô tả",
-    "noDescription": "Chưa có mô tả cho kênh này.",
-    "channelDetails": "Chi tiết về kênh",
-    "joinedDate": "Đã tham gia {date}",
+    "noDescription": "Kênh này không có mô tả.",
+    "channelDetails": "Chi tiết kênh",
+    "joinedDate": "Đã tham gia vào {date}",
     "shareChannel": "Chia sẻ kênh",
     "customizeChannel": "Tùy chỉnh kênh",
     "manageVideos": "Quản lý video",
     "reportUser": "Báo cáo người dùng",
     "learnMore": "Tìm hiểu thêm về kênh này",
-    "showMore": "...xem thêm"
+    "showMore": "...thêm"
   },
   "Shorts": {
     "dislike": "Không thích",
@@ -609,10 +611,10 @@
     "title": "Tìm kiếm bằng giọng nói",
     "unsupported": "Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói.",
     "listening": "Đang nghe...",
-    "tryAgain": "Nhấn vào micro để thử lại",
-    "networkError": "Lỗi kết nối mạng. Hãy thử nói lại hoặc kiểm tra Internet.",
-    "micBlocked": "Micro bị chặn. Vui lòng cấp quyền.",
-    "genericError": "Đã xảy ra lỗi. Hãy thử lại.",
+    "tryAgain": "Nhấn vào micrô để thử lại",
+    "networkError": "Lỗi mạng. Vui lòng thử lại hoặc kiểm tra kết nối internet.",
+    "micBlocked": "Micrô bị chặn. Vui lòng cấp quyền truy cập.",
+    "genericError": "Đã xảy ra lỗi. Vui lòng thử lại.",
     "cancel": "Hủy",
     "done": "Xong"
   },
@@ -627,7 +629,11 @@
     "search": "Tìm kiếm",
     "save": "Lưu",
     "notifications": "Thông báo",
-    "siteDescription": "Trang web video của chủ nhân-sama"
+    "siteDescription": "Trang web video của chủ nhân-sama",
+    "siteTitle": "Hayase Yuuka",
+    "studioTitle": "Hayase Yuuka Studio",
+    "on": "Bật",
+    "off": "Tắt"
   },
   "Playback": {
     "autoPlay": "Tự chuyển",
@@ -642,8 +648,8 @@
     "addToPlaylist": "Thêm vào danh sách phát",
     "createNewMix": "Tạo danh sách kết hợp mới",
     "addToMix": "Thêm vào danh sách kết hợp",
-    "report": "Báo cáo vi phạm",
-    "removeFromHistory": "Xóa khỏi lịch sử",
+    "report": "Báo cáo",
+    "removeFromHistory": "Xóa khỏi nhật ký xem",
     "removeDownload": "Xóa nội dung tải xuống",
     "queueSuccess": "Đã thêm vào hàng chờ",
     "queueError": "Không thể thêm vào hàng chờ: Thiếu thông tin"
@@ -651,7 +657,7 @@
   "Tabs": {
     "home": "Trang chủ",
     "videos": "Video",
-    "shorts": "Shorts",
+    "shorts": "Video ngắn",
     "playlists": "Danh sách phát",
     "posts": "Bài đăng",
     "latest": "Mới nhất",
@@ -787,7 +793,8 @@
     "postUpdatedSuccess": "Đã cập nhật bài viết",
     "postUpdateError": "Lỗi khi cập nhật bài viết",
     "ownerCannotVote": "Chủ kênh không thể bình chọn bài viết của mình",
-    "scheduledFor": "Đã lên lịch đăng vào {time}"
+    "scheduledFor": "Đã lên lịch đăng vào {time}",
+    "video": "Video"
   },
   "Subscriptions": {
     "title": "Kênh đã đăng ký",
@@ -941,7 +948,9 @@
     "unbanAccount": "Gỡ cấm tài khoản",
     "adminPanelTitle": "Bảng quản trị hệ thống",
     "overview": "Tổng quan",
-    "reports": "Báo cáo vi phạm"
+    "reports": "Báo cáo vi phạm",
+    "tableHandle": "Tên định danh",
+    "noHandle": "không có định danh"
   },
   "Offline": {
     "downloadedContent": "Nội dung tải xuống",

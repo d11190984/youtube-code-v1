@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { BellIcon, Trash2Icon, CheckCheckIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi, enUS, ja, ko, zhCN, es, fr, de } from "date-fns/locale";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 
 import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useAuth } from "@clerk/nextjs";
 import { useTranslations, useLocale } from "next-intl";
 import { UserAvatar } from "@/components/user-avatar";

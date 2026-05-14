@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { vi, enUS, ja, ko, zhCN, es, fr, de } from "date-fns/locale";

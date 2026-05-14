@@ -1,12 +1,12 @@
 "use client";
 
 import { z } from "zod";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { Suspense, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/error-fallback";
 import { zodResolver } from "@hookform/resolvers/zod";

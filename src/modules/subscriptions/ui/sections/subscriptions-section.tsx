@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";

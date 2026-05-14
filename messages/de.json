@@ -16,7 +16,7 @@
     "subscriptions": "Abos",
     "trending": "Trends",
     "trendingDescription": "Die beliebtesten Videos momentan",
-    "shorts": "Shorts",
+    "shorts": "Kurzvideos",
     "you": "Ich",
     "yourChannel": "Mein Kanal",
     "history": "Verlauf",
@@ -501,7 +501,12 @@
     "errorLoadingCommunity": "Fehler beim Laden der Community-Daten",
     "errorLoadingCustomization": "Fehler beim Laden der Anpassungsseite",
     "loadingComments": "Kommentare werden geladen...",
-    "errorLoadingComments": "Fehler beim Laden der Kommentare"
+    "errorLoadingComments": "Fehler beim Laden der Kommentare",
+    "name": "Name",
+    "channelContentDescription": "Verwalten Sie Ihre Videos, Kurzvideos, Playlists und Beiträge auf Ihrem Kanal",
+    "shorts": "Kurzvideos",
+    "rowsPerPage": "Zeilen pro Seite:",
+    "postComments": "Beitragskommentare"
   },
   "VideoCard": {
     "noDescription": "Keine Beschreibung",
@@ -676,7 +681,8 @@
     "postUpdatedSuccess": "Beitrag cập nhật",
     "postUpdateError": "Fehler beim Aktualisieren des Beitrags",
     "ownerCannotVote": "Kanalinhaber können nicht über ihren eigenen Beitrag abstimmen",
-    "scheduledFor": "Geplant für {time}"
+    "scheduledFor": "Geplant für {time}",
+    "video": "Video"
   },
   "General": {
     "loading": "Wird geladen...",
@@ -685,7 +691,11 @@
     "search": "Suchen",
     "save": "Speichern",
     "notifications": "Benachrichtigungen",
-    "siteDescription": "Owner-samas Video-Website"
+    "siteDescription": "Owner-samas Video-Website",
+    "siteTitle": "Hayase Yuuka",
+    "studioTitle": "Hayase Yuuka Studio",
+    "on": "Ein",
+    "off": "Aus"
   },
   "Subscriptions": {
     "title": "Abos",
@@ -773,7 +783,7 @@
     "submitReport": "Bericht einreichen",
     "reportSentError": "Fehler beim Senden des Berichts",
     "reason_spam": "Spam oder irreführende Inhalte",
-    "reason_harassment": "Belästigung oder Mobbing",
+    "reason_harassment": "Belästigung hoặc Mobbing",
     "reason_hate_speech": "Hassrede",
     "reason_violence": "Gewalttätige hoặc abstoßende Inhalte",
     "reason_sexual_content": "Sexuelle Inhalte",
@@ -786,7 +796,7 @@
   },
   "Common": {
     "somethingWentWrong": "Etwas ist schiefgelaufen",
-    "errorLoadingContent": "Wir konnten diesen Inhalt zurzeit không tải được. Bitte versuchen Sie es später erneut.",
+    "errorLoadingContent": "Wir konnten diesen Inhalt zurzeit nicht laden. Bitte versuchen Sie es später erneut.",
     "retry": "Wiederholen",
     "loading": "Laden...",
     "viewMore": "Mehr anzeigen",
@@ -839,7 +849,9 @@
     "unbanAccount": "Konto-Sperre aufheben",
     "adminPanelTitle": "Admin-Bereich",
     "overview": "Übersicht",
-    "reports": "Berichte"
+    "reports": "Berichte",
+    "tableHandle": "Handle",
+    "noHandle": "kein-handle"
   },
   "Offline": {
     "downloadedContent": "Heruntergeladene Inhalte",
@@ -852,5 +864,55 @@
     "errorDeletingVideo": "Fehler beim Löschen des Videos.",
     "noLocalVideoData": "Keine lokalen Videodaten gefunden.",
     "cannotPlayVideo": "Video kann nicht abgespielt werden."
+  },
+  "VoiceSearch": {
+    "title": "Sprachsuche",
+    "unsupported": "Ihr Browser unterstützt keine Sprachsuche.",
+    "listening": "Zuhören...",
+    "tryAgain": "Tippen Sie auf das Mikrofon, um es erneut zu versuchen",
+    "networkError": "Netzwerkfehler. Bitte versuchen Sie es erneut oder überprüfen Sie Ihr Internet.",
+    "micBlocked": "Mikrofon blockiert. Bitte erteilen Sie die Erlaubnis.",
+    "genericError": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "cancel": "Abbrechen",
+    "done": "Fertig"
+  },
+  "Profile": {
+    "copySuccess": "Kanallink kopiert!",
+    "subscribers": "{count} Abonnenten",
+    "videos": "{count} Videos",
+    "views": "{count} Aufrufe",
+    "about": "Über",
+    "description": "Beschreibung",
+    "noDescription": "Keine Beschreibung für diesen Kanal.",
+    "channelDetails": "Kanaldetails",
+    "joinedDate": "Seit {date} dabei",
+    "shareChannel": "Kanal teilen",
+    "customizeChannel": "Kanal anpassen",
+    "manageVideos": "Videos verwalten",
+    "reportUser": "Benutzer melden",
+    "learnMore": "Weitere Informationen zu diesem Kanal",
+    "showMore": "...mehr"
+  },
+  "Tabs": {
+    "home": "Startseite",
+    "videos": "Videos",
+    "shorts": "Kurzvideos",
+    "playlists": "Playlists",
+    "posts": "Beiträge",
+    "latest": "Neueste",
+    "popular": "Beliebt",
+    "oldest": "Älteste"
+  },
+  "VideoMenu": {
+    "addToQueue": "In Warteschlange",
+    "share": "Teilen",
+    "addToPlaylist": "Zur Playlist hinzufügen",
+    "createNewMix": "Neuen Mix erstellen",
+    "addToMix": "Zum Mix hinzufügen",
+    "report": "Melden",
+    "removeFromHistory": "Aus Verlauf entfernen",
+    "removeDownload": "Download entfernen",
+    "queueSuccess": "Zur Warteschlange hinzugefügt",
+    "queueError": "Konnte nicht zur Warteschlange hinzugefügt werden: Informationen fehlen"
   }
 }

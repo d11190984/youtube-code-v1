@@ -1,6 +1,7 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { Suspense, useState } from "react";
 import { VideosSection } from "../sections/videos-section";
 import { PlaylistsSection } from "../sections/playlists-section";
@@ -60,7 +61,7 @@ const StudioViewSuspense = () => {
               value="shorts"
               className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary bg-transparent data-[state=active]:bg-transparent font-medium"
             >
-              Shorts
+              {t("shorts")}
             </TabsTrigger>
             <TabsTrigger 
               value="playlists"

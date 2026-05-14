@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useMemo } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useLocale, useTranslations } from "next-intl";

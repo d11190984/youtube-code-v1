@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useUser } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
 

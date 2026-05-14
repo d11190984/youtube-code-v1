@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { UserSection } from "../sections/user-section";
 import { VideosSection } from "../sections/videos-section";
 import { UserTabs } from "../components/user-tabs";

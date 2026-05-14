@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { XIcon, Maximize2Icon, MinusIcon, ChevronRightIcon, ListVideoIcon, Minimize2Icon, ExternalLinkIcon } from "lucide-react";
 import MuxPlayer from "@mux/mux-player-react";
 import { usePlayerStore } from "@/modules/videos/store/use-player-store";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/routing";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

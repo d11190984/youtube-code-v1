@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { trpc } from "@/trpc/client";
 import { THUMBNAIL_FALLBACK } from "@/modules/videos/constants";
 

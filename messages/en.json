@@ -528,7 +528,9 @@
     "errorLoadingCommunity": "Error loading community data",
     "errorLoadingCustomization": "Error loading customization page",
     "loadingComments": "Loading comments...",
-    "errorLoadingComments": "Error loading comments"
+    "errorLoadingComments": "Error loading comments",
+    "name": "Name",
+    "shorts": "Shorts"
   },
   "VideoCard": {
     "noDescription": "No description",
@@ -627,7 +629,11 @@
     "search": "Search",
     "save": "Save",
     "notifications": "Notifications",
-    "siteDescription": "Owner-sama's video website"
+    "siteDescription": "Owner-sama's video website",
+    "siteTitle": "Hayase Yuuka",
+    "studioTitle": "Hayase Yuuka Studio",
+    "on": "On",
+    "off": "Off"
   },
   "Playback": {
     "autoPlay": "Auto play",
@@ -787,7 +793,8 @@
     "postUpdatedSuccess": "Post updated",
     "postUpdateError": "Error updating post",
     "ownerCannotVote": "Channel owner cannot vote on their own post",
-    "scheduledFor": "Scheduled for {time}"
+    "scheduledFor": "Scheduled for {time}",
+    "video": "Video"
   },
   "Subscriptions": {
     "title": "Subscriptions",
@@ -941,7 +948,9 @@
     "unbanAccount": "Unban account",
     "adminPanelTitle": "Admin Panel",
     "overview": "Overview",
-    "reports": "Reports"
+    "reports": "Reports",
+    "tableHandle": "Handle",
+    "noHandle": "no-handle"
   },
   "Offline": {
     "downloadedContent": "Downloaded content",

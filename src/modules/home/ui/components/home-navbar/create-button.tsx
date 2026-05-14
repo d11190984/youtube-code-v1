@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StudioUploadModal } from "@/modules/studio/ui/components/studio-upload-modal";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 
 export const CreateButton = () => {
   const t = useTranslations("Create");

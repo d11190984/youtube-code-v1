@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { DownloadIcon, PlayCircleIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 
 import { downloadManager, DownloadedVideo } from "@/lib/download-manager";
 import { VideoGridCard } from "@/modules/videos/ui/components/video-grid-card";

@@ -16,7 +16,7 @@
     "subscriptions": "Abonnements",
     "trending": "Tendances",
     "trendingDescription": "Les vidéos plus populaires en ce moment",
-    "shorts": "Shorts",
+    "shorts": "Vidéos courtes",
     "you": "Vous",
     "yourChannel": "Votre chaîne",
     "history": "Historique",
@@ -96,7 +96,7 @@
     "downloads": "Téléchargements",
     "readyToWatchOffline": "Prêt pour le visionnage hors ligne",
     "suggestedDownloadedVideos": "Vidéos téléchargées suggérées",
-    "basedOnYourDownloads": "(Basé trên le contenu que vous avez téléchargé)"
+    "basedOnYourDownloads": "(Basé sur le contenu que vous avez téléchargé)"
   },
   "Studio": {
     "title": "Détails de la vidéo",
@@ -463,7 +463,12 @@
     "errorLoadingCommunity": "Erreur lors du chargement des données de la communauté",
     "errorLoadingCustomization": "Erreur lors du chargement de la page de personnalisation",
     "loadingComments": "Chargement des commentaires...",
-    "errorLoadingComments": "Erreur lors du chargement des commentaires"
+    "errorLoadingComments": "Erreur lors du chargement des commentaires",
+    "name": "Nom",
+    "channelContentDescription": "Gérez vos vidéos, vidéos courtes, playlists et posts sur votre chaîne",
+    "shorts": "Vidéos courtes",
+    "rowsPerPage": "Lignes par page :",
+    "postComments": "Commentaires du post"
   },
   "VideoCard": {
     "noDescription": "Aucune description",
@@ -479,14 +484,14 @@
     "videoRemovedFromMix": "Vidéo retirée de la playlist mix",
     "errorOccurred": "Une erreur s'est produite",
     "addToMixPlaylist": "Ajouter à la playlist mix",
-    "createMixPlaylist": "Créer eine playlist mix",
+    "createMixPlaylist": "Créer une playlist mix",
     "playlistName": "Nom de la playlist",
     "playlistNamePlaceholder": "ex. Série Noa",
     "privacy": "Confidentialité",
     "public": "Public",
     "private": "Privé",
     "create": "Créer",
-    "playlistCreatedSuccess": "Playlist mix créée với succès !",
+    "playlistCreatedSuccess": "Playlist mix créée avec succès !",
     "playlistNameRequired": "Veuillez saisir un nom de playlist",
     "playAll": "Tout lire",
     "videosCount": "{count} vidéos",
@@ -563,8 +568,8 @@
     "publishPostTitle": "Publier la publication",
     "publishPostDesc": "Les publications apparaissent ici après publication et seront visibles par votre communauté",
     "schedulePostDesc": "Préparez votre contenu et planifiez-le pour plus tard",
-    "archivedPostTitle": "Publications expirées trong l'archive",
-    "archivedPostDesc": "Les publications configurées pour expirer dans 24 heures apparaîtront trong l'archive. Bạn duy nhất có thể xem các bài đăng trong kho lưu trữ.",
+    "archivedPostTitle": "Publications expirées dans l'archive",
+    "archivedPostDesc": "Les publications configurées pour expirer dans 24 heures apparaîtront dans l'archive. Vous seul pouvez voir les publications archivées.",
     "commentsCount": "{count} commentaires",
     "sortBy": "Trier par",
     "topComments": "Top des commentaires",
@@ -584,7 +589,7 @@
     "errorOccurred": "Une erreur s'est produite !",
     "answer": "Réponse",
     "addOptionPlaceholder": "Ajouter une option",
-    "addAnswer": "Ajouter eine réponse",
+    "addAnswer": "Ajouter une réponse",
     "addAnotherOption": "Ajouter une autre option",
     "changeImagePosition": "Changer la position de l'image",
     "schedulePostTitle": "Planifier des publications",
@@ -592,7 +597,8 @@
     "postUpdatedSuccess": "Publication mise à jour",
     "postUpdateError": "Erreur lors de la mise à jour de la publication",
     "ownerCannotVote": "Le propriétaire de la chaîne ne peut pas voter sur sa propre publication",
-    "scheduledFor": "Planifié pour {time}"
+    "scheduledFor": "Planifié pour {time}",
+    "video": "Vidéo"
   },
   "General": {
     "loading": "Chargement...",
@@ -601,7 +607,11 @@
     "search": "Rechercher",
     "save": "Enregistrer",
     "notifications": "Notifications",
-    "siteDescription": "Site vidéo d'Owner-sama"
+    "siteDescription": "Site vidéo d'Owner-sama",
+    "siteTitle": "Hayase Yuuka",
+    "studioTitle": "Hayase Yuuka Studio",
+    "on": "Activé",
+    "off": "Désactivé"
   },
   "Subscriptions": {
     "title": "Abonnements",
@@ -683,7 +693,7 @@
     "reportViolation": "Signaler une violation",
     "reportViolationDesc": "Si vous pensez que ce contenu enfreint les règles de la communauté, faites-le nous savoir.",
     "reasonLabel": "Motif",
-    "selectReasonPlaceholder": "Chọn lý do báo cáo",
+    "selectReasonPlaceholder": "Sélectionnez le motif du signalement",
     "additionalDetails": "Détails supplémentaires (facultatif)",
     "additionalDetailsPlaceholder": "Fournissez plus de détails sur la violation...",
     "submitReport": "Envoyer le signalement",
@@ -755,7 +765,9 @@
     "unbanAccount": "Débannir le compte",
     "adminPanelTitle": "Panneau d'administration",
     "overview": "Aperçu",
-    "reports": "Signalements"
+    "reports": "Signalements",
+    "tableHandle": "Identifiant",
+    "noHandle": "pas-d-identifiant"
   },
   "Offline": {
     "downloadedContent": "Contenu téléchargé",
@@ -768,5 +780,55 @@
     "errorDeletingVideo": "Erreur lors de la suppression de la vidéo.",
     "noLocalVideoData": "Aucune donnée vidéo locale trouvée.",
     "cannotPlayVideo": "Impossible de lire la vidéo."
+  },
+  "VoiceSearch": {
+    "title": "Recherche vocale",
+    "unsupported": "Votre navigateur ne prend pas en charge la recherche vocale.",
+    "listening": "Écoute...",
+    "tryAgain": "Appuyez sur le microphone pour réessayer",
+    "networkError": "Erreur réseau. Veuillez réessayer ou vérifier votre connexion internet.",
+    "micBlocked": "Microphone bloqué. Veuillez accorder la permission.",
+    "genericError": "Une erreur s'est produite. Veuillez réessayer.",
+    "cancel": "Annuler",
+    "done": "Terminé"
+  },
+  "Profile": {
+    "copySuccess": "Lien de la chaîne copié !",
+    "subscribers": "{count} abonnés",
+    "videos": "{count} vidéos",
+    "views": "{count} vues",
+    "about": "À propos",
+    "description": "Description",
+    "noDescription": "Aucune description pour cette chaîne.",
+    "channelDetails": "Détails de la chaîne",
+    "joinedDate": "A rejoint le {date}",
+    "shareChannel": "Partager la chaîne",
+    "customizeChannel": "Personnaliser la chaîne",
+    "manageVideos": "Gérer les vidéos",
+    "reportUser": "Signaler l'utilisateur",
+    "learnMore": "En savoir plus sur cette chaîne",
+    "showMore": "...plus"
+  },
+  "Tabs": {
+    "home": "Accueil",
+    "videos": "Vidéos",
+    "shorts": "Vidéos courtes",
+    "playlists": "Playlists",
+    "posts": "Posts",
+    "latest": "Plus récents",
+    "popular": "Populaires",
+    "oldest": "Plus anciens"
+  },
+  "VideoMenu": {
+    "addToQueue": "Ajouter à la file d'attente",
+    "share": "Partager",
+    "addToPlaylist": "Ajouter à une playlist",
+    "createNewMix": "Créer un nouveau mix",
+    "addToMix": "Ajouter au mix",
+    "report": "Signaler",
+    "removeFromHistory": "Supprimer de l'historique",
+    "removeDownload": "Supprimer le téléchargement",
+    "queueSuccess": "Ajouté à la file d'attente",
+    "queueError": "Impossible d'ajouter à la file d'attente : informations manquantes"
   }
 }

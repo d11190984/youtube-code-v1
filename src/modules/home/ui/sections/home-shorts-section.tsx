@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Suspense, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ChevronLeftIcon, ChevronRightIcon, FlameIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { trpc } from "@/trpc/client";
 
@@ -27,6 +28,7 @@ export const HomeShortsSection = ({ categoryId }: HomeShortsSectionProps) => {
 };
 
 const HomeShortsSectionSkeleton = () => {
+  const t = useTranslations("Sidebar");
   return (
     <div className="flex flex-col gap-3">
       {/* Header */}
@@ -34,7 +36,7 @@ const HomeShortsSectionSkeleton = () => {
         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/10">
           <FlameIcon className="size-5 text-red-500" />
         </div>
-        <span className="text-lg font-bold">Shorts</span>
+        <span className="text-lg font-bold">{t("shorts")}</span>
       </div>
 
       {/* Cards row */}
@@ -48,6 +50,7 @@ const HomeShortsSectionSkeleton = () => {
 };
 
 const HomeShortsSectionSuspense = ({ categoryId }: HomeShortsSectionProps) => {
+  const t = useTranslations("Sidebar");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -87,7 +90,7 @@ const HomeShortsSectionSuspense = ({ categoryId }: HomeShortsSectionProps) => {
             <FlameIcon className="size-5 text-red-500" />
           </div>
           <span className="text-lg font-bold group-hover:text-red-500 transition-colors">
-            Shorts
+            {t("shorts")}
           </span>
         </Link>
       </div>

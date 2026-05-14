@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/routing";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
 import { FlameIcon, HomeIcon, PlaySquareIcon, VideoIcon  } from "lucide-react";
@@ -17,6 +17,7 @@ import {
 
 export const MainSection = () => {
   const t = useTranslations("Sidebar");
+  const tGeneral = useTranslations("General");
   const clerk = useClerk();
   const { isSignedIn } = useAuth();
   const pathname = usePathname();
@@ -50,7 +51,7 @@ export const MainSection = () => {
       {/* 🔥 LOGO + TITLE (mobile sidebar header) */}
       <div className="flex items-center gap-2 px-4 py-3 border-b sm:hidden">
         <Image src="/yuuka.png" alt="Logo" width={28} height={28} />
-        <span className="font-semibold text-base">Hayase Yuuka</span>
+        <span className="font-semibold text-base">{tGeneral("siteTitle")}</span>
       </div>
 
       <SidebarGroupContent>

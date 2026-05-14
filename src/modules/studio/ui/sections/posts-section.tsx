@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Suspense, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { format } from "date-fns";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
 import { Suspense } from "react";
@@ -7,9 +7,11 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 import { AuthButton } from "@/modules/auth/ui/components/auth-button";
 import { CreateButton } from "@/modules/home/ui/components/home-navbar/create-button";
+import { useTranslations } from "next-intl";
 import { StudioSearch } from "./studio-search";
 
 export const StudioNavbar = () => {
+  const t = useTranslations("General");
   return  (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-background flex items-center px-2 pr-5 z-50 border-b shadow-md">
       <div className="flex items-center gap-4 w-full">
@@ -19,7 +21,7 @@ export const StudioNavbar = () => {
           <Link prefetch href="/studio" className="hidden md:block">
             <div className="p-4 flex items-center gap-1">
               <Image src="/yuuka.png" alt="Logo" width={32} height={32} />
-              <p className="text-xl font-semibold tracking-tight">Hayase Yuuka Studio</p>
+              <p className="text-xl font-semibold tracking-tight">{t("studioTitle")}</p>
             </div>
           </Link>
         </div>

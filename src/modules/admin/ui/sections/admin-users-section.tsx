@@ -154,7 +154,7 @@ const AdminUsersSuspense = ({ search }: AdminUsersSuspenseProps) => {
             <TableRow className="bg-neutral-50 dark:bg-neutral-800/50">
               <TableHead className="min-w-[200px]">{t("tableUser")}</TableHead>
               <TableHead className="min-w-[120px]">{t("tableJoinedDate")}</TableHead>
-              <TableHead className="min-w-[150px]">Handle</TableHead>
+              <TableHead className="min-w-[150px]">{t("tableHandle")}</TableHead>
               <TableHead className="min-w-[120px]">{t("tableStatus")}</TableHead>
               <TableHead className="min-w-[150px] text-center pr-32">{t("tableActions")}</TableHead>
             </TableRow>
@@ -175,7 +175,7 @@ const AdminUsersSuspense = ({ search }: AdminUsersSuspenseProps) => {
                 {format(new Date(user.createdAt), "dd/MM/yyyy", { locale: dateFnsLocale })}
               </TableCell>
               <TableCell>
-                <span className="text-sm text-blue-500 font-medium">@{user.handle || "no-handle"}</span>
+                <span className="text-sm text-blue-500 font-medium">@{user.handle || t("noHandle")}</span>
               </TableCell>
               <TableCell>
                 {user.banned ? (

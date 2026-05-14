@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, forwardRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import MuxPlayer from "@mux/mux-player-react";
 import { THUMBNAIL_FALLBACK } from "../../constants";
 import { trpc } from "@/trpc/client";

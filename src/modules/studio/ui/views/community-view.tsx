@@ -60,7 +60,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { 
   AlertDialog,
@@ -268,7 +268,7 @@ export const CommunityView = ({ videoId }: CommunityViewProps) => {
                       <div className="p-2 flex flex-col gap-y-1">
                         {[
                           { id: "video", label: t("video") },
-                          { id: "shorts", label: "Shorts" },
+                          { id: "shorts", label: t("shorts") },
                           { id: "my-posts", label: t("myPosts") },
                           { id: "viewer-posts", label: t("viewerPosts") },
                         ].map((item) => (
@@ -510,7 +510,7 @@ export const CommunityView = ({ videoId }: CommunityViewProps) => {
                           <div className="flex flex-col">
                             {[
                               { id: "video", label: t("video") },
-                              { id: "shorts", label: "Shorts" },
+                              { id: "shorts", label: t("shorts") },
                               { id: "my-posts", label: t("myPosts") },
                               { id: "viewer-posts", label: t("viewerPosts") },
                             ].map((item) => (

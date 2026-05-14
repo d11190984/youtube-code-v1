@@ -16,7 +16,7 @@
     "subscriptions": "订阅内容",
     "trending": "时下流行",
     "trendingDescription": "当前最热门的视频",
-    "shorts": "Shorts",
+    "shorts": "短视频",
     "you": "你",
     "yourChannel": "您的频道",
     "history": "历史记录",
@@ -485,7 +485,12 @@
     "errorLoadingCommunity": "加载社区数据时出错",
     "errorLoadingCustomization": "加载自定义页面时出错",
     "loadingComments": "正在加载评论...",
-    "errorLoadingComments": "加载评论时出错"
+    "errorLoadingComments": "加载评论时出错",
+    "name": "名称",
+    "channelContentDescription": "管理频道上的视频、短视频、播放列表和帖子",
+    "shorts": "短视频",
+    "rowsPerPage": "每页行数：",
+    "postComments": "帖子评论"
   },
   "VideoCard": {
     "noDescription": "无描述",
@@ -575,7 +580,7 @@
     "textPoll": "文字投票",
     "question": "问题",
     "schedulePost": "预定帖子",
-    "selectDateAndTime": "选择发布此帖子的日期 and 时间",
+    "selectDateAndTime": "选择发布此帖子的日期和时间",
     "scheduleTimePastError": "预定时间不能是过去！",
     "selectTimePlaceholder": "选择时间",
     "localTime": "(GMT+07:00) 当地时间",
@@ -614,7 +619,8 @@
     "postUpdatedSuccess": "帖子已更新",
     "postUpdateError": "更新帖子时出错",
     "ownerCannotVote": "频道所有者不能对自己发布的帖子进行投票",
-    "scheduledFor": "已预定于 {time}"
+    "scheduledFor": "已预定于 {time}",
+    "video": "视频"
   },
   "General": {
     "loading": "加载中...",
@@ -623,7 +629,11 @@
     "search": "搜索",
     "save": "保存",
     "notifications": "通知",
-    "siteDescription": "主人样的视频网站"
+    "siteDescription": "主人样的视频网站",
+    "siteTitle": "早濑优香",
+    "studioTitle": "早濑优香工作室",
+    "on": "开启",
+    "off": "关闭"
   },
   "Subscriptions": {
     "title": "订阅",
@@ -777,7 +787,9 @@
     "unbanAccount": "解除封禁账号",
     "adminPanelTitle": "管理面板",
     "overview": "概览",
-    "reports": "举报"
+    "reports": "举报",
+    "tableHandle": "句柄",
+    "noHandle": "无句柄"
   },
   "Offline": {
     "downloadedContent": "下载",
@@ -788,7 +800,57 @@
     "confirmDeleteDownloadedVideo": "您确定要从下载中删除此视频吗？",
     "videoDeleted": "视频已删除。",
     "errorDeletingVideo": "删除视频时出错。",
-    "noLocalVideoData": "未找到本地视频数据。",
+    "noLocalVideoData": "未找到本地视频 data。",
     "cannotPlayVideo": "无法播放视频。"
+  },
+  "VoiceSearch": {
+    "title": "语音搜索",
+    "unsupported": "您的浏览器不支持语音搜索。",
+    "listening": "正在倾听...",
+    "tryAgain": "点击麦克风重试",
+    "networkError": "网络错误。请重试或检查您的互联网连接。",
+    "micBlocked": "麦克风被阻止。请授予权限。",
+    "genericError": "发生错误。请重试。",
+    "cancel": "取消",
+    "done": "完成"
+  },
+  "Profile": {
+    "copySuccess": "频道链接已复制！",
+    "subscribers": "{count} 位订阅者",
+    "videos": "{count} 个视频",
+    "views": "{count} 次观看",
+    "about": "关于",
+    "description": "描述",
+    "noDescription": "此频道没有描述。",
+    "channelDetails": "频道详情",
+    "joinedDate": "于 {date} 加入",
+    "shareChannel": "分享频道",
+    "customizeChannel": "自定义频道",
+    "manageVideos": "管理视频",
+    "reportUser": "举报用户",
+    "learnMore": "了解更多关于此频道的信息",
+    "showMore": "...更多"
+  },
+  "Tabs": {
+    "home": "首页",
+    "videos": "视频",
+    "shorts": "短视频",
+    "playlists": "播放列表",
+    "posts": "帖子",
+    "latest": "最新",
+    "popular": "最热",
+    "oldest": "最早"
+  },
+  "VideoMenu": {
+    "addToQueue": "添加到播放队列",
+    "share": "分享",
+    "addToPlaylist": "添加到播放列表",
+    "createNewMix": "创建新合集",
+    "addToMix": "添加到合集",
+    "report": "举报",
+    "removeFromHistory": "从历史记录中移除",
+    "removeDownload": "删除下载内容",
+    "queueSuccess": "已添加到播放队列",
+    "queueError": "无法添加到播放队列：缺少信息"
   }
 }

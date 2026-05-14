@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 
 import { THUMBNAIL_FALLBACK } from "@/modules/videos/constants";
 import { PlaylistGetManyOutput } from "@/modules/playlists/types";

@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 
 import { trpc } from "@/trpc/client";
 import { VideoSection } from "../sections/video-section";
