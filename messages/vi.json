@@ -92,6 +92,11 @@
     "strict": "Nghiêm ngặt",
     "done": "Xong",
     "newPlaylist": "Tạo danh sách phát mới",
-    "newMixPlaylist": "Tạo danh sách phát kết hợp"
+    "newMixPlaylist": "Tạo danh sách phát kết hợp",
+    "playlists": "Danh sách phát",
+    "selectPlaylists": "Chọn danh sách phát",
+    "noPlaylistsFound": "Không tìm thấy danh sách phát nào",
+    "on": "Bật",
+    "off": "Tắt"
   }
 }

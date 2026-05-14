@@ -87,7 +87,7 @@ export const PersonalSection = () => {
     filteredItems = [
       ...filteredItems,
       {
-        title: "Admin Dashboard",
+        title: "Bảng quản trị hệ thống",
         url: "/admin",
         icon: ShieldAlertIcon,
         auth: true,

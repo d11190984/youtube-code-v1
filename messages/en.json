@@ -76,6 +76,27 @@
     "goToAnalytics": "Go to channel analytics",
     "recentSubscribers": "Recent subscribers",
     "success": "Success",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "commentsAndRatings": "Comments and ratings",
+    "commentsDesc": "Choose settings for comments and likes visibility",
+    "moderation": "Moderation",
+    "whoCanComment": "Who can comment",
+    "sortBy": "Sort by",
+    "showLikeCount": "Show how many viewers like this video",
+    "anyone": "Anyone",
+    "subscribers": "Subscribers",
+    "top": "Top",
+    "newest": "Newest",
+    "none": "None",
+    "basic": "Basic",
+    "strict": "Strict",
+    "done": "Done",
+    "newPlaylist": "Create new playlist",
+    "newMixPlaylist": "Create mix playlist",
+    "playlists": "Playlists",
+    "selectPlaylists": "Select playlists",
+    "noPlaylistsFound": "No playlists found",
+    "on": "On",
+    "off": "Off"
   }
 }

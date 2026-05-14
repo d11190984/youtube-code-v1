@@ -135,7 +135,7 @@ export const AuthButton = () => {
             {user?.primaryEmailAddress?.emailAddress === "vuliztva1@gmail.com" && (
               <DropdownMenuItem onClick={() => router.push("/admin")}>
                 <ShieldAlertIcon className="mr-3 size-4 text-red-500" />
-                <span className="font-bold text-red-500">Admin Dashboard</span>
+                <span className="font-bold text-red-500">Bảng quản trị hệ thống</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />

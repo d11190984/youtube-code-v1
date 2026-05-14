@@ -2,16 +2,6 @@
 
 ## ⚠️ Điểm Cần Cải Thiện
 
-### 1. Performance — N+1 Query Problem
-```
-// studio/procedures.ts — getMany
-const itemsWithAvgView = await Promise.all(
-  items.map(async (v) => {
-    const views = await db.select()... // ❌ N+1 query!
-  })
-);
-```
-
 ### 5. CSS & Styling
 - `globals.css` có `body { user-select: none }` → chặn user select text trên toàn trang
 - `font-family: Arial` override font Inter đã import từ Google Fonts
@@ -38,21 +28,10 @@ const itemsWithAvgView = await Promise.all(
 
 ### 🟢 Ưu tiên thấp — Ý tưởng dài hạn
 
-#### 18. End Screens & Cards
-- Thêm cards (link video khác) vào cuối video
-- End screen với subscribe button
-- Interactive elements overlay
-
 #### 22. Video Clips
 - Tạo clip ngắn từ video dài (giống YouTube Clips)
 - Share clip với timestamp range
 - Embed clip
-
-#### 29. Embed Player
-- Embeddable video player cho website khác
-- Custom embed options (autoplay, start time)
-- Embed code generator trong Studio
-
 ---
 
 ### Fix CSS Issues
