@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { viVN, enUS } from "@clerk/localizations";
 
 import { TRPCProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
@@ -40,8 +41,10 @@ export default async function RootLayout({
   // Providing all messages to the client
   // side is the easiest way to get started
   const messages = await getMessages();
+  const localization = locale === "vi" ? viVN : enUS;
+
   return (
-    <ClerkProvider afterSignOutUrl="/">
+    <ClerkProvider localization={localization as any} afterSignOutUrl="/">
       <html lang={locale} suppressHydrationWarning>
         <head>
           <link rel="icon" href="/favicon.ico" />
