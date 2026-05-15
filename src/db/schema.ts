@@ -12,6 +12,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  index,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -306,7 +307,10 @@ export const videos = pgTable("videos", {
   commentPermission: text("comment_permission").default("anyone").notNull(),
   commentSort: text("comment_sort").default("top").notNull(),
   showLikeCount: boolean("show_like_count").default(true).notNull(),
-});
+  tags: text("tags").array(),
+}, (t) => [
+  index("tags_gin_idx").using("gin", t.tags),
+]);
 
 export const videoSelectSchema = createSelectSchema(videos);
 export const videoInsertSchema = createInsertSchema(videos);

@@ -97,7 +97,8 @@
     "downloads": "Téléchargements",
     "readyToWatchOffline": "Prêt pour le visionnage hors ligne",
     "suggestedDownloadedVideos": "Vidéos téléchargées suggérées",
-    "basedOnYourDownloads": "(Basé sur le contenu que vous avez téléchargé)"
+    "basedOnYourDownloads": "(Basé sur le contenu que vous avez téléchargé)",
+    "trending": "Tendances"
   },
   "Studio": {
     "title": "Détails de la vidéo",

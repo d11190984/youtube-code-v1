@@ -101,7 +101,8 @@
     "downloads": "Nội dung tải xuống",
     "readyToWatchOffline": "Sẵn sàng để xem ngoại tuyến",
     "suggestedDownloadedVideos": "Video đã tải xuống đề xuất",
-    "basedOnYourDownloads": "(Dựa trên nội dung bạn đã tải về máy)"
+    "basedOnYourDownloads": "(Dựa trên nội dung bạn đã tải về máy)",
+    "trending": "Thịnh hành"
   },
   "Studio": {
     "title": "Chi tiết video",
@@ -849,11 +850,12 @@
     "thisWeek": "Tuần này",
     "thisMonth": "Tháng này",
     "thisYear": "Năm nay",
-    "errorHashtagSearch": "Đã xảy ra lỗi khi tìm kiếm hashtag.",
-    "noVideosHashtag": "Không tìm thấy video nào với hashtag này.",
-    "errorSearch": "Đã xảy ra lỗi khi tìm kiếm.",
+    "error": "Có lỗi xảy ra khi tìm kiếm",
+    "errorSearch": "Lỗi khi thực hiện tìm kiếm",
     "noMatchingResults": "Không tìm thấy kết quả nào phù hợp.",
     "videosRelatedToHashtag": "Video liên quan đến hashtag #{tag}",
+    "noVideosHashtag": "Không có video nào gắn hashtag này",
+    "errorHashtagSearch": "Lỗi khi tìm kiếm hashtag",
     "searchResults": "Kết quả tìm kiếm"
   },
   "Reports": {

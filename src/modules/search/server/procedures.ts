@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, and, or, lt, gte, desc, ilike, getTableColumns, sql } from "drizzle-orm";
+import { eq, and, or, lt, gte, desc, ilike, getTableColumns, sql, arrayOverlaps } from "drizzle-orm";
 
 import { db } from "@/db";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
@@ -358,10 +358,7 @@ export const searchRouter = createTRPCRouter({
         .innerJoin(users, eq(videos.userId, users.id))
         .where(and(
           eq(videos.visibility, "public"),
-          or(
-            ilike(videos.title, `%#${tag}%`),
-            ilike(videos.description, `%#${tag}%`)
-          )
+          arrayOverlaps(videos.tags, [tag])
         ))
         .orderBy(desc(videos.createdAt), desc(videos.id))
         .limit(limit + 1)
@@ -377,19 +374,60 @@ export const searchRouter = createTRPCRouter({
     }),
   getTrendingHashtags: baseProcedure
     .query(async () => {
-      // Trong thực tế, bạn sẽ query từ DB các hashtag xuất hiện nhiều nhất
-      // Ở đây demo trả về danh sách cứng
-      return [
-        "shadow",
-        "music",
-        "vlog",
-        "gaming",
-        "coding",
-        "tutorial",
-        "asmr",
-        "japansong",
-        "anime",
-        "lofi"
-      ];
+      // Lấy top 10 tags xuất hiện nhiều nhất trong 7 ngày qua
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+
+      // Vì tags là mảng, ta cần unnest để đếm
+      // Drizzle hỗ trợ sql fragment cho unnest
+      const trendingTags = await db
+        .select({
+          tag: sql<string>`unnest(${videos.tags})`.as("tag"),
+          count: sql<number>`count(*)`.as("count"),
+        })
+        .from(videos)
+        .where(gte(videos.createdAt, lastWeek))
+        .groupBy(sql`tag`)
+        .orderBy(desc(sql`count`))
+        .limit(10);
+
+      return trendingTags.map(t => t.tag);
+    }),
+  getTagSuggestions: baseProcedure
+    .input(z.object({
+      query: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const { query = "" } = input;
+      
+      if (!query.trim()) {
+        const lastWeek = new Date();
+        lastWeek.setDate(lastWeek.getDate() - 7);
+
+        // Return top 10 trending tags from the last 7 days
+        const trendingTags = await db
+          .select({
+            tag: sql<string>`tag`,
+          })
+          .from(sql`(SELECT unnest(${videos.tags}) as tag, created_at FROM ${videos}) as t`)
+          .where(gte(sql`created_at`, lastWeek))
+          .groupBy(sql`tag`)
+          .orderBy(desc(sql`count(*)`))
+          .limit(10);
+
+        return trendingTags.map(t => t.tag);
+      }
+
+      // Return tags starting with the query
+      const results = await db
+        .select({
+          tag: sql<string>`tag`,
+        })
+        .from(sql`(SELECT unnest(${videos.tags}) as tag FROM ${videos}) as t`)
+        .where(ilike(sql`tag`, `${query}%`))
+        .groupBy(sql`tag`)
+        .limit(10);
+
+      return results.map(r => r.tag);
     }),
 });
