@@ -101,7 +101,8 @@
     "downloads": "Downloads",
     "readyToWatchOffline": "Ready to watch offline",
     "suggestedDownloadedVideos": "Suggested downloaded videos",
-    "basedOnYourDownloads": "(Based on content you've downloaded)"
+    "basedOnYourDownloads": "(Based on content you've downloaded)",
+    "trending": "Trending"
   },
   "Studio": {
     "title": "Video details",

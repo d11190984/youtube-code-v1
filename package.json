@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:all": "concurrently \"bun run dev:webhook\" \"bun run dev\" ",
-    "dev:webhook": "ngrok http --url=unarmored-crafter-acclaim.ngrok-free.dev 3000",
+    "dev:all": "concurrently \"npm run dev:webhook\" \"npm run dev\" ",
+    "dev:webhook": "npx ngrok http 3000",
     "dev": "next dev",
     "build": "next build --no-lint",
     "start": "next start",

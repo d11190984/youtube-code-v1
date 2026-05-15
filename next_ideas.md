@@ -19,16 +19,6 @@ Schema cần thêm:
 notification_preferences (userId, type, email, push, inApp)
 push_subscriptions (userId, endpoint, keys)
 ```
-
----
-
-### 2. 🏷️ Hashtag & Tag System (đã có route `/hashtag/[tag]`)
-**Hiện trạng:** Route `/hashtag/[tag]` tồn tại nhưng chưa có UI hoàn chỉnh.
-- Hashtag autocomplete khi creator nhập description/caption
-- Click hashtag → feed video/post theo tag đó
-- **Trending hashtags** sidebar (top 10 tags trong 7 ngày)
-- Tag gắn vào schema `videos.tags` (array text) + index GIN cho full-text search
-
 ---
 
 ### 3. 📊 Studio Analytics — Giai đoạn 2
@@ -50,16 +40,6 @@ push_subscriptions (userId, endpoint, keys)
 - **Collaborative playlists**: Nhiều người cùng thêm video
 - **Share playlist** với link + embed code
 - **Save to Playlist** button trong video player (popup chọn playlist)
-
----
-
-### 5. 🔍 Search Nâng Cao
-**Hiện trạng:** Search đơn giản theo keyword.
-- **Full-text search** với PostgreSQL `tsvector` + `tsquery` (có ranking)
-- Filter theo: thời lượng (ngắn/vừa/dài), ngày đăng, loại (video/shorts/playlist/kênh/post)
-- **Search suggestions** real-time từ server (debounce 300ms)
-- Lưu lịch sử search lên server (thay vì chỉ localStorage) — đồng bộ đa thiết bị
-- **Voice search** (Web Speech API)
 
 ---
 
@@ -112,7 +92,6 @@ live_chat_messages (id, streamId, userId, message, createdAt)
 
 ### 10. 🛡️ Moderation Nâng Cao
 **Hiện trạng:** Có `channelModerations`, reports, basic moderation.
-- **AutoMod rules**: Creator đặt từ khoá blacklist → auto-hide comment
 - **Slow mode**: Giới hạn tần suất comment trong live stream
 - **Comment approval queue**: Creator phải duyệt trước khi comment hiện
 - **Trust levels**: Subscriber lâu năm được comment tự do hơn

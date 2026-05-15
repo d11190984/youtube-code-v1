@@ -34,6 +34,12 @@ import {
   comments,
 } from "@/db/schema";
 
+const extractHashtags = (text: string | null | undefined): string[] => {
+  if (!text) return [];
+  const hashtags = text.match(/#[\w\u00C0-\u024F]+/g);
+  return hashtags ? Array.from(new Set(hashtags.map(h => h.slice(1).toLowerCase()))) : [];
+};
+
 export const videosRouter = createTRPCRouter({
   getManySubscribed: protectedProcedure
     .input(
@@ -885,6 +891,7 @@ export const videosRouter = createTRPCRouter({
           commentPermission: input.commentPermission,
           commentSort: input.commentSort,
           showLikeCount: input.showLikeCount,
+          tags: input.tags ?? extractHashtags(input.description),
           updatedAt: new Date(),
         })
         .where(and(eq(videos.id, input.id), eq(videos.userId, userId)))

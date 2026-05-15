@@ -7,6 +7,7 @@ import { Sidebar, SidebarContent } from "@/components/ui/sidebar"
 import { useIsOnline } from "@/hooks/use-is-online"
 
 import { MainSection } from "./main-section"
+import { TrendingSection } from "./trending-section"
 import { PersonalSection } from "./personal-section"
 import { SubscriptionsSection } from "./subscriptions-section"
 
@@ -19,6 +20,8 @@ export const HomeSidebar = () => {
         {isOnline && (
           <>
             <MainSection />
+            <Separator />
+            <TrendingSection />
             <Separator />
           </>
         )}

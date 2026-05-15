@@ -97,7 +97,8 @@
     "downloads": "オフライン",
     "readyToWatchOffline": "オフラインで視聴可能",
     "suggestedDownloadedVideos": "おすすめのオフライン動画",
-    "basedOnYourDownloads": "（ダウンロードしたコンテンツに基づく）"
+    "basedOnYourDownloads": "（ダウンロードしたコンテンツに基づく）",
+    "trending": "急上昇"
   },
   "Studio": {
     "title": "動画の詳細",

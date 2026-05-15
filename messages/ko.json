@@ -97,7 +97,8 @@
     "downloads": "오프라인",
     "readyToWatchOffline": "오프라인 시청 가능",
     "suggestedDownloadedVideos": "추천 오프라인 동영상",
-    "basedOnYourDownloads": "(다운로드한 콘텐츠 기준)"
+    "basedOnYourDownloads": "(다운로드한 콘텐츠 기준)",
+    "trending": "인기"
   },
   "Studio": {
     "title": "동영상 세부정보",

@@ -97,7 +97,8 @@
     "downloads": "下载",
     "readyToWatchOffline": "可离线观看",
     "suggestedDownloadedVideos": "推荐的下载视频",
-    "basedOnYourDownloads": "（基于您下载的内容）"
+    "basedOnYourDownloads": "（基于您下载的内容）",
+    "trending": "时下流行"
   },
   "Studio": {
     "title": "视频详情",

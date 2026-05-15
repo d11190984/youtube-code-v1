@@ -1,20 +1,20 @@
+import { enUS, viVN } from "@clerk/localizations";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-import { viVN, enUS } from "@clerk/localizations";
 
-import { TRPCProvider } from "@/trpc/client";
-import { Toaster } from "@/components/ui/sonner";
 import { ScrollToTopCharacter } from "@/components/scroll-to-top";
+import { Toaster } from "@/components/ui/sonner";
 import { GlobalPlayer } from "@/modules/videos/ui/components/global-player";
+import { TRPCProvider } from "@/trpc/client";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import ClickEffect from "@/components/ui/ClickEffect";
+import { routing } from '@/i18n/routing';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 import "../globals.css";
-import {NextIntlClientProvider} from 'next-intl';
-import {getMessages} from 'next-intl/server';
-import {routing} from '@/i18n/routing';
-import {notFound} from 'next/navigation';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -64,7 +64,7 @@ export default async function RootLayout({
             <TRPCProvider>
               <NextIntlClientProvider messages={messages}>
                 <Toaster />
-                <ClickEffect imageSrc="/toTop.Cuiv4RfP.svg">{children}</ClickEffect>
+                <ClickEffect>{children}</ClickEffect>
                 <ScrollToTopCharacter />
                 <GlobalPlayer />
               </NextIntlClientProvider>

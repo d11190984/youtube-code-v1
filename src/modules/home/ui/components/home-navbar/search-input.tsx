@@ -17,6 +17,9 @@ import {
 
 import { VirtualKeyboard } from "./virtual-keyboard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { trpc } from "@/trpc/client";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useAuth } from "@clerk/nextjs";
 
 interface SearchInputProps {
   onExpand?: () => void;
@@ -52,48 +55,76 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded, disabled }: Sea
   const query = searchParams.get("query") || "";
   const categoryId = searchParams.get("categoryId") || "";
 
+  const { isSignedIn } = useAuth();
   const [value, setValue] = useState(query);
-  const [history, setHistory] = useState<string[]>([]);
+  const debouncedValue = useDebounce(value, 300);
   const [isFocused, setIsFocused] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Load history from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("search_history");
-      if (stored) {
-        setHistory(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error("Failed to load search history", e);
+  // Suggestions from server
+  const { data: suggestions = [] } = trpc.search.getSuggestions.useQuery(
+    { query: debouncedValue },
+    { 
+      enabled: !!debouncedValue.trim() && isFocused,
+      staleTime: 1000 * 60 * 5, // 5 mins
     }
-  }, []);
+  );
 
-  // Sync history to localStorage
-  const saveHistory = (newHistory: string[]) => {
-    setHistory(newHistory);
-    try {
-      localStorage.setItem("search_history", JSON.stringify(newHistory));
-    } catch (e) {
-      console.error("Failed to save search history", e);
+  // History from server
+  const { data: serverHistory = [], refetch: refetchHistory } = trpc.search.getHistory.useQuery(
+    undefined,
+    { enabled: !!isSignedIn }
+  );
+
+  const createHistory = trpc.search.createHistory.useMutation({
+    onSuccess: () => refetchHistory(),
+  });
+
+  const removeHistory = trpc.search.removeHistory.useMutation({
+    onSuccess: () => refetchHistory(),
+  });
+
+  const [localHistory, setLocalHistory] = useState<string[]>([]);
+
+  // Load local history from localStorage on mount (for guests)
+  useEffect(() => {
+    if (!isSignedIn) {
+      try {
+        const stored = localStorage.getItem("search_history");
+        if (stored) {
+          setLocalHistory(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error("Failed to load search history", e);
+      }
     }
-  };
+  }, [isSignedIn]);
 
   const addSearchToHistory = (searchTerm: string) => {
     const term = searchTerm.trim();
     if (!term) return;
 
-    // Bỏ qua search trùng, đẩy lên đầu
-    const filtered = history.filter(item => item !== term);
-    const newHistory = [term, ...filtered].slice(0, MAX_HISTORY);
-    saveHistory(newHistory);
+    if (isSignedIn) {
+      createHistory.mutate({ query: term });
+    } else {
+      const filtered = localHistory.filter(item => item !== term);
+      const newHistory = [term, ...filtered].slice(0, MAX_HISTORY);
+      setLocalHistory(newHistory);
+      localStorage.setItem("search_history", JSON.stringify(newHistory));
+    }
   };
 
-  const removeHistoryItem = (e: React.MouseEvent, termToRemove: string) => {
+  const removeHistoryItem = (e: React.MouseEvent, termToRemove: string, id?: string) => {
     e.preventDefault();
     e.stopPropagation();
-    const newHistory = history.filter(item => item !== termToRemove);
-    saveHistory(newHistory);
+
+    if (isSignedIn && id) {
+      removeHistory.mutate({ id });
+    } else {
+      const newHistory = localHistory.filter(item => item !== termToRemove);
+      setLocalHistory(newHistory);
+      localStorage.setItem("search_history", JSON.stringify(newHistory));
+    }
   };
 
   const executeSearch = (searchTerm: string) => {
@@ -132,8 +163,6 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded, disabled }: Sea
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const showHistory = isFocused && history.length > 0 && !disabled;
 
   // On mobile, if not expanded, only show the search trigger icon
   if (isMobile && !isExpanded) {
@@ -229,25 +258,57 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded, disabled }: Sea
         </button>
       </form>
 
-      {/* History Dropdown */}
-      {showHistory && (
+      {/* Suggestions & History Dropdown */}
+      {isFocused && (suggestions.length > 0 || (isSignedIn ? serverHistory.length > 0 : localHistory.length > 0)) && !disabled && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1f1f] border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-lg z-50 overflow-hidden py-2">
-          {history.map((term, index) => (
+          {/* Suggestions */}
+          {suggestions.length > 0 && (
+            <div className="pb-1">
+              {suggestions.map((suggestion, index) => (
+                <div
+                  key={`suggestion-${index}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    executeSearch(suggestion);
+                  }}
+                  className="flex items-center gap-3 px-4 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800/80 cursor-pointer"
+                >
+                  <SearchIcon className="size-4 text-neutral-500 flex-shrink-0" />
+                  <span className="text-base font-medium truncate text-neutral-900 dark:text-neutral-100">
+                    {suggestion}
+                  </span>
+                </div>
+              ))}
+              {(isSignedIn ? serverHistory.length > 0 : localHistory.length > 0) && (
+                <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
+              )}
+            </div>
+          )}
+
+          {/* History */}
+          {(isSignedIn ? serverHistory : localHistory.map(h => ({ query: h, id: undefined }))).map((item, index) => (
             <div
-              key={index}
-              onClick={() => executeSearch(term)}
+              key={`history-${index}`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                executeSearch(item.query);
+              }}
               className="flex items-center justify-between px-4 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800/80 cursor-pointer"
             >
               <div className="flex items-center gap-3 overflow-hidden">
                 <HistoryIcon className="size-4 text-neutral-500 flex-shrink-0" />
                 <span className="text-base font-medium truncate text-neutral-900 dark:text-neutral-100">
-                  {term}
+                  {item.query}
                 </span>
               </div>
               <button
                 type="button"
-                onClick={(e) => removeHistoryItem(e, term)}
-                className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 p-1 flex-shrink-0 ml-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  removeHistoryItem(e, item.query, (item as any).id);
+                }}
+                className="text-neutral-500 hover:text-red-600 dark:text-neutral-400 dark:hover:text-red-400 p-1 flex-shrink-0 ml-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
               >
                 <XIcon className="size-4" />
               </button>

@@ -69,6 +69,7 @@ import { ThumbnailUploadModal } from "../components/thumbnail-upload-modal";
 import { ThumbnailGenerateModal } from "../components/thumbnail-generate-modal";
 import { PlaylistCreateModal } from "@/modules/playlists/ui/components/playlist-create-modal";
 import { MixPlaylistCreateModal } from "@/modules/playlists/ui/components/mix-playlist-create-modal";
+import { HashtagTextarea } from "../components/hashtag-textarea";
 
 interface FormSectionProps {
   videoId: string;
@@ -387,9 +388,10 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                       </div>
                     </FormLabel>
                     <FormControl>
-                      <Textarea
+                      <HashtagTextarea
                         {...field}
                         value={field.value ?? ""}
+                        onValueChange={field.onChange}
                         rows={10}
                         className="resize-none pr-10"
                         placeholder={t("descPlaceholder")}
