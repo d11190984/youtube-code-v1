@@ -256,20 +256,20 @@ export const VideoPlaybackMenu = ({
               </>
             ) : null}
 
-            <DropdownMenuItem onClick={() => scheduleStopTimer(playerRef, 15, setScheduledStopSeconds, stopTimerRef, scheduledAtRef)}>
-              15s
+            <DropdownMenuItem onClick={() => scheduleStopTimer(playerRef, 600, setScheduledStopSeconds, stopTimerRef, scheduledAtRef)}>
+              10m
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => scheduleStopTimer(playerRef, 30, setScheduledStopSeconds, stopTimerRef, scheduledAtRef)}>
-              30s
+            <DropdownMenuItem onClick={() => scheduleStopTimer(playerRef, 900, setScheduledStopSeconds, stopTimerRef, scheduledAtRef)}>
+              15m
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => scheduleStopTimer(playerRef, 60, setScheduledStopSeconds, stopTimerRef, scheduledAtRef)}>
-              1m
+            <DropdownMenuItem onClick={() => scheduleStopTimer(playerRef, 1200, setScheduledStopSeconds, stopTimerRef, scheduledAtRef)}>
+              20m
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => scheduleStopTimer(playerRef, 300, setScheduledStopSeconds, stopTimerRef, scheduledAtRef)}>
-              5m
+            <DropdownMenuItem onClick={() => scheduleStopTimer(playerRef, 1800, setScheduledStopSeconds, stopTimerRef, scheduledAtRef)}>
+              30m
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
