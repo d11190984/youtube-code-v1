@@ -1,155 +1,208 @@
 "use client";
 
+import { animate, random } from "animejs";
 import React, { useEffect, useRef } from "react";
-
 interface ClickEffectProps {
+  imageSrc: string;
   children: React.ReactNode;
 }
 
 interface Particle {
   x: number;
   y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  size: number;
-  color: string;
-  alpha: number;
+  color?: string;
+  radius?: number;
+  alpha?: number;
+  angle?: number;
+  lineWidth?: number;
+  endPos?: { x: number; y: number };
+  draw?: () => void;
 }
 
-export default function ClickEffect({ children }: ClickEffectProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+export default function ClickEffect({ imageSrc, children }: ClickEffectProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const particlesRef = useRef<Particle[]>([]);
-  const rafRef = useRef<number | null>(null);
+  const handleMouseDownRef = useRef<((e: MouseEvent) => void) | null>(null);
+  const handleResizeRef = useRef<(() => void) | null>(null);
+  const cleanupRef = useRef<() => void>(() => {});
 
-  // image pop behavior (unchanged)
-  const handleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    spawnFireworks(x, y, rect); // spawn fireworks at click
-  };
-
-  // spawn fireworks (adds particles to particlesRef)
-  function spawnFireworks(x: number, y: number, rect: DOMRect | null) {
-    const px = rect ? x : x;
-    const py = rect ? y : y;
-    const colors = [
-      "#66a7dd",
-      "#3e83e1",
-      "#2150c2",
-      "#fcb0ae",
-      "#cab4be",
-      "#cfc6ff",
-      "#e9b3ed",
-      "#6aa0ff",
-    ];
-    const count = 28 + Math.floor(Math.random() * 12);
-    for (let i = 0; i < count; i++) {
-      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
-      const speed = 2 + Math.random() * 4;
-      const p: Particle = {
-        x: px,
-        y: py,
-        vx: Math.cos(angle) * speed * (0.6 + Math.random() * 0.8),
-        vy: Math.sin(angle) * speed * (0.6 + Math.random() * 0.8),
-        life: 60 + Math.random() * 40,
-        size: 2 + Math.random() * 3,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: 1,
-      };
-      particlesRef.current.push(p);
-    }
+  function cleanup() {
+    cleanupRef.current();
   }
 
-  // animation loop
-  useEffect(() => {
-    const canvas = canvasRef.current!;
-    const container = containerRef.current!;
-    if (!canvas || !container) return;
+  function createFireworks() {
+    cleanup();
 
-    const ctx = canvas.getContext("2d")!;
-    const setSize = () => {
-      canvas.width = container.clientWidth;
-      canvas.height = container.clientHeight;
-      canvas.style.width = `${container.clientWidth}px`;
-      canvas.style.height = `${container.clientHeight}px`;
+    const lightColors = ["102, 167, 221", "62, 131, 225", "33, 78, 194"];
+    const darkColors = ["252, 146, 174", "202, 180, 190", "207, 198, 255"];
+    const colors = lightColors;
+
+    const defaultConfig = {
+      numberOfParticles: 20,
+      orbitRadius: { min: 50, max: 100 },
+      circleRadius: { min: 10, max: 20 },
+      diffuseRadius: { min: 50, max: 100 },
+      animeDuration: { min: 900, max: 1500 },
     };
-    setSize();
 
-    const onResize = () => {
-      setSize();
-    };
-    window.addEventListener("resize", onResize);
+    let pointerX = 0;
+    let pointerY = 0;
 
-    function tick() {
-      const particles = particlesRef.current;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // update & draw
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        // physics
-        p.vy += 0.04; // gravity
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= 1;
-        p.alpha = Math.max(0, p.life / 80);
+    const canvasEl = canvasRef.current!;
+    const ctx = canvasEl.getContext("2d")!;
 
-        // draw
-        ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-
-        // trailing spark
-        ctx.fillStyle = "rgba(255,255,255,0.6)";
-        if (Math.random() < 0.02) {
-          ctx.fillRect(p.x + (Math.random() - 0.5) * 6, p.y + (Math.random() - 0.5) * 6, 1, 1);
-        }
-
-        if (p.life <= 0 || p.alpha <= 0.01) {
-          particles.splice(i, 1);
-        }
-      }
-
-      rafRef.current = window.requestAnimationFrame(tick);
+    function setCanvasSize(canvasEl: HTMLCanvasElement) {
+      canvasEl.width = window.innerWidth;
+      canvasEl.height = window.innerHeight;
+      canvasEl.style.width = `${window.innerWidth}px`;
+      canvasEl.style.height = `${window.innerHeight}px`;
     }
 
-    rafRef.current = window.requestAnimationFrame(tick);
+    function updateCoords(e: MouseEvent | TouchEvent) {
+      pointerX = e instanceof MouseEvent ? e.clientX : (e as TouchEvent).touches[0]?.clientX || (e as TouchEvent).changedTouches[0]?.clientX;
+      pointerY = e instanceof MouseEvent ? e.clientY : (e as TouchEvent).touches[0]?.clientY || (e as TouchEvent).changedTouches[0]?.clientY;
+    }
 
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("resize", onResize);
-      particlesRef.current = [];
+    function setParticleDirection(p: Particle) {
+      const angle = (random(0, 360) * Math.PI) / 180;
+      const value = random(defaultConfig.diffuseRadius.min, defaultConfig.diffuseRadius.max);
+      const radius = value;
+      return {
+        x: p.x + radius * Math.cos(angle),
+        y: p.y + radius * Math.sin(angle),
+      };
+    }
+
+    function createParticle(x: number, y: number): Particle {
+      const p: Particle = {
+        x,
+        y,
+        color: `rgba(${colors[Math.floor(random(0, colors.length - 1))]},${random(0.2, 0.8, 2)})`,
+        radius: random(defaultConfig.circleRadius.min, defaultConfig.circleRadius.max),
+        angle: random(0, 360),
+        endPos: setParticleDirection({ x, y } as Particle),
+        draw() {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(((this.angle || 0) * Math.PI) / 180);
+          ctx.beginPath();
+          ctx.moveTo(0, -this.radius!);
+          ctx.lineTo(this.radius! * Math.sin(Math.PI / 3), this.radius! * Math.cos(Math.PI / 3));
+          ctx.lineTo(-this.radius! * Math.sin(Math.PI / 3), this.radius! * Math.cos(Math.PI / 3));
+          ctx.closePath();
+          ctx.fillStyle = this.color!;
+          ctx.fill();
+          ctx.restore();
+        },
+      };
+      return p;
+    }
+
+    function createCircle(x: number, y: number): Particle {
+      const p: Particle = {
+        x,
+        y,
+        color: "rgb(106, 159, 255)",
+        radius: 0.1,
+        alpha: 0.35,
+        lineWidth: 4,
+        draw() {
+          ctx.globalAlpha = this.alpha!;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius!, 0, 2 * Math.PI, true);
+          ctx.lineWidth = this.lineWidth!;
+          ctx.strokeStyle = this.color!;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        },
+      };
+      return p;
+    }
+
+    function drawParticles(particles: Particle[], circle: Particle) {
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+      particles.forEach((particle) => particle.draw?.());
+      circle.draw?.();
+    }
+
+    function animateParticles(x: number, y: number) {
+      const circle = createCircle(x, y);
+      const particles: Particle[] = Array.from({ length: defaultConfig.numberOfParticles }, () => createParticle(x, y));
+      let finishedAnimations = 0;
+
+      const renderScene = () => {
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+        particles.forEach((particle) => particle.draw?.());
+        circle.draw?.();
+      };
+
+      const handleComplete = () => {
+        finishedAnimations += 1;
+        if (finishedAnimations >= 2) {
+          ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+        }
+      };
+
+      animate(particles, {
+        x(p: Particle) {
+          return (p.endPos as { x: number }).x;
+        },
+        y(p: Particle) {
+          return (p.endPos as { y: number }).y;
+        },
+        radius: 0,
+        duration: random(defaultConfig.animeDuration.min, defaultConfig.animeDuration.max),
+        ease: "outExpo",
+        onRender: renderScene,
+        onComplete: handleComplete,
+      });
+
+      animate(circle, {
+        radius: random(defaultConfig.orbitRadius.min, defaultConfig.orbitRadius.max),
+        lineWidth: 0,
+        alpha: 0,
+        duration: random(1000, 1500),
+        ease: "outExpo",
+        onRender: renderScene,
+        onComplete: handleComplete,
+      });
+    }
+
+    handleResizeRef.current = () => setCanvasSize(canvasEl);
+    handleMouseDownRef.current = (e: MouseEvent) => {
+      updateCoords(e);
+      animateParticles(pointerX, pointerY);
     };
+
+    document.addEventListener("mousedown", handleMouseDownRef.current);
+    window.addEventListener("resize", handleResizeRef.current);
+    cleanupRef.current = () => {
+      if (handleMouseDownRef.current) document.removeEventListener("mousedown", handleMouseDownRef.current);
+      if (handleResizeRef.current) window.removeEventListener("resize", handleResizeRef.current);
+    };
+    setCanvasSize(canvasEl);
+  }
+
+  useEffect(() => {
+    createFireworks();
+    return () => cleanup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-full"
-      onClick={handleClick}
-      style={{ cursor: "pointer", position: "relative", overflow: "hidden" }}
-    >
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
       {children}
-
-      {/* canvas for fireworks */}
       <canvas
         ref={canvasRef}
         style={{
-          position: "absolute",
+          position: "fixed",
           left: 0,
           top: 0,
-          width: "100%",
-          height: "100%",
+          zIndex: 999,
           pointerEvents: "none",
-          zIndex: 40,
         }}
       />
-      {/* no image rendering — fireworks only */}
+      {/* pop image effect can remain; keep your current click image logic if needed */}
+      <img src={imageSrc} style={{ display: "none" }} alt="" />
     </div>
   );
 }
