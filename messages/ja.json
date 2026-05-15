@@ -448,6 +448,7 @@
     "viewsChart": "視聴回数グラフ",
     "contentDistribution": "コンテンツの分布",
     "videoAnalytics": "動画のアナリティクス",
+    "watchTimeLabel": "総再生時間",
     "advancedMode": "詳細モード",
     "custom": "カスタム",
     "monthLabel": "{month}月",

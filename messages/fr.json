@@ -424,6 +424,7 @@
     "higherThanUsual": "Supérieur à la normale",
     "lowerThanUsual": "Inférieur à la normale",
     "videoAnalytics": "Données analytiques de la vidéo",
+    "watchTimeLabel": "Durée de visionnage",
     "advancedMode": "Mode avancé",
     "custom": "Personnalisé",
     "monthLabel": "Mois {month}",
