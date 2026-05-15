@@ -53,13 +53,13 @@ push_subscriptions (userId, endpoint, keys)
 
 ---
 
-### 5. 🔍 Search Nâng Cao
+<!-- ### 5. 🔍 Search Nâng Cao
 **Hiện trạng:** Search đơn giản theo keyword.
 - **Full-text search** với PostgreSQL `tsvector` + `tsquery` (có ranking)
 - Filter theo: thời lượng (ngắn/vừa/dài), ngày đăng, loại (video/shorts/playlist/kênh/post)
 - **Search suggestions** real-time từ server (debounce 300ms)
 - Lưu lịch sử search lên server (thay vì chỉ localStorage) — đồng bộ đa thiết bị
-- **Voice search** (Web Speech API)
+- **Voice search** (Web Speech API) -->
 
 ---
 

@@ -235,7 +235,26 @@ export const userRelations = relations(users, ({ many }) => ({
   triggeredNotifications: many(notifications, {
     relationName: "notifications_actor_id_fkey",
   }),
+  searchHistory: many(searchHistory),
 }));
+
+// ====================== SEARCH HISTORY ======================
+export const searchHistory = pgTable("search_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  query: text("query").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
+  user: one(users, { fields: [searchHistory.userId], references: [users.id] }),
+}));
+
+export const searchHistorySelectSchema = createSelectSchema(searchHistory);
+export const searchHistoryInsertSchema = createInsertSchema(searchHistory);
 
 // ====================== CATEGORIES ======================
 export const categories = pgTable(
