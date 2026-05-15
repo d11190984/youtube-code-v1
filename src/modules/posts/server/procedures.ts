@@ -461,7 +461,7 @@ export const postsRouter = createTRPCRouter({
       id: z.string().uuid(), 
       content: z.string().nullable().optional(),
       canComment: z.boolean().optional(),
-      commentModeration: z.string().optional(),
+      commentModeration: z.enum(["none", "basic", "strict", "hold_all"]).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const { id: userId } = ctx.user;
