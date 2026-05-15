@@ -1,12 +1,12 @@
 "use client";
 
-import { trpc } from "@/trpc/client";
-import { useAuth } from "@clerk/nextjs";
+import { ResultsSection } from "../sections/results-section";
+import { CategoriesSection } from "../sections/categories-section";
+import { SearchFilters } from "../components/search-filters";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
-import { SearchFilters } from "../components/search-filters";
-import { CategoriesSection } from "../sections/categories-section";
-import { ResultsSection } from "../sections/results-section";
+import { trpc } from "@/trpc/client";
+import { useAuth } from "@clerk/nextjs";
 
 interface PageProps {
   query: string | undefined;
@@ -38,7 +38,7 @@ export const SearchView = ({
           history = [query.trim(), ...history.filter(h => h !== query.trim())].slice(0, 10);
           localStorage.setItem("search_history", JSON.stringify(history));
         } catch (e) {
-
+          console.error("Failed to save local history", e);
         }
       }
     }

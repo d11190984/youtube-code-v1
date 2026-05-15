@@ -1,11 +1,11 @@
 "use client";
 
-import { ResponsiveModal } from "@/components/responsive-modal";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@clerk/nextjs";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { ResponsiveModal } from "@/components/responsive-modal";
+import { useAuth } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 
 interface ThumbnailGenerateModalProps {
   videoId: string;
@@ -55,8 +55,10 @@ export const ThumbnailGenerateModal = ({
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(`${t("generateThumbnailError")}: ${err.message}`);
+        console.error("Generate thumbnail error:", err);
       } else {
         toast.error(t("generateThumbnailError"));
+        console.error("Generate thumbnail unknown error:", err);
       }
     } finally {
       setIsLoading(false);

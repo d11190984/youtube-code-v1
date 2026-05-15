@@ -10,14 +10,14 @@ async function check() {
     title: videos.title,
     createdAt: videoViews.createdAt
   })
-    .from(videoViews)
-    .innerJoin(videos, eq(videoViews.videoId, videos.id))
-    .orderBy(videoViews.createdAt);
+  .from(videoViews)
+  .innerJoin(videos, eq(videoViews.videoId, videos.id))
+  .orderBy(videoViews.createdAt);
 
-
-  title: v.title,
+  console.log("Detailed Views:", allViews.map(v => ({
+    title: v.title,
     time: v.createdAt.toISOString()
-})));
+  })));
 }
 
 check().catch(console.error);

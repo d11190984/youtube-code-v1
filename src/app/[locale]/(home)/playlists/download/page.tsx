@@ -1,20 +1,20 @@
 "use client";
 
-import { DownloadIcon, Loader2Icon, PlayIcon, Trash2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import { DownloadIcon, Trash2Icon, PlayIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
+import { downloadManager, DownloadedVideo } from "@/lib/download-manager";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { DownloadedVideo, downloadManager } from "@/lib/download-manager";
 import { formatDuration } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function DownloadPage() {
   const [videos, setVideos] = useState<DownloadedVideo[]>([]);
@@ -32,7 +32,7 @@ export default function DownloadPage() {
       const data = await downloadManager.getVideos();
       setVideos(data.sort((a, b) => b.downloadedAt - a.downloadedAt));
     } catch (error) {
-
+      console.error("LOAD DOWNLOADS ERROR:", error);
       toast.error(t("errorLoadingDownloadedVideos"));
     } finally {
       setLoading(false);

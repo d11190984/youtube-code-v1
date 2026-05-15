@@ -1,14 +1,14 @@
 "use client";
 
-import { useRouter } from "@/i18n/routing";
+import { useEffect, useState } from "react";
 import { DownloadIcon, PlayCircleIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useRouter } from "@/i18n/routing";
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { DownloadedVideo, downloadManager } from "@/lib/download-manager";
+import { downloadManager, DownloadedVideo } from "@/lib/download-manager";
 import { VideoGridCard } from "@/modules/videos/ui/components/video-grid-card";
 import { VideoMenu } from "@/modules/videos/ui/components/video-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const OfflineHomeSection = () => {
   const t = useTranslations("Home");
@@ -22,7 +22,7 @@ export const OfflineHomeSection = () => {
         const data = await downloadManager.getVideos();
         setVideos(data.sort((a, b) => b.downloadedAt - a.downloadedAt));
       } catch (e) {
-
+        console.error("Failed to load offline videos", e);
       } finally {
         setLoading(false);
       }

@@ -1,7 +1,7 @@
-import { WebhookEvent } from '@clerk/nextjs/server'
+import { Webhook } from 'svix'
 import { eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
-import { Webhook } from 'svix'
+import { WebhookEvent } from '@clerk/nextjs/server'
 
 import { db } from '@/db'
 import { users } from '@/db/schema'
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       'svix-signature': svix_signature,
     }) as WebhookEvent
   } catch (err) {
-
+    console.error('Error: Could not verify webhook:', err)
     return new Response('Error: Verification error', {
       status: 400,
     })
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   // Do something with payload
   // For this guide, log payload to console
   const eventType = evt.type
-
+  
   if (eventType === "user.created") {
     const { data } = evt
 

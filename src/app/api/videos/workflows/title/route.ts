@@ -1,5 +1,5 @@
-import { serve } from "@upstash/workflow/nextjs";
 import { and, eq } from "drizzle-orm";
+import { serve } from "@upstash/workflow/nextjs";
 
 import { db } from "@/db";
 import { videos } from "@/db/schema";
@@ -10,7 +10,10 @@ interface InputType {
 }
 
 export const { POST } = serve(async (context) => {
+  console.log("🚀 WORKFLOW START");
+
   const input = context.requestPayload as InputType | undefined;
+  console.log("📦 PAYLOAD:", input);
 
   if (!input?.videoId || !input?.userId) {
     throw new Error("Missing videoId or userId");
@@ -52,6 +55,7 @@ export const { POST } = serve(async (context) => {
   });
 
   // ================= AI GENERATE =================
+  console.log("🤖 Sending to AI...");
 
   const isGoodTranscript = transcript && transcript.length > 200;
 
@@ -102,7 +106,7 @@ Rules:
 
   if (!aiResponse.ok) {
     const err = await aiResponse.text();
-    // AI error occurred, using fallback
+    console.error("❌ AI ERROR:", err);
     throw new Error("AI request failed");
   }
 
@@ -119,12 +123,12 @@ Rules:
     title.toLowerCase().includes("user") ||
     title.toLowerCase().includes("transcript")
   ) {
-
+    console.warn("⚠️ Bad AI output → fallback");
 
     title = video.title || "🔥 Amazing Manhwa Story";
   }
 
-
+  console.log("✨ FINAL TITLE:", title);
 
   // ================= UPDATE DB =================
   await context.run("update-video", async () => {
@@ -137,5 +141,5 @@ Rules:
       .where(and(eq(videos.id, video.id), eq(videos.userId, video.userId)));
   });
 
-
+  console.log("🎉 WORKFLOW DONE");
 });

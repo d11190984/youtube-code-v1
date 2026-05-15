@@ -91,7 +91,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
     const updateProgressMutation = trpc.videos.updateProgress.useMutation({
       onError: (err) => {
-
+        console.log("SAVE PROGRESS ERROR:", err.message);
       },
     });
 
@@ -111,7 +111,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
     // Reset tracking refs when videoId changes
     useEffect(() => {
-
+      console.log("[VIDEO_PLAYER] Resetting refs for videoId:", videoId, "savedProgress:", savedProgress);
       hasSeeked.current = false;
       // hasCountedView = false; // Using store action now if needed, but usually setVideo handles it
       isInitialSeekingRef.current = true;
@@ -135,7 +135,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           await incrementViewMutation.mutateAsync({ videoId });
           setHasCountedView(true);
         } catch (err) {
-
+          console.log("PLAY EVENT ERROR:", err);
         }
         onPlay?.();
       };
@@ -161,7 +161,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
 
         const duration = player.duration || 0;
         if (duration <= 0) {
-
+          console.log("[VIDEO_PLAYER] handleCanPlay: duration is 0, waiting...");
           return;
         }
 
@@ -180,7 +180,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           source = "savedProgress";
         }
 
-
+        console.log("[VIDEO_PLAYER] calculated resumeAt:", { resumeAt, source, duration, savedProgress, globalCurrentTime });
 
         if (resumeAt > 1) {
           player.currentTime = resumeAt;
@@ -192,7 +192,7 @@ export const VideoPlayer = forwardRef<any, VideoPlayerProps>(
           localResumeRef.current = 0;
         }
 
-
+        console.log("[VIDEO_PLAYER] handleCanPlay", {
           videoId,
           duration,
           resumeAt,

@@ -1,28 +1,29 @@
 "use client";
 
 import { useClerk } from "@clerk/nextjs";
-import {
-    CheckIcon,
-    DownloadIcon,
-    MessageSquareIcon,
-    MoreVerticalIcon,
-    PlayIcon,
-    RepeatIcon,
-    Share2Icon,
-    ThumbsDownIcon,
-    ThumbsUpIcon,
-    XCircleIcon
+import { 
+  MessageSquareIcon, 
+  Share2Icon, 
+  ThumbsDownIcon, 
+  ThumbsUpIcon, 
+  RotateCcwIcon,
+  DownloadIcon,
+  RepeatIcon,
+  MoreVerticalIcon,
+  CheckIcon,
+  PlayIcon,
+  XCircleIcon
 } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { useMemo } from "react";
 import { toast } from "sonner";
+import { useMemo, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 
+import { cn } from "@/lib/utils";
+import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { downloadManager } from "@/lib/download-manager";
-import { cn } from "@/lib/utils";
-import { trpc } from "@/trpc/client";
 import { VideoGetOneOutput } from "../../types";
 import { CommentsSection } from "../sections/comments-section";
 
@@ -209,7 +210,7 @@ export const ShortsActions = ({
 
               toast.success(t("downloadSuccess"));
             } catch (error) {
-
+              console.error("Download error:", error);
               toast.error(t("downloadError"));
             }
           }}

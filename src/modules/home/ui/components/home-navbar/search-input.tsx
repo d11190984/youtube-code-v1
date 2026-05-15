@@ -1,24 +1,25 @@
 "use client";
 
-import { useRouter } from "@/i18n/routing";
-import { HistoryIcon, KeyboardIcon, SearchIcon, XIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { SearchIcon, XIcon, HistoryIcon, KeyboardIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
+import { APP_URL } from "@/constants";
 import { Button } from "@/components/ui/button";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger
-} from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger 
+} from "@/components/ui/popover";
 
-import { useDebounce } from "@/hooks/use-debounce";
+import { VirtualKeyboard } from "./virtual-keyboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { trpc } from "@/trpc/client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useAuth } from "@clerk/nextjs";
-import { VirtualKeyboard } from "./virtual-keyboard";
 
 interface SearchInputProps {
   onExpand?: () => void;
@@ -94,7 +95,7 @@ const SearchInputSuspense = ({ onExpand, onCollapse, isExpanded, disabled }: Sea
           setLocalHistory(JSON.parse(stored));
         }
       } catch (e) {
-
+        console.error("Failed to load search history", e);
       }
     }
   }, [isSignedIn]);

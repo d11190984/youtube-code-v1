@@ -1,6 +1,6 @@
-import dotenv from "dotenv";
-import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
+import { sql } from "drizzle-orm";
+import dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
 
@@ -27,7 +27,9 @@ async function main() {
         "updated_at" timestamp DEFAULT now() NOT NULL
       );
     `);
+    console.log("Reports system created successfully!");
   } catch (error) {
+    console.error("Error creating reports system:", error);
   }
 }
 

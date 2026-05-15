@@ -1,15 +1,15 @@
 "use client";
 
-import { SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { SearchIcon, XIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 
 import { useTranslations } from "next-intl";
@@ -60,7 +60,7 @@ export const GifPicker = ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-
+        console.error("Tenor API Error:", response.status, errorData);
         throw new Error(`Failed to fetch GIFs: ${response.status}`);
       }
 
@@ -82,7 +82,7 @@ export const GifPicker = ({
 
       setGifs(mappedResults);
     } catch (error) {
-
+      console.error("Failed to fetch GIFs", error);
       setGifs([]);
     } finally {
       setLoading(false);

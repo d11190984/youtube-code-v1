@@ -32,7 +32,7 @@ export const downloadManager = {
   async saveVideo(video: DownloadedVideo, blob: Blob) {
     const db = await initDB();
     const cache = await caches.open(CACHE_NAME);
-
+    
     // 1. Save video file to Cache API
     const videoUrl = `/offline-video/${video.playbackId}.mp4`;
     await cache.put(videoUrl, new Response(blob));
@@ -45,7 +45,7 @@ export const downloadManager = {
           await cache.put(`/offline-image/thumb-${video.id}`, thumbRes);
         }
       } catch (e) {
-        // Cache failed silently
+        console.warn("Failed to cache thumbnail", e);
       }
     }
 
@@ -56,10 +56,10 @@ export const downloadManager = {
           await cache.put(`/offline-image/author-${video.id}`, authorRes);
         }
       } catch (e) {
-        // Cache failed silently
+        console.warn("Failed to cache author image", e);
       }
     }
-
+    
     // 3. Save metadata to IndexedDB
     return new Promise<void>((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, "readwrite");
@@ -80,7 +80,7 @@ export const downloadManager = {
       const request = store.getAll();
       request.onsuccess = async () => {
         const videos: DownloadedVideo[] = request.result;
-
+        
         // Map to local URLs if offline
         const mappedVideos = await Promise.all(videos.map(async (v) => {
           const thumbMatch = await cache.match(`/offline-image/thumb-${v.id}`);
@@ -92,7 +92,7 @@ export const downloadManager = {
             authorImageUrl: authorMatch ? URL.createObjectURL(await authorMatch.blob()) : v.authorImageUrl,
           };
         }));
-
+        
         resolve(mappedVideos);
       };
       request.onerror = () => reject(request.error);
@@ -102,11 +102,11 @@ export const downloadManager = {
   async removeVideo(id: string, playbackId: string) {
     const db = await initDB();
     const cache = await caches.open(CACHE_NAME);
-
+    
     await cache.delete(`/offline-video/${playbackId}.mp4`);
     await cache.delete(`/offline-image/thumb-${id}`);
     await cache.delete(`/offline-image/author-${id}`);
-
+    
     return new Promise<void>((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, "readwrite");
       const store = transaction.objectStore(STORE_NAME);
@@ -121,7 +121,7 @@ export const downloadManager = {
     const videoUrl = `/offline-video/${playbackId}.mp4`;
     const response = await cache.match(videoUrl);
     if (!response) return null;
-
+    
     const blob = await response.blob();
     return URL.createObjectURL(blob);
   }

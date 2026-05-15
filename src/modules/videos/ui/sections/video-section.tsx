@@ -103,7 +103,7 @@ const VideoSectionSuspense = ({ videoId, hideInfo, loopEnabled: loopEnabledProp 
     ? (isVideoFinished ? 0 : (video.progress || 0)) 
     : (isLocalFinished ? 0 : localProgress);
 
-
+  console.log("[VIDEO_SECTION]", {
     videoId: video.id,
     videoProgress: video.progress,
     videoDurationMs: video.duration,
