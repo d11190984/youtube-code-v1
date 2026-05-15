@@ -1,13 +1,13 @@
 "use client";
 
-import { toast } from "sonner";
 import { Loader2Icon, SquareCheckIcon, SquareIcon } from "lucide-react";
+import { toast } from "sonner";
 
-import { trpc } from "@/trpc/client";
-import { DEFAULT_LIMIT } from "@/constants";
-import { Button } from "@/components/ui/button";
-import { ResponsiveModal } from "@/components/responsive-modal";
 import { InfiniteScroll } from "@/components/infinite-scroll";
+import { ResponsiveModal } from "@/components/responsive-modal";
+import { Button } from "@/components/ui/button";
+import { DEFAULT_LIMIT } from "@/constants";
+import { trpc } from "@/trpc/client";
 import { useTranslations } from "next-intl";
 
 interface PlaylistAddModalProps {
@@ -53,7 +53,7 @@ export const PlaylistAddModal = ({
       ]);
     },
     onError: (err) => {
-      console.error("ADD VIDEO ERROR:", err);
+
       toast.error(err.message || t("errorOccurred"));
     },
   });
@@ -70,7 +70,7 @@ export const PlaylistAddModal = ({
       ]);
     },
     onError: (err) => {
-      console.error("REMOVE VIDEO ERROR:", err);
+
       toast.error(err.message || t("errorOccurred"));
     },
   });

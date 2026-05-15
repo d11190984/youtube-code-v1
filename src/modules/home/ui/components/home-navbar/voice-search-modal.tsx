@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { MicIcon, XIcon } from "lucide-react";
-import { useRouter } from "@/i18n/routing";
-import { useTranslations, useLocale } from "next-intl";
-import { Button } from "@/components/ui/button";
 import { ResponsiveModal } from "@/components/responsive-modal";
-import { APP_URL } from "@/constants";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "@/i18n/routing";
+import { MicIcon } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
 
 interface VoiceSearchModalProps {
   open: boolean;
@@ -75,7 +74,7 @@ export const VoiceSearchModal = ({ open, onOpenChange }: VoiceSearchModalProps) 
       };
 
       recognition.onerror = (event: any) => {
-        console.error("Speech recognition error", event.error);
+
         
         // Mạng đôi khi bị lỗi tạm thời, chúng ta sẽ không báo lỗi ngay lập tức nếu đã có kết quả
         if (event.error === "network") {
@@ -98,7 +97,7 @@ export const VoiceSearchModal = ({ open, onOpenChange }: VoiceSearchModalProps) 
       try {
         recognition.start();
       } catch (e) {
-        console.error("Failed to start recognition", e);
+
       }
     }
 

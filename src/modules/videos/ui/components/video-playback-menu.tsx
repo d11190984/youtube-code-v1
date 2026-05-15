@@ -138,7 +138,7 @@ export const VideoPlaybackMenu = ({
 
       toast.success(tShorts("downloadSuccess"));
     } catch (error) {
-      console.error("OFFLINE DOWNLOAD ERROR:", error);
+
       toast.error(tShorts("downloadError"));
     } finally {
       setDownloading(false);

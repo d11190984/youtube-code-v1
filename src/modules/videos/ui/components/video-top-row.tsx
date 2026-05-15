@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
 import { formatDistanceToNowStrict } from "date-fns";
-import { enUS, vi, ja, ko, zhCN, de, es, fr } from "date-fns/locale";
-import { useTranslations, useLocale } from "next-intl";
+import { de, enUS, es, fr, ja, ko, vi, zhCN } from "date-fns/locale";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
 
 const dateFnsLocales = {
   en: enUS,
@@ -16,16 +16,16 @@ const dateFnsLocales = {
   fr: fr,
 };
 
-import { VideoOwner } from "./video-owner";
-import { VideoReactions } from "./video-reactions";
-import { VideoMenu } from "./video-menu";
-import { VideoDescription } from "./video-description";
-import { VideoGetOneOutput } from "../../types";
-import { VideoPlaybackMenu } from "./video-playback-menu";
 import { Button } from "@/components/ui/button";
+import { usePlayerStore } from "@/modules/videos/store/use-player-store";
 import { ExternalLinkIcon } from "lucide-react";
 import { toast } from "sonner";
-import { usePlayerStore } from "@/modules/videos/store/use-player-store";
+import { VideoGetOneOutput } from "../../types";
+import { VideoDescription } from "./video-description";
+import { VideoMenu } from "./video-menu";
+import { VideoOwner } from "./video-owner";
+import { VideoPlaybackMenu } from "./video-playback-menu";
+import { VideoReactions } from "./video-reactions";
 
 interface VideoTopRowProps {
   video: VideoGetOneOutput;
@@ -112,7 +112,7 @@ export const VideoTopRow = ({
           await videoEl.requestPictureInPicture();
           return; // Thành công
         } catch (innerErr) {
-          console.warn("W3C PiP failed, trying fallbacks...", innerErr);
+
         }
       }
 
@@ -123,7 +123,7 @@ export const VideoTopRow = ({
         toast.error("This browser has blocked Popups.");
       }
     } catch (err: any) {
-      console.error("PiP Error:", err);
+
       // Fallback: Nếu không mở được Popup hệ thống, dùng Mini-player của ứng dụng
       setVideo({
         id: video.id,

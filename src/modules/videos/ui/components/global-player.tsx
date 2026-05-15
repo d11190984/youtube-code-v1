@@ -1,14 +1,14 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { XIcon, Maximize2Icon, MinusIcon, ChevronRightIcon, ListVideoIcon, Minimize2Icon, ExternalLinkIcon } from "lucide-react";
-import MuxPlayer from "@mux/mux-player-react";
-import { usePlayerStore } from "@/modules/videos/store/use-player-store";
-import { usePathname, useRouter } from "@/i18n/routing";
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { usePathname, useRouter } from "@/i18n/routing";
+import { cn } from "@/lib/utils";
+import { usePlayerStore } from "@/modules/videos/store/use-player-store";
+import MuxPlayer from "@mux/mux-player-react";
+import { ChevronRightIcon, ExternalLinkIcon, ListVideoIcon, Maximize2Icon, Minimize2Icon, XIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
 
 export const GlobalPlayer = () => {
   const t = useTranslations("Video");
@@ -142,7 +142,7 @@ export const GlobalPlayer = () => {
                   finalTime = targetTime;
                 }
                 
-                console.log("[GLOBAL_PLAYER] syncing time:", { finalTime, targetTime, duration });
+
                 player.currentTime = finalTime;
               }
             }}

@@ -1,8 +1,8 @@
 "use client";
 
-import { trpc } from "@/trpc/client";
-import { UploadDropzone } from "@/lib/uploadthing";
 import { ResponsiveModal } from "@/components/responsive-modal";
+import { UploadDropzone } from "@/lib/uploadthing";
+import { trpc } from "@/trpc/client";
 import { useTranslations } from "next-intl";
 
 // Tạo type custom cho UploadDropzone response
@@ -32,18 +32,17 @@ export const ThumbnailUploadModal = ({
 
   const onUploadComplete = (res: UploadedFile[]) => {
     console.group("=== UploadDropzone Result ===");
-    console.log("VideoId:", videoId);
-    console.log("Raw Upload response:", res);
+
     console.groupEnd();
 
     const uploaded = res[0]; // Lấy file đầu tiên (thumbnail)
 
     if (!uploaded?.key || !uploaded?.url) {
-      console.error("UploadDropzone: Invalid upload response", res);
+      // Invalid response format
       return;
     }
 
-    console.log("Uploaded thumbnail URL:", uploaded.url);
+
 
     // Cập nhật cache TRPC
     utils.studio.getMany.invalidate();

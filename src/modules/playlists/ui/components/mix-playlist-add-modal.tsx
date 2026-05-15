@@ -1,14 +1,14 @@
 "use client";
 
-import { toast } from "sonner";
 import { Loader2Icon, SquareCheckIcon, SquareIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
-import { trpc } from "@/trpc/client";
-import { DEFAULT_LIMIT } from "@/constants";
-import { Button } from "@/components/ui/button";
-import { ResponsiveModal } from "@/components/responsive-modal";
 import { InfiniteScroll } from "@/components/infinite-scroll";
+import { ResponsiveModal } from "@/components/responsive-modal";
+import { Button } from "@/components/ui/button";
+import { DEFAULT_LIMIT } from "@/constants";
+import { trpc } from "@/trpc/client";
 
 interface MixPlaylistAddModalProps {
   open: boolean;
@@ -53,7 +53,7 @@ export const MixPlaylistAddModal = ({
       ]);
     },
     onError: (err) => {
-      console.error("ADD MIX VIDEO ERROR:", err);
+
       toast.error(err.message || t("errorOccurred"));
     },
   });
@@ -70,7 +70,7 @@ export const MixPlaylistAddModal = ({
       ]);
     },
     onError: (err) => {
-      console.error("REMOVE MIX VIDEO ERROR:", err);
+
       toast.error(err.message || t("errorOccurred"));
     },
   });

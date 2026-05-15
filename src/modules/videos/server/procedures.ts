@@ -103,10 +103,10 @@ export const videosRouter = createTRPCRouter({
             userId: videoViews.userId,
             progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
           })
-          .from(videoViews)
-          .where(eq(videoViews.userId, userId))
-          .groupBy(videoViews.videoId, videoViews.userId)
-          .as("user_progress"),
+            .from(videoViews)
+            .where(eq(videoViews.userId, userId))
+            .groupBy(videoViews.videoId, videoViews.userId)
+            .as("user_progress"),
           eq(videos.id, sql`user_progress.video_id`)
         )
         .where(
@@ -115,12 +115,12 @@ export const videosRouter = createTRPCRouter({
 
             cursor
               ? or(
-                  lt(videos.updatedAt, cursor.updatedAt),
-                  and(
-                    eq(videos.updatedAt, cursor.updatedAt),
-                    lt(videos.id, cursor.id),
-                  ),
-                )
+                lt(videos.updatedAt, cursor.updatedAt),
+                and(
+                  eq(videos.updatedAt, cursor.updatedAt),
+                  lt(videos.id, cursor.id),
+                ),
+              )
               : undefined,
           ),
         )
@@ -137,9 +137,9 @@ export const videosRouter = createTRPCRouter({
       const nextCursor =
         hasMore && lastItem
           ? {
-              id: lastItem.id,
-              updatedAt: lastItem.updatedAt,
-            }
+            id: lastItem.id,
+            updatedAt: lastItem.updatedAt,
+          }
           : null;
 
       return {
@@ -202,10 +202,10 @@ export const videosRouter = createTRPCRouter({
             userId: videoViews.userId,
             progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
           })
-          .from(videoViews)
-          .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
-          .groupBy(videoViews.videoId, videoViews.userId)
-          .as("user_progress"),
+            .from(videoViews)
+            .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
+            .groupBy(videoViews.videoId, videoViews.userId)
+            .as("user_progress"),
           eq(videos.id, sql`user_progress.video_id`)
         )
         .where(
@@ -213,12 +213,12 @@ export const videosRouter = createTRPCRouter({
             eq(videos.visibility, "public"),
             cursor
               ? or(
-                  lt(videos.viewsCount, cursor.viewCount), // dùng trực tiếp videos.viewsCount
-                  and(
-                    eq(videos.viewsCount, cursor.viewCount),
-                    lt(videos.id, cursor.id),
-                  ),
-                )
+                lt(videos.viewsCount, cursor.viewCount), // dùng trực tiếp videos.viewsCount
+                and(
+                  eq(videos.viewsCount, cursor.viewCount),
+                  lt(videos.id, cursor.id),
+                ),
+              )
               : undefined,
           ),
         )
@@ -231,9 +231,9 @@ export const videosRouter = createTRPCRouter({
 
       const nextCursor = (hasMore && lastItem)
         ? {
-            id: lastItem.id,
-            viewCount: lastItem.viewCount,
-          }
+          id: lastItem.id,
+          viewCount: lastItem.viewCount,
+        }
         : null;
 
       return { items, nextCursor };
@@ -294,10 +294,10 @@ export const videosRouter = createTRPCRouter({
             userId: videoViews.userId,
             progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
           })
-          .from(videoViews)
-          .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
-          .groupBy(videoViews.videoId, videoViews.userId)
-          .as("user_progress_shorts"),
+            .from(videoViews)
+            .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
+            .groupBy(videoViews.videoId, videoViews.userId)
+            .as("user_progress_shorts"),
           eq(videos.id, sql`user_progress_shorts.video_id`)
         )
         .where(
@@ -307,12 +307,12 @@ export const videosRouter = createTRPCRouter({
             categoryId ? eq(videos.categoryId, categoryId) : undefined,
             cursor
               ? or(
-                  lt(videos.viewsCount, cursor.viewCount),
-                  and(
-                    eq(videos.viewsCount, cursor.viewCount),
-                    lt(videos.id, cursor.id),
-                  ),
-                )
+                lt(videos.viewsCount, cursor.viewCount),
+                and(
+                  eq(videos.viewsCount, cursor.viewCount),
+                  lt(videos.id, cursor.id),
+                ),
+              )
               : undefined,
           ),
         )
@@ -325,9 +325,9 @@ export const videosRouter = createTRPCRouter({
 
       const nextCursor = (hasMore && lastItem)
         ? {
-            id: lastItem.id,
-            viewCount: lastItem.viewCount,
-          }
+          id: lastItem.id,
+          viewCount: lastItem.viewCount,
+        }
         : null;
 
       return { items, nextCursor };
@@ -389,10 +389,10 @@ export const videosRouter = createTRPCRouter({
             userId: videoViews.userId,
             progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
           })
-          .from(videoViews)
-          .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
-          .groupBy(videoViews.videoId, videoViews.userId)
-          .as("user_progress"),
+            .from(videoViews)
+            .where(viewerId ? eq(videoViews.userId, viewerId) : sql`1=0`)
+            .groupBy(videoViews.videoId, videoViews.userId)
+            .as("user_progress"),
           eq(videos.id, sql`user_progress.video_id`)
         )
         .where(
@@ -402,12 +402,12 @@ export const videosRouter = createTRPCRouter({
             categoryId ? eq(videos.categoryId, categoryId) : undefined,
             cursor
               ? or(
-                  lt(videos.createdAt, cursor.createdAt),
-                  and(
-                    eq(videos.createdAt, cursor.createdAt),
-                    lt(videos.id, cursor.id),
-                  ),
-                )
+                lt(videos.createdAt, cursor.createdAt),
+                and(
+                  eq(videos.createdAt, cursor.createdAt),
+                  lt(videos.id, cursor.id),
+                ),
+              )
               : undefined,
           ),
         )
@@ -420,9 +420,9 @@ export const videosRouter = createTRPCRouter({
 
       const nextCursor = (hasMore && lastItem)
         ? {
-            id: lastItem.id,
-            createdAt: lastItem.createdAt,
-          }
+          id: lastItem.id,
+          createdAt: lastItem.createdAt,
+        }
         : null;
 
       return { items, nextCursor };
@@ -510,10 +510,10 @@ export const videosRouter = createTRPCRouter({
             userId: videoViews.userId,
             progress: sql<number>`MAX(${videoViews.progress})`.as("progress")
           })
-          .from(videoViews)
-          .where(userId ? eq(videoViews.userId, userId) : sql`1=0`)
-          .groupBy(videoViews.videoId, videoViews.userId)
-          .as("user_progress"),
+            .from(videoViews)
+            .where(userId ? eq(videoViews.userId, userId) : sql`1=0`)
+            .groupBy(videoViews.videoId, videoViews.userId)
+            .as("user_progress"),
           eq(videos.id, sql`user_progress.video_id`)
         )
         .where(eq(videos.id, input.id));
@@ -540,41 +540,36 @@ export const videosRouter = createTRPCRouter({
         try {
           const res = await fetch(`https://stream.mux.com/${video.muxPlaybackId}/text/${video.muxTrackId}.txt`);
           if (res.ok) transcript = await res.text();
-        } catch (e) {
-          console.error("Transcript fetch error", e);
-        }
-      }
+          // 2. Gọi AI
+          const SYSTEM_PROMPT = `Write ONLY a YouTube video description. Rules: Max 200 characters, no explanation, no hashtags, match actual content.`;
+          const inputText = transcript.length > 200 ? `Transcript: ${transcript}` : `Title: ${video.title}. Generate description.`;
 
-      // 2. Gọi AI
-      const SYSTEM_PROMPT = `Write ONLY a YouTube video description. Rules: Max 200 characters, no explanation, no hashtags, match actual content.`;
-      const inputText = transcript.length > 200 ? `Transcript: ${transcript}` : `Title: ${video.title}. Generate description.`;
+          const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.OPENROUTER_API_KEY!}`,
+            },
+            body: JSON.stringify({
+              model: "openai/gpt-oss-120b:free",
+              messages: [
+                { role: "system", content: SYSTEM_PROMPT },
+                { role: "user", content: inputText.slice(0, 8000) },
+              ],
+            }),
+          });
 
-      const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY!}`,
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-oss-120b:free",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: inputText.slice(0, 8000) },
-          ],
+          if (!aiResponse.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI failed" });
+          const aiData = await aiResponse.json();
+          let description = aiData.choices?.[0]?.message?.content?.trim().replace(/[*"]/g, "");
+
+          if (!description) description = "Amazing video content.";
+
+          // 3. Cập nhật DB
+          await db.update(videos).set({ description }).where(eq(videos.id, video.id));
+
+          return { description };
         }),
-      });
-
-      if (!aiResponse.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI failed" });
-      const aiData = await aiResponse.json();
-      let description = aiData.choices?.[0]?.message?.content?.trim().replace(/[*"]/g, "");
-
-      if (!description) description = "Amazing video content.";
-
-      // 3. Cập nhật DB
-      await db.update(videos).set({ description }).where(eq(videos.id, video.id));
-
-      return { description };
-    }),
   incrementView: baseProcedure
     .input(z.object({ videoId: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
@@ -635,41 +630,36 @@ export const videosRouter = createTRPCRouter({
         try {
           const res = await fetch(`https://stream.mux.com/${video.muxPlaybackId}/text/${video.muxTrackId}.txt`);
           if (res.ok) transcript = await res.text();
-        } catch (e) {
-          console.error("Transcript fetch error", e);
-        }
-      }
+          // 2. Gọi AI
+          const SYSTEM_PROMPT = `Generate ONLY a YouTube title. Max 10 words, no quotes, match content.`;
+          const inputText = transcript.length > 200 ? `Transcript: ${transcript}` : `Video info: ${video.thumbnailUrl}. Generate title.`;
 
-      // 2. Gọi AI
-      const SYSTEM_PROMPT = `Generate ONLY a YouTube title. Max 10 words, no quotes, match content.`;
-      const inputText = transcript.length > 200 ? `Transcript: ${transcript}` : `Video info: ${video.thumbnailUrl}. Generate title.`;
+          const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.OPENROUTER_API_KEY!}`,
+            },
+            body: JSON.stringify({
+              model: "openai/gpt-oss-120b:free",
+              messages: [
+                { role: "system", content: SYSTEM_PROMPT },
+                { role: "user", content: inputText.slice(0, 8000) },
+              ],
+            }),
+          });
 
-      const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY!}`,
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-oss-120b:free",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: inputText.slice(0, 8000) },
-          ],
+          if (!aiResponse.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI failed" });
+          const aiData = await aiResponse.json();
+          let title = aiData.choices?.[0]?.message?.content?.trim().replace(/[*"]/g, "");
+
+          if (!title) title = "Amazing Video";
+
+          // 3. Cập nhật DB
+          await db.update(videos).set({ title }).where(eq(videos.id, video.id));
+
+          return { title };
         }),
-      });
-
-      if (!aiResponse.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI failed" });
-      const aiData = await aiResponse.json();
-      let title = aiData.choices?.[0]?.message?.content?.trim().replace(/[*"]/g, "");
-
-      if (!title) title = "Amazing Video";
-
-      // 3. Cập nhật DB
-      await db.update(videos).set({ title }).where(eq(videos.id, video.id));
-
-      return { title };
-    }),
   generateThumbnail: protectedProcedure
     .input(z.object({ id: z.string().uuid(), prompt: z.string().min(10) }))
     .mutation(async ({ ctx, input }) => {

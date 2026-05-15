@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { users, videoViews, videos } from "@/db/schema";
+import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.log("SAVE PROGRESS BEACON ERROR:", err);
+
     return NextResponse.json({ ok: false });
   }
 }

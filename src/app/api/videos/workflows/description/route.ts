@@ -1,5 +1,5 @@
-import { and, eq } from "drizzle-orm";
 import { serve } from "@upstash/workflow/nextjs";
+import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { videos } from "@/db/schema";
@@ -10,7 +10,6 @@ interface InputType {
 }
 
 export const { POST } = serve(async (context) => {
-  console.log("🚀 DESCRIPTION WORKFLOW START");
 
   const input = context.requestPayload as InputType;
 
@@ -35,7 +34,7 @@ export const { POST } = serve(async (context) => {
   // ================= GET TRANSCRIPT =================
   const transcript = await context.run("get-transcript", async () => {
     if (!video.muxPlaybackId || !video.muxTrackId) {
-      console.warn("⚠️ No mux data");
+
       return "";
     }
 
@@ -44,14 +43,14 @@ export const { POST } = serve(async (context) => {
     const res = await fetch(trackUrl);
 
     if (!res.ok) {
-      console.warn("⚠️ Failed transcript fetch");
+
       return "";
     }
 
     const text = await res.text();
 
     if (!text || text.length < 50) {
-      console.warn("⚠️ Transcript too short");
+
       return "";
     }
 
@@ -59,7 +58,7 @@ export const { POST } = serve(async (context) => {
   });
 
   // ================= AI INPUT =================
-  console.log("🤖 Generating description...");
+
 
   const isGoodTranscript = transcript && transcript.length > 200;
 
@@ -112,7 +111,7 @@ Rules:
 
   if (!aiResponse.ok) {
     const err = await aiResponse.text();
-    console.error("❌ AI ERROR:", err);
+    // AI error occurred
     throw new Error("AI request failed");
   }
 
@@ -130,14 +129,14 @@ Rules:
     description.toLowerCase().includes("transcript") ||
     description.toLowerCase().includes("user")
   ) {
-    console.warn("⚠️ Bad description → fallback");
+
 
     description =
       video.description ||
       "Watch this video to discover the key highlights and main ideas.";
   }
 
-  console.log("✨ FINAL DESCRIPTION:", description);
+
 
   // ================= UPDATE DB =================
   await context.run("update-video", async () => {
@@ -150,5 +149,5 @@ Rules:
       .where(and(eq(videos.id, video.id), eq(videos.userId, video.userId)));
   });
 
-  console.log("🎉 DESCRIPTION DONE");
+
 });
