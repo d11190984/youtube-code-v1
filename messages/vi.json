@@ -556,7 +556,8 @@
     "trafficSourceYoutubeSearch": "Tìm kiếm trên YouTube",
     "trafficSourceOtherFeatures": "Các tính năng khác của YouTube",
     "trafficSourceShortsFeed": "Nguồn cấp dữ liệu Shorts",
-    "trafficSourceDirect": "Trực tiếp hoặc không xác định"
+    "trafficSourceDirect": "Trực tiếp hoặc không xác định",
+    "reply": "Phản hồi"
   },
   "VideoCard": {
     "noDescription": "Không có mô tả",

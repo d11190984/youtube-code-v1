@@ -480,7 +480,8 @@
     "trafficSourceYoutubeSearch": "Recherche YouTube",
     "trafficSourceOtherFeatures": "Autres fonctionnalités YouTube",
     "trafficSourceShortsFeed": "Flux Shorts",
-    "trafficSourceDirect": "Direct ou inconnu"
+    "trafficSourceDirect": "Direct ou inconnu",
+    "reply": "Répondre"
   },
   "VideoCard": {
     "noDescription": "Aucune description",

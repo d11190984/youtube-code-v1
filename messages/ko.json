@@ -501,7 +501,8 @@
     "trafficSourceYoutubeSearch": "YouTube 검색",
     "trafficSourceOtherFeatures": "기타 YouTube 기능",
     "trafficSourceShortsFeed": "Shorts 피드",
-    "trafficSourceDirect": "직접 유입 또는 알 수 없는 출처"
+    "trafficSourceDirect": "직접 유입 또는 알 수 없는 출처",
+    "reply": "답글"
   },
   "VideoCard": {
     "noDescription": "설명 없음",

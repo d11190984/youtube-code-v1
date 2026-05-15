@@ -556,7 +556,8 @@
     "trafficSourceYoutubeSearch": "YouTube Search",
     "trafficSourceOtherFeatures": "Other YouTube features",
     "trafficSourceShortsFeed": "Shorts feed",
-    "trafficSourceDirect": "Direct or unknown"
+    "trafficSourceDirect": "Direct or unknown",
+    "reply": "Reply"
   },
   "VideoCard": {
     "noDescription": "No description",

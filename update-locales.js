@@ -1890,6 +1890,16 @@ const translationsToAdd = {
       ko: "적용",
       zh: "应用",
     },
+    reply: {
+      en: "Reply",
+      vi: "Phản hồi",
+      de: "Antworten",
+      es: "Responder",
+      fr: "Répondre",
+      ja: "返信",
+      ko: "답글",
+      zh: "回复",
+    },
     cancel: {
       en: "Cancel",
       vi: "Hủy",

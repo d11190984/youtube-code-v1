@@ -502,7 +502,8 @@
     "trafficSourceYoutubeSearch": "YouTube 搜索",
     "trafficSourceOtherFeatures": "其他 YouTube 功能",
     "trafficSourceShortsFeed": "Shorts 动态",
-    "trafficSourceDirect": "直接进入或未知来源"
+    "trafficSourceDirect": "直接进入或未知来源",
+    "reply": "回复"
   },
   "VideoCard": {
     "noDescription": "无描述",

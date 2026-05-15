@@ -61,10 +61,11 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
+import { useRouter } from "@/i18n/routing";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -93,9 +94,11 @@ import { InfiniteScroll } from "@/components/infinite-scroll";
 
 interface CommunityViewProps {
   videoId?: string;
+  currentTab?: string;
 }
 
-export const CommunityView = ({ videoId }: CommunityViewProps) => {
+export const CommunityView = ({ videoId, currentTab = "comments" }: CommunityViewProps) => {
+  const router = useRouter();
   const t = useTranslations("Studio");
   const locale = useLocale();
   const [sortBy, setSortBy] = useState<"newest" | "top">("newest");
@@ -127,7 +130,15 @@ export const CommunityView = ({ videoId }: CommunityViewProps) => {
     <div className="flex flex-col gap-y-4 p-4 lg:p-8 bg-neutral-50 dark:bg-[#0f0f0f] min-h-screen text-black dark:text-white">
       <h1 className="text-2xl font-bold mb-4">{videoId ? t("videoComments") : t("community")}</h1>
 
-      <Tabs defaultValue="comments" className="w-full">
+      <Tabs 
+        value={currentTab} 
+        onValueChange={(value) => {
+          if (!videoId) {
+            router.push(`/studio/community/${value}`);
+          }
+        }}
+        className="w-full"
+      >
         <TabsList className={cn(
           "bg-transparent h-auto p-0 gap-x-6 border-b border-neutral-200 dark:border-white/10 w-full justify-start rounded-none overflow-x-auto scrollbar-hide flex-nowrap",
           videoId && "hidden"
@@ -774,7 +785,7 @@ const ModerationSettings = () => {
 
       <div className="space-y-4 bg-white dark:bg-white/5 p-6 rounded-xl border border-neutral-200 dark:border-white/10">
         <div className="space-y-2">
-          <FormLabel className="text-sm font-bold uppercase text-muted-foreground">{t("blockedWords")}</FormLabel>
+          <Label className="text-sm font-bold uppercase text-muted-foreground">{t("blockedWords")}</Label>
           <p className="text-xs text-muted-foreground mb-4">{t("blockedWordsDesc")}</p>
           <Textarea 
             value={blacklist}

@@ -46,7 +46,7 @@ const StudioSidebarInternal = () => {
       icon: BarChart3Icon,
     },
     {
-      href: "/studio/community",
+      href: "/studio/community/comments",
       label: t("community"),
       icon: UsersIcon,
     },
@@ -67,11 +67,14 @@ const StudioSidebarInternal = () => {
 
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const isActive = item.href === "/studio" 
+            ? pathname === "/studio" 
+            : pathname.startsWith(item.href);
 
           return (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
-                isActive={pathname === item.href}
+                isActive={isActive}
                 tooltip={item.label}
                 asChild
               >

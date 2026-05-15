@@ -553,7 +553,8 @@
     "trafficSourceYoutubeSearch": "YouTube 検索",
     "trafficSourceOtherFeatures": "YouTube のその他の機能",
     "trafficSourceShortsFeed": "ショート フィード",
-    "trafficSourceDirect": "直接入力、または不明"
+    "trafficSourceDirect": "直接入力、または不明",
+    "reply": "返信"
   },
   "VideoCard": {
     "noDescription": "説明なし",

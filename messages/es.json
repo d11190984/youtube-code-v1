@@ -517,7 +517,8 @@
     "trafficSourceYoutubeSearch": "Búsqueda de YouTube",
     "trafficSourceOtherFeatures": "Otras funciones de YouTube",
     "trafficSourceShortsFeed": "Feed de Shorts",
-    "trafficSourceDirect": "Directo o desconocido"
+    "trafficSourceDirect": "Directo o desconocido",
+    "reply": "Responder"
   },
   "VideoCard": {
     "noDescription": "Sin descripción",

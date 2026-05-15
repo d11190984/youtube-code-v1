@@ -301,7 +301,7 @@ export const commentsRouter = createTRPCRouter({
         .where(eq(users.id, contentOwnerId));
 
       const blacklist = creator?.blacklistKeywords 
-        ? creator.blacklistKeywords.split(",").map(k => k.trim().toLowerCase()).filter(Boolean)
+        ? creator.blacklistKeywords.split(/[;,]/).map(k => k.trim().toLowerCase()).filter(Boolean)
         : [];
       
       const containsBlacklist = blacklist.some(keyword => value.toLowerCase().includes(keyword));
